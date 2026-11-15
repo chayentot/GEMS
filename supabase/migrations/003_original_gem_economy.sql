@@ -87,16 +87,9 @@ begin
     where player_gemstone_id = p_player_gemstone_id
       and user_id = auth.uid()
       and is_active = true
-      and ends_at > now()
   ) then
-    raise exception 'Mining is already running for this gemstone.';
+    raise exception 'A mining session is still active. Collect its rewards before starting another cycle.';
   end if;
-
-  update public.mining_sessions
-  set is_active = false
-  where player_gemstone_id = p_player_gemstone_id
-    and user_id = auth.uid()
-    and is_active = true;
 
   insert into public.mining_sessions(player_gemstone_id,user_id,started_at,ends_at,last_collected_at,is_active)
   values (p_player_gemstone_id,auth.uid(),now(),now()+interval '24 hours',now(),true)
