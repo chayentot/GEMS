@@ -6,7 +6,7 @@ import { createClient } from "@/lib/supabase";
 import GemArt from "@/components/gem-art";
 
 type Gemstone={id:string;code:string;name:string;earning_units_per_minute:number[];level_up_cost_units:number[];unlock_cost_units:number;requires_gemstone_id:string|null;units_per_gems:number};
-type Inventory={id:string;gemstone_id:string;level:number;is_active:boolean;gemstone_units_balance:number;gemstones:Gemstone};
+type Inventory={id:string;gemstone_id:string;level:number;is_active:boolean;is_unlocked:boolean;gemstone_units_balance:number;gemstones:Gemstone};
 type Session={id:string;player_gemstone_id:string;started_at:string;ends_at:string;last_collected_at:string;is_active:boolean};
 const order=["GARNET","MOONSTONE","BLACK_OPAL","AQUAMARINE","TOPAZ","AMETHYST","EMERALD","SAPPHIRE","RUBY","DIAMOND"];
 const fmt=(n:number)=>Number(n||0).toLocaleString(undefined,{maximumFractionDigits:8});
@@ -21,7 +21,7 @@ export default function MiningPage(){
   setEmail(user.email??"");
   const [g,i,s]=await Promise.all([
    sb.from("gemstones").select("id,code,name,earning_units_per_minute,level_up_cost_units,unlock_cost_units,requires_gemstone_id,units_per_gems").eq("is_available",true),
-   sb.from("player_gemstones").select("id,gemstone_id,level,is_active,gemstone_units_balance,gemstones(id,code,name,earning_units_per_minute,level_up_cost_units,unlock_cost_units,requires_gemstone_id,units_per_gems)").eq("user_id",user.id),
+   sb.from("player_gemstones").select("id,gemstone_id,level,is_active,is_unlocked,gemstone_units_balance,gemstones(id,code,name,earning_units_per_minute,level_up_cost_units,unlock_cost_units,requires_gemstone_id,units_per_gems)").eq("user_id",user.id),
    sb.from("mining_sessions").select("id,player_gemstone_id,started_at,ends_at,last_collected_at,is_active").eq("user_id",user.id).eq("is_active",true)
   ]);
   const error=g.error||i.error||s.error;if(error){setStatus(error.message);return;}
@@ -55,8 +55,8 @@ export default function MiningPage(){
     const previousItem=g.requires_gemstone_id?owned.get(g.requires_gemstone_id):undefined;
     const canUnlock=!item&&(g.requires_gemstone_id?Boolean(previousItem&&previousItem.gemstone_units_balance>=g.unlock_cost_units):false);
     return <article className="panel mining-card" key={g.id}>
-     <div className="row mining-heading"><GemArt code={g.code} size={88}/><div className="mining-name"><h3>{g.name}</h3><span className={item?"status-active":"status-locked"}>{item?"Owned · Level "+item.level:"Locked"}</span></div></div>
-     {item?<>
+     <div className="row mining-heading"><GemArt code={g.code} size={88}/><div className="mining-name"><h3>{g.name}</h3><span className={item?"status-active":"status-locked"}>{unlocked&&item?"Owned · Level "+item.level:"Locked"}</span></div></div>
+     {unlocked&&item?<>
       <div className="mining-rate"><strong>{fmt(rate)}</strong><span className="small"> units / minute</span></div>
       <div className="small">Your balance: <strong>{fmt(item.gemstone_units_balance)} units</strong></div>
       {session?<div className="notice mining-session"><strong>Mining in progress</strong><div className="small">Started: {new Date(session.started_at).toLocaleString()}</div><div className="small">Cycle ends: {new Date(session.ends_at).toLocaleString()}</div><button disabled={!!busy} onClick={()=>action(item.id,"collect_mining",{p_player_gemstone_id:item.id})}>{busy===item.id?"Please wait…":"Collect units"}</button></div>
@@ -64,8 +64,8 @@ export default function MiningPage(){
       <div className="small">Next level-up: {item.level>=10?"Maximum level reached":fmt(cost)+" units"}</div>
       {item.level<10&&<button className="secondary section" disabled={!!busy||item.gemstone_units_balance<cost} onClick={()=>action(item.id,"level_up_gemstone",{p_player_gemstone_id:item.id})}>Level up to {item.level+1}</button>}
      </>:<div className="locked-details">
-       {g.requires_gemstone_id?<><p className="small">Unlock with {fmt(g.unlock_cost_units)} {previous?.name??"previous gemstone"} units.</p><p className="small">{previousItem?fmt(previousItem.gemstone_units_balance)+" available": "You need to own "+(previous?.name??"the previous gemstone")+" first."}</p></>:<p className="small">Starter Garnet is free for new players.</p>}
-       {canUnlock&&<button disabled={!!busy} onClick={()=>action(g.id,"purchase_gemstone",{p_gemstone_id:g.id})}>{busy===g.id?"Unlocking…":"Unlock gemstone"}</button>}
+       {g.requires_gemstone_id?<><p className="small">Unlock with {fmt(g.unlock_cost_units)} {g.name} units.</p><p className="small">{item?fmt(item.gemstone_units_balance)+" "+g.name+" units available":"Buy "+g.name+" units in the Market first."}</p></>:<p className="small">Starter Garnet is free for new players.</p>}
+       {canUnlock&&<button disabled={!!busy} onClick={()=>action(g.id,"purchase_gemstone",{p_gemstone_id:g.id})}>{busy===g.id?"Unlocking…":"Unlock with "+g.name+" units"}</button>}
       </div>}
     </article>;
    })}
