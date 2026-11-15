@@ -58,6 +58,10 @@ where upper(g.code) = v.code;
 
 -- Economy RPCs: mining earns gemstone units, conversion is explicit, and
 -- gemstone unlocking / level-ups consume the exact unit requirements above.
+-- Drop the three legacy signatures first because their original return types differ.
+drop function if exists public.start_mining(uuid);
+drop function if exists public.collect_mining(uuid);
+drop function if exists public.purchase_gemstone(uuid);
 
 create or replace function public.start_mining(p_player_gemstone_id uuid)
 returns uuid
