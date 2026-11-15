@@ -53,7 +53,8 @@ export default function MiningPage(){
     const rate=unlocked&&item?(g.earning_units_per_minute?.[item.level-1]??0):0;
     const cost=unlocked&&item?(g.level_up_cost_units?.[item.level-1]??0):0;
     const cycleYield=rate*1440;
-    const remaining=session?Math.max(0,new Date(session.ends_at).getTime()-now):0;\n    const remainingText=[Math.floor(remaining/3600000),Math.floor((remaining%3600000)/60000),Math.floor((remaining%60000)/1000)].map(v=>String(v).padStart(2,"0")).join(":");
+    const remaining=session?Math.max(0,new Date(session.ends_at).getTime()-now):0;
+    const remainingText=[Math.floor(remaining/3600000),Math.floor((remaining%3600000)/60000),Math.floor((remaining%60000)/1000)].map(v=>String(v).padStart(2,"0")).join(":");
     const canUnlock=Boolean(item&&!unlocked&&g.code!=="GARNET"&&item.gemstone_units_balance>=g.unlock_cost_units);
     return <article className="panel mining-card" key={g.id}>
      <div className="row mining-heading"><GemArt code={g.code} size={88}/><div className="mining-name"><h3>{g.name}</h3><span className={unlocked?"status-active":"status-locked"}>{unlocked&&item?"Owned · Level "+item.level:"Locked"}</span></div></div>
