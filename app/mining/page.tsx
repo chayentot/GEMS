@@ -12,9 +12,9 @@ const order=["GARNET","MOONSTONE","BLACK_OPAL","AQUAMARINE","TOPAZ","AMETHYST","
 const fmt=(n:number)=>Number(n||0).toLocaleString(undefined,{maximumFractionDigits:8});
 
 export default function MiningPage(){
- const [email,setEmail]=useState("");const [catalog,setCatalog]=useState<Gemstone[]>([]);
+ const [,setEmail]=useState("");const [catalog,setCatalog]=useState<Gemstone[]>([]);
  const [inventory,setInventory]=useState<Inventory[]>([]);const [sessions,setSessions]=useState<Session[]>([]);
- const [status,setStatus]=useState("Loading mining assets…");const [busy,setBusy]=useState("");
+ const [status,setStatus]=useState("");const [busy,setBusy]=useState("");const [now,setNow]=useState(Date.now());
  async function load(){
   const sb=createClient();const {data:{user},error:authError}=await sb.auth.getUser();
   if(authError||!user){window.location.href="/GEMS/login/";return;}
@@ -29,7 +29,7 @@ export default function MiningPage(){
   setInventory(((i.data??[]) as unknown as Inventory[]).sort((a,b)=>order.indexOf(a.gemstones?.code)-order.indexOf(b.gemstones?.code)));
   setSessions((s.data??[]) as Session[]);setStatus("");
  }
- useEffect(()=>{void load();},[]);
+ useEffect(()=>{void load();const timer=window.setInterval(()=>setNow(Date.now()),1000);return()=>window.clearInterval(timer);},[]);
  async function action(label:string,fn:string,args:Record<string,unknown>){
   setBusy(label);setStatus("");
   try{const sb=createClient();const {data,error}=await sb.rpc(fn,args);if(error)throw error;
@@ -43,8 +43,8 @@ export default function MiningPage(){
  const owned=new Map(inventory.map(x=>[x.gemstone_id,x]));
  const active=new Map(sessions.map(x=>[x.player_gemstone_id,x]));
  return <main className="shell">
-  <header className="topbar"><Link href="/" className="brand">💎 GEMS MINING</Link><nav className="row"><Link href="/dashboard/">Dashboard</Link><Link href="/mining/" aria-current="page">Mining</Link><Link href="/market/">Market</Link><Link href="/profile/">Profile</Link><span className="small">{email}</span></nav></header>
-  <h1>Gemstone Mining</h1><p className="muted">Manage all 10 gemstones, start a 24-hour mining cycle, collect units, unlock new gemstones and level up.</p>
+  <header className="topbar"><Link href="/" className="brand">💎 GEMS</Link><nav className="row"><Link href="/dashboard/">Dashboard</Link><Link href="/mining/" aria-current="page">Mining</Link><Link href="/market/">Market</Link><Link href="/profile/">Profile</Link></nav></header>
+  <h1>Mining</h1>
   {status&&<div className="notice">{status}</div>}
   <div className="grid section">
    {catalog.map(g=>{
@@ -52,24 +52,24 @@ export default function MiningPage(){
     const unlocked=Boolean(item&&(item.is_unlocked||g.code==="GARNET"));
     const session=unlocked&&item?active.get(item.id):undefined;
     const rate=unlocked&&item?(g.earning_units_per_minute?.[item.level-1]??0):0;
-    const cost=unlocked&&item?(g.level_up_cost_units?.[item.level-1]??0):0;
+    const cost=unlocked&&item?(g.level_up_cost_units?.[item.level-1]??0):0;\n    const cycleYield=rate*1440;\n    const remaining=session?Math.max(0,new Date(session.ends_at).getTime()-now):0;\n    const remainingText=[Math.floor(remaining/3600000),Math.floor((remaining%3600000)/60000),Math.floor((remaining%60000)/1000)].map(v=>String(v).padStart(2,"0")).join(":");
     const canUnlock=Boolean(item&&!unlocked&&g.code!=="GARNET"&&item.gemstone_units_balance>=g.unlock_cost_units);
     return <article className="panel mining-card" key={g.id}>
      <div className="row mining-heading"><GemArt code={g.code} size={88}/><div className="mining-name"><h3>{g.name}</h3><span className={unlocked?"status-active":"status-locked"}>{unlocked&&item?"Owned · Level "+item.level:"Locked"}</span></div></div>
      {unlocked&&item?<>
-      <div className="mining-rate"><strong>{fmt(rate)}</strong><span className="small"> units / minute</span></div>
+      <div className="mining-rate"><strong>{fmt(rate)}</strong><span className="small"> units/min</span></div>\n      <div className="small">Earn per 24-hour cycle: <strong>{fmt(cycleYield)} units</strong></div>
       <div className="small">Your balance: <strong>{fmt(item.gemstone_units_balance)} units</strong></div>
-      {session?<div className="notice mining-session"><strong>Mining in progress</strong><div className="small">Started: {new Date(session.started_at).toLocaleString()}</div><div className="small">Cycle ends: {new Date(session.ends_at).toLocaleString()}</div><button disabled={!!busy} onClick={()=>action(item.id,"collect_mining",{p_player_gemstone_id:item.id})}>{busy===item.id?"Please wait…":"Collect units"}</button></div>
-      :<div className="notice mining-session"><strong>Not currently mining</strong><p className="small">Start a new cycle. You can collect at any time, up to 24 hours.</p><button disabled={!!busy} onClick={()=>action(item.id,"start_mining",{p_player_gemstone_id:item.id})}>{busy===item.id?"Starting…":"▶ Start Mining"}</button></div>}
-      <div className="small">Next level-up: {item.level>=10?"Maximum level reached":fmt(cost)+" units"}</div>
+      {session?<div className="notice mining-session"><strong>Mining in progress</strong><div className="small">Time left: <strong>{remainingText}</strong></div><button disabled={!!busy} onClick={()=>action(item.id,"collect_mining",{p_player_gemstone_id:item.id})}>{busy===item.id?"Please wait…":remaining===0?"Collect completed cycle":"Collect now"}</button></div>
+      :<div className="notice mining-session"><strong>Not mining</strong><button disabled={!!busy} onClick={()=>action(item.id,"start_mining",{p_player_gemstone_id:item.id})}>{busy===item.id?"Starting…":"▶ Start"}</button></div>}
+      <div className="small">{item.level>=10?"Max level":"Next level: "+fmt(cost)+" units"}</div>
       {item.level<10&&<button className="secondary section" disabled={!!busy||item.gemstone_units_balance<cost} onClick={()=>action(item.id,"level_up_gemstone",{p_player_gemstone_id:item.id})}>Level up to {item.level+1}</button>}
      </>:<div className="locked-details">
-       {g.code!=="GARNET"?<><p className="small">Unlock with {fmt(g.unlock_cost_units)} {g.name} units.</p><p className="small">{item?fmt(item.gemstone_units_balance)+" "+g.name+" units available":"Buy "+g.name+" units in the Market first."}</p></>:<p className="small">Starter Garnet is free for new players.</p>}
+       {g.code!=="GARNET"?<><p className="small">Unlock: {fmt(g.unlock_cost_units)} units</p><p className="small">Available: {fmt(item?.gemstone_units_balance??0)} units</p><Link href="/market/">Get units in Market</Link></>:<p className="small">Starter Garnet is free for new players.</p>}
        {canUnlock&&<button disabled={!!busy} onClick={()=>action(g.id,"purchase_gemstone",{p_gemstone_id:g.id})}>{busy===g.id?"Unlocking…":"Unlock with "+g.name+" units"}</button>}
       </div>}
     </article>;
    })}
   </div>
-  <p className="small section">Mining rates and level-up requirements follow your original confirmed GEMS table. Each cycle runs for a maximum of 24 hours.</p>
+  
  </main>;
 }
