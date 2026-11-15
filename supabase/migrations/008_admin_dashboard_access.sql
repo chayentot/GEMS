@@ -43,4 +43,13 @@ drop policy if exists "GEMS admins read all market transactions" on public.marke
 create policy "GEMS admins read all market transactions" on public.market_transactions
 for select to authenticated using (public.is_admin());
 
+
+-- Grant administrator access to the explicitly designated account.
+-- The account must already exist in Supabase Authentication.
+insert into public.admin_users (user_id)
+select id
+from auth.users
+where lower(email) = lower('cerithel@gmail.com')
+on conflict (user_id) do nothing;
+
 commit;
