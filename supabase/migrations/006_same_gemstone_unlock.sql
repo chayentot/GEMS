@@ -102,7 +102,7 @@ begin
   end if;
   if v_inventory.is_unlocked then raise exception 'You already unlocked this gemstone.'; end if;
   if v_inventory.gemstone_units_balance<v_gem.unlock_cost_units then
-    raise exception 'Not enough '||v_gem.name||' units. Required: '||v_gem.unlock_cost_units||'.';
+    raise exception 'Not enough % units. Required: %.', v_gem.name, v_gem.unlock_cost_units;
   end if;
 
   update public.player_gemstones
