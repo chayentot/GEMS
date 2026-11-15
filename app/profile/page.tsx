@@ -41,7 +41,7 @@ export default function ProfilePage(){
    <div className="panel"><div className="muted">Email address</div><strong>{email||"—"}</strong><div className="small">Registered account</div></div>
    <div className="panel"><div className="muted">Username</div><strong>{username||"Not set"}</strong><div className="small">Player display name</div></div>
    <div className="panel"><div className="muted">GEMS wallet</div><div className="stat">{fmt(wallet?.gems_balance??0)}</div><div className="small">GEMS · ₱1 accounting value each</div></div>
-   <div className="panel"><div className="muted">Diamonds wallet</div><div className="stat">{fmt(wallet?.diamonds_balance??0)}</div><div className="small">Separate balance</div></div>
+   
   </section>
   <section className="grid section">
    <div className="panel"><h2>Recharge GEMS</h2><p className="small">Recharge fee: 0%. Your GEMS are credited after an administrator verifies your payment.</p>
