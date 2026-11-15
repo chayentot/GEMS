@@ -48,14 +48,14 @@ export default function MiningPage(){
   {status&&<div className="notice">{status}</div>}
   <div className="grid section">
    {catalog.map(g=>{
-    const item=owned.get(g.id);const session=item?active.get(item.id):undefined;
-    const rate=item?(g.earning_units_per_minute?.[item.level-1]??0):0;
-    const cost=item?(g.level_up_cost_units?.[item.level-1]??0):0;
-    const previous=g.requires_gemstone_id?catalog.find(x=>x.id===g.requires_gemstone_id):undefined;
-    const previousItem=g.requires_gemstone_id?owned.get(g.requires_gemstone_id):undefined;
-    const canUnlock=!item&&(g.requires_gemstone_id?Boolean(previousItem&&previousItem.gemstone_units_balance>=g.unlock_cost_units):false);
+    const item=owned.get(g.id);
+    const unlocked=Boolean(item&&(item.is_unlocked||g.code==="GARNET"));
+    const session=unlocked&&item?active.get(item.id):undefined;
+    const rate=unlocked&&item?(g.earning_units_per_minute?.[item.level-1]??0):0;
+    const cost=unlocked&&item?(g.level_up_cost_units?.[item.level-1]??0):0;
+    const canUnlock=Boolean(item&&!unlocked&&g.code!=="GARNET"&&item.gemstone_units_balance>=g.unlock_cost_units);
     return <article className="panel mining-card" key={g.id}>
-     <div className="row mining-heading"><GemArt code={g.code} size={88}/><div className="mining-name"><h3>{g.name}</h3><span className={item?"status-active":"status-locked"}>{unlocked&&item?"Owned · Level "+item.level:"Locked"}</span></div></div>
+     <div className="row mining-heading"><GemArt code={g.code} size={88}/><div className="mining-name"><h3>{g.name}</h3><span className={unlocked?"status-active":"status-locked"}>{unlocked&&item?"Owned · Level "+item.level:"Locked"}</span></div></div>
      {unlocked&&item?<>
       <div className="mining-rate"><strong>{fmt(rate)}</strong><span className="small"> units / minute</span></div>
       <div className="small">Your balance: <strong>{fmt(item.gemstone_units_balance)} units</strong></div>
@@ -64,7 +64,7 @@ export default function MiningPage(){
       <div className="small">Next level-up: {item.level>=10?"Maximum level reached":fmt(cost)+" units"}</div>
       {item.level<10&&<button className="secondary section" disabled={!!busy||item.gemstone_units_balance<cost} onClick={()=>action(item.id,"level_up_gemstone",{p_player_gemstone_id:item.id})}>Level up to {item.level+1}</button>}
      </>:<div className="locked-details">
-       {g.requires_gemstone_id?<><p className="small">Unlock with {fmt(g.unlock_cost_units)} {g.name} units.</p><p className="small">{item?fmt(item.gemstone_units_balance)+" "+g.name+" units available":"Buy "+g.name+" units in the Market first."}</p></>:<p className="small">Starter Garnet is free for new players.</p>}
+       {g.code!=="GARNET"?<><p className="small">Unlock with {fmt(g.unlock_cost_units)} {g.name} units.</p><p className="small">{item?fmt(item.gemstone_units_balance)+" "+g.name+" units available":"Buy "+g.name+" units in the Market first."}</p></>:<p className="small">Starter Garnet is free for new players.</p>}
        {canUnlock&&<button disabled={!!busy} onClick={()=>action(g.id,"purchase_gemstone",{p_gemstone_id:g.id})}>{busy===g.id?"Unlocking…":"Unlock with "+g.name+" units"}</button>}
       </div>}
     </article>;
