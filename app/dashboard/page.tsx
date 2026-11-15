@@ -6,7 +6,7 @@ import { createClient } from "@/lib/supabase";
 import GemArt from "@/components/gem-art";
 
 type Gemstone={id:string;code:string;name:string};
-type Inventory={id:string;gemstone_id:string;level:number;gemstone_units_balance:number;is_active:boolean;gemstones:Gemstone};
+type Inventory={id:string;gemstone_id:string;level:number;gemstone_units_balance:number;is_active:boolean;is_unlocked:boolean;gemstones:Gemstone};
 type Wallet={gems_balance:number;diamonds_balance:number};
 const order=["GARNET","MOONSTONE","BLACK_OPAL","AQUAMARINE","TOPAZ","AMETHYST","EMERALD","SAPPHIRE","RUBY","DIAMOND"];
 const fmt=(n:number)=>Number(n||0).toLocaleString(undefined,{maximumFractionDigits:8});
@@ -20,10 +20,10 @@ export default function Dashboard(){
   setEmail(user.email??"");
   const [w,i]=await Promise.all([
    sb.from("wallets").select("gems_balance,diamonds_balance").eq("user_id",user.id).maybeSingle(),
-   sb.from("player_gemstones").select("id,gemstone_id,level,gemstone_units_balance,is_active,gemstones(id,code,name)").eq("user_id",user.id)
+   sb.from("player_gemstones").select("id,gemstone_id,level,gemstone_units_balance,is_active,is_unlocked,gemstones(id,code,name)").eq("user_id",user.id)
   ]);
   if(w.error||i.error){setStatus(w.error?.message||i.error?.message||"Unable to load account.");return;}
-  setWallet(w.data as Wallet);setInventory(((i.data??[]) as unknown as Inventory[]).sort((a,b)=>order.indexOf(a.gemstones?.code)-order.indexOf(b.gemstones?.code)));setStatus("");
+  setWallet(w.data as Wallet);setInventory(((i.data??[]) as unknown as Inventory[]).filter(x=>x.is_unlocked||x.gemstones?.code==="GARNET").sort((a,b)=>order.indexOf(a.gemstones?.code)-order.indexOf(b.gemstones?.code)));setStatus("");
  }
  useEffect(()=>{void load();},[]);
  return <main className="shell">
