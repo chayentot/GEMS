@@ -76,7 +76,7 @@ export default function Dashboard() {
   const inventoryByGem=new Map(inventory.map(g=>[g.gemstone_id,g]));
 
   return <main className="shell">
-    <header className="topbar"><Link href="/" className="brand">💎 GEMS MINING</Link><div className="row"><span className="small">{email}</span><button className="secondary" onClick={logout}>Sign out</button></div></header>
+    <header className="topbar"><Link href="/" className="brand">💎 GEMS MINING</Link><div className="row"><nav className="row"><Link href="/dashboard/">Dashboard</Link><Link href="/dashboard/">Mining</Link><Link href="/market/">Market</Link><Link href="/dashboard/">Profile</Link></nav><span className="small">{email}</span><button className="secondary" onClick={logout}>Sign out</button></div></header>
     <h1>Player Dashboard</h1><p className="muted">Your wallet, gemstone collection and mining controls.</p>
     {status && <div className="notice">{status}</div>}
     <section className="grid section">
