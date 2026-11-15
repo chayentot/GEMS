@@ -402,6 +402,43 @@ begin
 end;
 $$;
 
+
+-- Buy an additional gemstone using the player's GEMS balance.
+create or replace function public.purchase_gemstone(p_gemstone_id uuid)
+returns uuid
+language plpgsql
+security definer
+set search_path = public, auth, pg_temp
+as $
+declare
+  v_gem public.gemstones%rowtype;
+  v_inventory_id uuid;
+begin
+  if auth.uid() is null then raise exception 'You must be signed in.'; end if;
+
+  select * into v_gem
+  from public.gemstones
+  where id = p_gemstone_id and is_available = true
+  for update;
+  if not found then raise exception 'Gemstone is unavailable.'; end if;
+
+  update public.wallets
+  set gems_balance = gems_balance - v_gem.unlock_cost_gems, updated_at = now()
+  where user_id = auth.uid() and gems_balance >= v_gem.unlock_cost_gems;
+  if not found then raise exception 'Insufficient GEMS balance.'; end if;
+
+  insert into public.player_gemstones(user_id, gemstone_id, level, is_active)
+  values (auth.uid(), v_gem.id, 1, true)
+  returning id into v_inventory_id;
+
+  insert into public.wallet_transactions(user_id, transaction_type, amount, description, reference_id)
+  values (auth.uid(), 'gemstone_purchase', -v_gem.unlock_cost_gems,
+    'Purchased ' || v_gem.name, v_inventory_id);
+
+  return v_inventory_id;
+end;
+$;
+
 -- RLS: players can read only their own records. Writes are performed through trusted RPC functions.
 alter table public.profiles enable row level security;
 alter table public.wallets enable row level security;
@@ -444,10 +481,10 @@ revoke all on function public.start_mining(uuid), public.collect_mining(uuid),
   public.create_recharge_request(numeric,text), public.request_withdrawal(numeric,text),
   public.admin_approve_recharge(uuid), public.admin_reject_recharge(uuid),
   public.admin_mark_withdrawal_paid(uuid), public.admin_approve_withdrawal(uuid),
-  public.admin_reject_withdrawal(uuid) from public, anon;
+  public.admin_reject_withdrawal(uuid), public.purchase_gemstone(uuid) from public, anon;
 grant execute on function public.start_mining(uuid), public.collect_mining(uuid),
   public.create_recharge_request(numeric,text), public.request_withdrawal(numeric,text),
   public.admin_approve_recharge(uuid), public.admin_reject_recharge(uuid),
   public.admin_mark_withdrawal_paid(uuid), public.admin_approve_withdrawal(uuid),
-  public.admin_reject_withdrawal(uuid) to authenticated;
+  public.admin_reject_withdrawal(uuid), public.purchase_gemstone(uuid) to authenticated;
 
