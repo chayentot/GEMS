@@ -55,6 +55,245 @@ from (values
 ) as v(code,earning,level_cost,conversion,unlock_cost,requires_code)
 where upper(g.code) = v.code;
 
+
+-- Economy RPCs: mining earns gemstone units, conversion is explicit, and
+-- gemstone unlocking / level-ups consume the exact unit requirements above.
+
+create or replace function public.start_mining(p_player_gemstone_id uuid)
+returns uuid
+language plpgsql
+security definer
+set search_path = public, auth, pg_temp
+as $function$
+declare
+  v_pg public.player_gemstones%rowtype;
+  v_session_id uuid;
+begin
+  if auth.uid() is null then raise exception 'You must be signed in.'; end if;
+
+  select * into v_pg
+  from public.player_gemstones
+  where id = p_player_gemstone_id and user_id = auth.uid()
+  for update;
+  if not found then raise exception 'Gemstone not found.'; end if;
+  if not v_pg.is_active then raise exception 'This gemstone is inactive.'; end if;
+
+  if exists (
+    select 1 from public.mining_sessions
+    where player_gemstone_id = p_player_gemstone_id
+      and user_id = auth.uid()
+      and is_active = true
+      and ends_at > now()
+  ) then
+    raise exception 'Mining is already running for this gemstone.';
+  end if;
+
+  update public.mining_sessions
+  set is_active = false
+  where player_gemstone_id = p_player_gemstone_id
+    and user_id = auth.uid()
+    and is_active = true;
+
+  insert into public.mining_sessions(player_gemstone_id,user_id,started_at,ends_at,last_collected_at,is_active)
+  values (p_player_gemstone_id,auth.uid(),now(),now()+interval '24 hours',now(),true)
+  returning id into v_session_id;
+
+  return v_session_id;
+end;
+$function$;
+
+create or replace function public.collect_mining(p_player_gemstone_id uuid)
+returns numeric
+language plpgsql
+security definer
+set search_path = public, auth, pg_temp
+as $function$
+declare
+  v_pg public.player_gemstones%rowtype;
+  v_session public.mining_sessions%rowtype;
+  v_gem public.gemstones%rowtype;
+  v_rate numeric;
+  v_cutoff timestamptz;
+  v_units numeric;
+begin
+  if auth.uid() is null then raise exception 'You must be signed in.'; end if;
+
+  select * into v_pg
+  from public.player_gemstones
+  where id = p_player_gemstone_id and user_id = auth.uid()
+  for update;
+  if not found then raise exception 'Gemstone not found.'; end if;
+
+  select * into v_session
+  from public.mining_sessions
+  where player_gemstone_id = p_player_gemstone_id
+    and user_id = auth.uid()
+    and is_active = true
+  order by started_at desc
+  limit 1
+  for update;
+  if not found then raise exception 'No active mining session.'; end if;
+
+  select * into v_gem from public.gemstones where id = v_pg.gemstone_id;
+  v_rate := coalesce((v_gem.earning_units_per_minute ->> (v_pg.level - 1))::numeric,0);
+  if v_rate <= 0 then raise exception 'Mining rate is not configured for this level.'; end if;
+
+  v_cutoff := least(now(),v_session.ends_at);
+  v_units := round(v_rate * greatest(0,extract(epoch from (v_cutoff-v_session.last_collected_at))/60.0),8);
+  if v_units <= 0 then raise exception 'No mining units are available yet.'; end if;
+
+  update public.player_gemstones
+  set gemstone_units_balance = gemstone_units_balance + v_units
+  where id = p_player_gemstone_id;
+
+  if v_cutoff >= v_session.ends_at then
+    update public.mining_sessions set is_active=false,last_collected_at=v_cutoff where id=v_session.id;
+  else
+    update public.mining_sessions set last_collected_at=v_cutoff where id=v_session.id;
+  end if;
+
+  return v_units;
+end;
+$function$;
+
+create or replace function public.convert_gemstone_units(p_player_gemstone_id uuid)
+returns numeric
+language plpgsql
+security definer
+set search_path = public, auth, pg_temp
+as $function$
+declare
+  v_pg public.player_gemstones%rowtype;
+  v_gem public.gemstones%rowtype;
+  v_gems numeric;
+  v_units_used numeric;
+begin
+  if auth.uid() is null then raise exception 'You must be signed in.'; end if;
+
+  select * into v_pg
+  from public.player_gemstones
+  where id=p_player_gemstone_id and user_id=auth.uid()
+  for update;
+  if not found then raise exception 'Gemstone not found.'; end if;
+
+  select * into v_gem from public.gemstones where id=v_pg.gemstone_id;
+  if v_gem.units_per_gems is null or v_gem.units_per_gems <= 0 then
+    raise exception 'Conversion rate is not configured.';
+  end if;
+
+  v_gems := floor(v_pg.gemstone_units_balance / v_gem.units_per_gems);
+  if v_gems < 1 then raise exception 'Not enough gemstone units for 1 GEMS.'; end if;
+  v_units_used := v_gems * v_gem.units_per_gems;
+
+  update public.player_gemstones
+  set gemstone_units_balance=gemstone_units_balance-v_units_used
+  where id=p_player_gemstone_id;
+
+  update public.wallets
+  set gems_balance=gems_balance+v_gems,updated_at=now()
+  where user_id=auth.uid();
+  if not found then raise exception 'Wallet not found.'; end if;
+
+  insert into public.wallet_transactions(user_id,transaction_type,amount,description,reference_id)
+  values (auth.uid(),'gemstone_conversion',v_gems,
+    'Converted '||v_units_used||' '||v_gem.name||' units into GEMS',p_player_gemstone_id);
+
+  return v_gems;
+end;
+$function$;
+
+create or replace function public.purchase_gemstone(p_gemstone_id uuid)
+returns uuid
+language plpgsql
+security definer
+set search_path = public, auth, pg_temp
+as $function$
+declare
+  v_gem public.gemstones%rowtype;
+  v_previous public.player_gemstones%rowtype;
+  v_inventory_id uuid;
+begin
+  if auth.uid() is null then raise exception 'You must be signed in.'; end if;
+
+  select * into v_gem from public.gemstones where id=p_gemstone_id and is_available=true for update;
+  if not found then raise exception 'Gemstone is unavailable.'; end if;
+
+  if exists(select 1 from public.player_gemstones where user_id=auth.uid() and gemstone_id=v_gem.id) then
+    raise exception 'You already own this gemstone.';
+  end if;
+
+  if v_gem.requires_gemstone_id is null then
+    update public.wallets
+    set gems_balance=gems_balance-v_gem.unlock_cost_gems,updated_at=now()
+    where user_id=auth.uid() and gems_balance>=v_gem.unlock_cost_gems;
+    if not found then raise exception 'Insufficient GEMS balance.'; end if;
+  else
+    select * into v_previous
+    from public.player_gemstones
+    where user_id=auth.uid() and gemstone_id=v_gem.requires_gemstone_id
+    for update;
+    if not found then raise exception 'You must unlock the previous gemstone first.'; end if;
+    if v_previous.gemstone_units_balance < v_gem.unlock_cost_units then
+      raise exception 'Not enough previous-gemstone units to unlock this gemstone.';
+    end if;
+    update public.player_gemstones
+    set gemstone_units_balance=gemstone_units_balance-v_gem.unlock_cost_units
+    where id=v_previous.id;
+  end if;
+
+  insert into public.player_gemstones(user_id,gemstone_id,level,is_active)
+  values(auth.uid(),v_gem.id,1,true)
+  returning id into v_inventory_id;
+
+  insert into public.wallet_transactions(user_id,transaction_type,amount,description,reference_id)
+  values(auth.uid(),'gemstone_unlock',0,'Unlocked '||v_gem.name,v_inventory_id);
+
+  return v_inventory_id;
+end;
+$function$;
+
+create or replace function public.level_up_gemstone(p_player_gemstone_id uuid)
+returns integer
+language plpgsql
+security definer
+set search_path = public, auth, pg_temp
+as $function$
+declare
+  v_pg public.player_gemstones%rowtype;
+  v_gem public.gemstones%rowtype;
+  v_cost numeric;
+  v_new_level integer;
+begin
+  if auth.uid() is null then raise exception 'You must be signed in.'; end if;
+
+  select * into v_pg from public.player_gemstones
+  where id=p_player_gemstone_id and user_id=auth.uid()
+  for update;
+  if not found then raise exception 'Gemstone not found.'; end if;
+  if v_pg.level >= 10 then raise exception 'This gemstone is already at maximum level.'; end if;
+
+  select * into v_gem from public.gemstones where id=v_pg.gemstone_id;
+  v_cost := coalesce((v_gem.level_up_cost_units ->> (v_pg.level - 1))::numeric,0);
+  if v_cost <= 0 then raise exception 'Level-up cost is not configured.'; end if;
+  if v_pg.gemstone_units_balance < v_cost then raise exception 'Not enough gemstone units to level up.'; end if;
+
+  v_new_level := v_pg.level + 1;
+  update public.player_gemstones
+  set gemstone_units_balance=gemstone_units_balance-v_cost,level=v_new_level
+  where id=p_player_gemstone_id;
+
+  return v_new_level;
+end;
+$function$;
+
+revoke all on function public.start_mining(uuid),public.collect_mining(uuid),
+  public.convert_gemstone_units(uuid),public.purchase_gemstone(uuid),
+  public.level_up_gemstone(uuid) from public,anon;
+grant execute on function public.start_mining(uuid),public.collect_mining(uuid),
+  public.convert_gemstone_units(uuid),public.purchase_gemstone(uuid),
+  public.level_up_gemstone(uuid) to authenticated;
+
+
 -- Keep the original free starter Garnet assignment and all existing player balances.
 commit;
 
