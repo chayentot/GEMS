@@ -19,13 +19,16 @@ A Next.js + Supabase starter for the GEMS gemstone-mining platform.
 
 ## 1. Apply the Supabase database migration
 
+**For the existing GEMS project, do not run migration 001.** Your database already uses the original tables and contains player accounts and wallet records.
+
 1. Open your Supabase project dashboard.
 2. Go to **SQL Editor** and create a new query.
-3. Open [the migration file in this GitHub repository](https://github.com/chayentot/GEMS/blob/main/supabase/migrations/001_gems_schema.sql).
-4. Copy the complete SQL into the Supabase SQL Editor and run it.
-5. Check the Results panel for errors before continuing.
+3. Open [003_original_gem_economy.sql](https://github.com/chayentot/GEMS/blob/main/supabase/migrations/003_original_gem_economy.sql).
+4. Copy the complete SQL file into the Supabase SQL Editor and run it.
+5. Check the Results panel. It should finish without an error.
+6. Run the verification query at the bottom of the migration and confirm that all 10 gemstones appear.
 
-The migration creates the player profiles, wallets, gemstone catalog and inventory, transaction ledger, recharge and withdrawal requests, secure database functions, signup trigger and Row Level Security policies.
+Migration 003 adds the confirmed earning arrays, conversion rates, level-up costs, unlock requirements, gemstone-unit balances, and secure RPC functions. It is designed to preserve existing accounts, wallet balances and the free Garnet assignment.
 
 **Important:** `001_gems_schema.sql` is for a fresh database only. Your current project uses the original schema with `mining_sessions` and `recharge_orders`; do not run `001_gems_schema.sql` on it. Run `002_legacy_schema_compat.sql` first if you have not already done so, then run `003_original_gem_economy.sql`. Migration 003 adds the original 10-gem economy fields and mining, conversion, unlocking and level-up RPCs without replacing your existing player records or wallets.
 
