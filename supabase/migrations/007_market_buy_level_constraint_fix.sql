@@ -61,7 +61,7 @@ begin
     (v_user, v_gem.id, 1, false, v_units, false)
   on conflict (user_id, gemstone_id)
   do update set gemstone_units_balance =
-    public.player_gemstones.gemstone_units_balance + excluded.gemstone_units_balance
+    player_gemstones.gemstone_units_balance + excluded.gemstone_units_balance
   returning id into v_inventory_id;
 
   insert into public.wallet_transactions
