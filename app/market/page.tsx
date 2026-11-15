@@ -76,7 +76,7 @@ export default function MarketPage() {
  return <main className="shell">
   <header className="topbar">
    <Link href="/" className="brand">💎 GEMS MINING</Link>
-   <nav className="row"><Link href="/dashboard/">Dashboard</Link><Link href="/mining/">Mining</Link><Link href="/market/" aria-current="page">Market</Link><Link href="/profile/">Profile</Link><span className="small">{email}</span></nav>
+   <nav className="row"><Link href="/dashboard/">Dashboard</Link><Link href="/mining/">Mining</Link><Link href="/market/" aria-current="page">Market</Link><Link href="/profile/">Profile</Link></nav>
   </header>
   <h1>GEMS Market</h1>
   <p className="muted">Exchange GEMS for gemstone units, or sell your gemstone units back for GEMS. Platform exchange rate with a 5% fee on every trade.</p>
