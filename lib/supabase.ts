@@ -5,7 +5,7 @@ export function createClient() {
   const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
   if (!url || !key) {
-    throw new Error("Supabase environment variables are missing. Configure them in .env.local or Vercel.");
+    throw new Error("Supabase environment variables are missing. Configure the GitHub Actions repository secrets for the published site.");
   }
 
   return createBrowserClient(url, key);
