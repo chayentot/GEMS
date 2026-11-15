@@ -32,7 +32,7 @@ export default function MiningPage(){
  async function action(label:string,fn:string,args:Record<string,unknown>){
   setBusy(label);setStatus("");
   try{const sb=createClient();const {data,error}=await sb.rpc(fn,args);if(error)throw error;
-   if(fn==="collect_mining")setStatus("Collected "+fmt(Number(data))+" gemstone units.");
+   if(fn==="collect_mining")setStatus("Latest mining earned: "+fmt(Number(data))+" units.");
    else if(fn==="start_mining")setStatus("Mining started. Your gemstone can earn for up to 24 hours.");
    else setStatus("Gemstone updated successfully.");
    await load();
@@ -59,9 +59,6 @@ export default function MiningPage(){
     return <article className="panel mining-card" key={g.id}>
      <div className="row mining-heading"><GemArt code={g.code} size={88}/><div className="mining-name"><h3>{g.name}</h3><span className={unlocked?"status-active":"status-locked"}>{unlocked&&item?"Owned · Level "+item.level:"Locked"}</span></div></div>
      {unlocked&&item?<>
-      <div className="mining-rate"><strong>{fmt(rate)}</strong><span className="small"> units/min</span></div>
-      <div className="small">Earn per 24-hour cycle: <strong>{fmt(cycleYield)} units</strong></div>
-      <div className="small">Your balance: <strong>{fmt(item.gemstone_units_balance)} units</strong></div>
       {session?<div className="notice mining-session"><strong>Mining in progress</strong><div className="small">Time left: <strong>{remainingText}</strong></div><button disabled={!!busy} onClick={()=>action(item.id,"collect_mining",{p_player_gemstone_id:item.id})}>{busy===item.id?"Please wait…":remaining===0?"Collect completed cycle":"Collect now"}</button></div>
       :<div className="notice mining-session"><strong>Not mining</strong><button disabled={!!busy} onClick={()=>action(item.id,"start_mining",{p_player_gemstone_id:item.id})}>{busy===item.id?"Starting…":"▶ Start"}</button></div>}
       <div className="small">{item.level>=10?"Max level":"Next level: "+fmt(cost)+" units"}</div>
