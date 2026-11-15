@@ -54,12 +54,13 @@ export default function MiningPage(){
     const cost=unlocked&&item?(g.level_up_cost_units?.[item.level-1]??0):0;
     const cycleYield=rate*1440;
     const remaining=session?Math.max(0,new Date(session.ends_at).getTime()-now):0;
+    const earnedNow=session?rate*Math.max(0,(Math.min(now,new Date(session.ends_at).getTime())-new Date(session.last_collected_at).getTime())/60000):0;
     const remainingText=[Math.floor(remaining/3600000),Math.floor((remaining%3600000)/60000),Math.floor((remaining%60000)/1000)].map(v=>String(v).padStart(2,"0")).join(":");
     const canUnlock=Boolean(item&&!unlocked&&g.code!=="GARNET"&&item.gemstone_units_balance>=g.unlock_cost_units);
     return <article className="panel mining-card" key={g.id}>
      <div className="row mining-heading"><GemArt code={g.code} size={88}/><div className="mining-name"><h3>{g.name}</h3><span className={unlocked?"status-active":"status-locked"}>{unlocked&&item?"Owned · Level "+item.level:"Locked"}</span></div></div>
      {unlocked&&item?<>
-      {session?<div className="notice mining-session"><strong>Mining in progress</strong><div className="small">Time left: <strong>{remainingText}</strong></div><button disabled={!!busy} onClick={()=>action(item.id,"collect_mining",{p_player_gemstone_id:item.id})}>{busy===item.id?"Please wait…":remaining===0?"Collect completed cycle":"Collect now"}</button></div>
+      {session?<div className="notice mining-session"><strong>Mining in progress</strong><div className="small"><strong>{fmt(earnedNow)} units</strong> / Time left: <strong>{remainingText}</strong></div><button disabled={!!busy} onClick={()=>action(item.id,"collect_mining",{p_player_gemstone_id:item.id})}>{busy===item.id?"Please wait…":"Collect now"}</button></div>
       :<div className="notice mining-session"><strong>Not mining</strong><button disabled={!!busy} onClick={()=>action(item.id,"start_mining",{p_player_gemstone_id:item.id})}>{busy===item.id?"Starting…":"▶ Start"}</button></div>}
       <div className="small">{item.level>=10?"Max level":"Next level: "+fmt(cost)+" units"}</div>
       {item.level<10&&<button className="secondary section" disabled={!!busy||item.gemstone_units_balance<cost} onClick={()=>action(item.id,"level_up_gemstone",{p_player_gemstone_id:item.id})}>Level up to {item.level+1}</button>}
