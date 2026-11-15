@@ -23,7 +23,7 @@ export default function Dashboard() {
   async function load() {
     const supabase = createClient();
     const { data:{user}, error:authError } = await supabase.auth.getUser();
-    if (authError || !user) { window.location.href="/login"; return; }
+    if (authError || !user) { window.location.href=`${process.env.NEXT_PUBLIC_BASE_PATH || ""}/login/`; return; }
     setEmail(user.email ?? "");
     const [w,i,t] = await Promise.all([
       supabase.from("wallets").select("gems_balance,diamonds_balance").eq("user_id",user.id).maybeSingle(),
@@ -48,7 +48,7 @@ export default function Dashboard() {
   }
 
   async function logout() {
-    const supabase=createClient(); await supabase.auth.signOut(); window.location.href="/login";
+    const supabase=createClient(); await supabase.auth.signOut(); window.location.href=`${process.env.NEXT_PUBLIC_BASE_PATH || ""}/login/`;
   }
 
   return <main className="shell">
