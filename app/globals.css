@@ -135,3 +135,25 @@ nav.row { gap:18px; }
 nav a[aria-current="page"] { color:#fff; border-bottom:2px solid var(--gold); padding-bottom:5px; }
 select { width:100%; padding:12px; border-radius:9px; border:1px solid var(--line); background:#0b1424; color:white; margin:6px 0 14px; }
 @media(max-width:760px) { .topbar nav.row { flex-wrap:wrap; justify-content:flex-start; } .mining-card { min-height:0; } }
+
+/* GEMS dedicated pages */
+.gem-card { text-align:center; min-height:250px; }
+.gem-picture { display:flex; justify-content:center; align-items:center; min-height:125px; margin-bottom:8px; }
+.collection-units { font-size:20px; font-weight:800; margin:12px 0; }
+.status-active,.status-inactive,.status-locked { display:inline-block; border-radius:999px; padding:5px 10px; font-size:11px; font-weight:700; }
+.status-active { color:#8af0bd; background:#164532; }
+.status-inactive { color:#ffd27d; background:#4b3718; }
+.status-locked { color:#b6c3d8; background:#263650; }
+.mining-card { display:flex; flex-direction:column; gap:10px; min-height:390px; }
+.mining-heading { justify-content:flex-start; }
+.mining-name h3 { margin-bottom:8px; }
+.mining-rate { font-size:25px; font-weight:800; color:var(--gold); }
+.mining-session { margin:4px 0; }
+.mining-session button { margin-top:10px; width:100%; }
+.locked-details { margin-top:auto; padding-top:10px; }
+.locked-details button { width:100%; }
+.transaction-list { max-height:650px; overflow:auto; }
+nav.row { gap:18px; }
+nav a[aria-current="page"] { color:#fff; border-bottom:2px solid var(--gold); padding-bottom:5px; }
+select { width:100%; padding:12px; border-radius:9px; border:1px solid var(--line); background:#0b1424; color:white; margin:6px 0 14px; }
+@media(max-width:760px) { .topbar nav.row { flex-wrap:wrap; justify-content:flex-start; } .mining-card { min-height:0; } }
