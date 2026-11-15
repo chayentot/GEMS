@@ -11,10 +11,11 @@ A Next.js + Supabase starter for the GEMS gemstone-mining platform.
 - Each mining cycle is capped at 24 hours; players can collect before the cycle ends.
 - Each new account receives one free Level 1 Garnet.
 - Additional Garnet purchases cost 1 GEMS.
-- Starter Garnet sample mining rate: 0.01 GEMS/hour, multiplied by gemstone level.
-- Diamond/GEMS conversion is not enabled because its direction and rate have not been finalized.
-
-The other gemstone names, unlock prices and mining rates are not finalized. Add or update them in the `gemstones` table only after confirming the official game economy.
+- Gemstone mining uses the owner's exact 10-gem table: per-level gemstone units per minute, level-up unit costs, conversion units per GEMS, and previous-gemstone unlock requirements.
+- Gemstone units are collected into each owned gemstone balance; players explicitly convert whole GEMS into the GEMS wallet, preserving any remaining units.
+- The original Garnet is free at Level 1 for new accounts. The other nine gemstones unlock by spending the exact required units of the previous gemstone.
+- Level cap: 10. Mining cycle: maximum 24 hours; players may collect before the cycle ends.
+- Withdrawal: minimum 150 GEMS, 6% fee, 94% net PHP payout, subject to admin review.
 
 ## 1. Apply the Supabase database migration
 
@@ -26,7 +27,7 @@ The other gemstone names, unlock prices and mining rates are not finalized. Add 
 
 The migration creates the player profiles, wallets, gemstone catalog and inventory, transaction ledger, recharge and withdrawal requests, secure database functions, signup trigger and Row Level Security policies.
 
-**Important:** `001_gems_schema.sql` is for a fresh database only. If you already ran the original GEMS foundation SQL (the version with `mining_sessions` and `recharge_orders`), do not run `001_gems_schema.sql`. Use the compatibility migration `002_legacy_schema_compat.sql` instead. It preserves the original tables and signup trigger.
+**Important:** `001_gems_schema.sql` is for a fresh database only. Your current project uses the original schema with `mining_sessions` and `recharge_orders`; do not run `001_gems_schema.sql` on it. Run `002_legacy_schema_compat.sql` first if you have not already done so, then run `003_original_gem_economy.sql`. Migration 003 adds the original 10-gem economy fields and mining, conversion, unlocking and level-up RPCs without replacing your existing player records or wallets.
 
 ## 2. Configure the frontend environment
 
