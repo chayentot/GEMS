@@ -40,7 +40,7 @@ export default function Dashboard(){
     {inventory.map(item=><article className="panel gem-card" key={item.id}>
      <div className="gem-picture"><GemArt code={item.gemstones?.code??"GARNET"} size={112}/></div>
      <h3>{item.gemstones?.name??"Gemstone"}</h3><div className="small">Level {item.level} / 10</div>
-     <div className="collection-units">{fmt(item.gemstone_units_balance)} <span className="small">units</span></div>
+     <div className="collection-units">{Number(item.gemstone_units_balance||0).toLocaleString(undefined,{maximumFractionDigits:2})} <span className="small">units</span></div>
      <span className={item.is_active?"status-active":"status-inactive"}>{item.is_active?"Ready for mining":"Inactive"}</span>
     </article>)}
    </div>}
