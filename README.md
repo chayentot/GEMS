@@ -26,7 +26,7 @@ The other gemstone names, unlock prices and mining rates are not finalized. Add 
 
 The migration creates the player profiles, wallets, gemstone catalog and inventory, transaction ledger, recharge and withdrawal requests, secure database functions, signup trigger and Row Level Security policies.
 
-**Important:** Run this migration once on a new/empty GEMS schema. If you have already created tables or functions manually, stop and review the existing schema before applying it.
+**Important:** `001_gems_schema.sql` is for a fresh database only. If you already ran the original GEMS foundation SQL (the version with `mining_sessions` and `recharge_orders`), do not run `001_gems_schema.sql`. Use the compatibility migration `002_legacy_schema_compat.sql` instead. It preserves the original tables and signup trigger.
 
 ## 2. Configure the frontend environment
 
@@ -64,9 +64,9 @@ select id from auth.users where email = 'YOUR-ADMIN-EMAIL'
 on conflict do nothing;
 ```
 
-The initial release has no visual admin dashboard. Admins can review requests in Supabase Table Editor and use the protected admin RPC functions while testing:
+The initial release has no visual admin dashboard. For the original database foundation, admins can review requests in Supabase Table Editor and use the protected admin RPC functions while testing:
 
-- `admin_approve_recharge(p_request_id)`
+- `admin_approve_recharge(p_order_id)`
 - `admin_reject_recharge(p_request_id)`
 - `admin_approve_withdrawal(p_request_id)`
 - `admin_reject_withdrawal(p_request_id)`
