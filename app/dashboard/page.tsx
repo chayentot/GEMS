@@ -12,12 +12,11 @@ const order=["GARNET","MOONSTONE","BLACK_OPAL","AQUAMARINE","TOPAZ","AMETHYST","
 const fmt=(n:number)=>Number(n||0).toLocaleString(undefined,{maximumFractionDigits:8});
 
 export default function Dashboard(){
- const [email,setEmail]=useState("");const [wallet,setWallet]=useState<Wallet|null>(null);
+ const [wallet,setWallet]=useState<Wallet|null>(null);
  const [inventory,setInventory]=useState<Inventory[]>([]);const [status,setStatus]=useState("Loading your collection…");
  async function load(){
   const sb=createClient();const {data:{user},error:authError}=await sb.auth.getUser();
   if(authError||!user){window.location.href="/GEMS/login/";return;}
-  setEmail(user.email??"");
   const [w,i]=await Promise.all([
    sb.from("wallets").select("gems_balance,diamonds_balance").eq("user_id",user.id).maybeSingle(),
    sb.from("player_gemstones").select("id,gemstone_id,level,gemstone_units_balance,is_active,is_unlocked,gemstones(id,code,name)").eq("user_id",user.id)
@@ -27,7 +26,7 @@ export default function Dashboard(){
  }
  useEffect(()=>{void load();},[]);
  return <main className="shell">
-  <header className="topbar"><Link href="/" className="brand">💎 GEMS MINING</Link><nav className="row"><Link href="/dashboard/" aria-current="page">Dashboard</Link><Link href="/mining/">Mining</Link><Link href="/market/">Market</Link><Link href="/profile/">Profile</Link><span className="small">{email}</span></nav></header>
+  <header className="topbar"><Link href="/" className="brand">💎 GEMS MINING</Link><nav className="row"><Link href="/dashboard/" aria-current="page">Dashboard</Link><Link href="/mining/">Mining</Link><Link href="/market/">Market</Link><Link href="/profile/">Profile</Link></nav></header>
   <div className="row"><div><h1>My Dashboard</h1><p className="muted">Your wallet and gemstone collection at a glance.</p></div><Link href="/mining/"><button>Go to Mining</button></Link></div>
   {status&&<div className="notice">{status}</div>}
   <section className="grid section">
