@@ -409,7 +409,7 @@ returns uuid
 language plpgsql
 security definer
 set search_path = public, auth, pg_temp
-as $
+as $$
 declare
   v_gem public.gemstones%rowtype;
   v_inventory_id uuid;
@@ -437,7 +437,7 @@ begin
 
   return v_inventory_id;
 end;
-$;
+$$;
 
 -- RLS: players can read only their own records. Writes are performed through trusted RPC functions.
 alter table public.profiles enable row level security;
