@@ -36,7 +36,7 @@ export default function MarketPage() {
  async function load() {
   const supabase=createClient();
   const {data:{user},error:authError}=await supabase.auth.getUser();
-  if(authError||!user){window.location.href=(process.env.NEXT_PUBLIC_BASE_PATH||"")+"/login/";return;}
+  if(authError||!user){window.location.href="/GEMS/login/";return;}
   setEmail(user.email??"");
   const [w,g,i]=await Promise.all([
    supabase.from("wallets").select("gems_balance").eq("user_id",user.id).maybeSingle(),
@@ -76,7 +76,7 @@ export default function MarketPage() {
  return <main className="shell">
   <header className="topbar">
    <Link href="/" className="brand">💎 GEMS MINING</Link>
-   <nav className="row"><Link href="/dashboard/">Dashboard</Link><Link href="/dashboard/">Mining</Link><Link href="/market/" aria-current="page">Market</Link><Link href="/dashboard/">Profile</Link><span className="small">{email}</span></nav>
+   <nav className="row"><Link href="/dashboard/">Dashboard</Link><Link href="/mining/">Mining</Link><Link href="/market/" aria-current="page">Market</Link><Link href="/profile/">Profile</Link><span className="small">{email}</span></nav>
   </header>
   <h1>GEMS Market</h1>
   <p className="muted">Exchange GEMS for gemstone units, or sell your gemstone units back for GEMS. Platform exchange rate with a 5% fee on every trade.</p>
