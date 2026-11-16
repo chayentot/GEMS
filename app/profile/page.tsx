@@ -13,7 +13,7 @@ const fmt=(n:number)=>Number(n||0).toLocaleString(undefined,{maximumFractionDigi
 export default function ProfilePage(){
  const [email,setEmail]=useState("");const [username,setUsername]=useState("");
  const [wallet,setWallet]=useState<Wallet|null>(null);const [transactions,setTransactions]=useState<Tx[]>([]);
- const [referral,setReferral]=useState<ReferralSummary|null>(null);const [commissions,setCommissions]=useState<ReferralCommission[]>([]);
+ const [referral,setReferral]=useState<ReferralSummary|null>(null);const [referralLink,setReferralLink]=useState("");const [commissions,setCommissions]=useState<ReferralCommission[]>([]);
  const [status,setStatus]=useState("Loading profile…");const [busy,setBusy]=useState(false);
  const [rechargeAmount,setRechargeAmount]=useState("100");const [reference,setReference]=useState("");
  const [withdrawAmount,setWithdrawAmount]=useState("150");const [payoutDetails,setPayoutDetails]=useState("");
@@ -30,7 +30,7 @@ export default function ProfilePage(){
   const err=w.error||t.error||r.error||c.error;
   if(err){setStatus(err.message);return;}
   setWallet(w.data as Wallet);setTransactions((t.data??[]) as Tx[]);
-  setReferral((r.data??null) as ReferralSummary|null);setCommissions((c.data??[]) as ReferralCommission[]);setStatus("");
+  setReferral((r.data??null) as ReferralSummary|null);\n  const code=(r.data as ReferralSummary|null)?.referral_code;\n  setReferralLink(code?window.location.origin+"/GEMS/login/?ref="+encodeURIComponent(code):"");\n  setCommissions((c.data??[]) as ReferralCommission[]);setStatus("");
  }
  useEffect(()=>{void load();},[]);
  useEffect(()=>{
@@ -87,7 +87,7 @@ export default function ProfilePage(){
   </section>
   <section className="panel section">
    <div className="row"><div><h2>Referral Program</h2><p className="small">Earn GEMS when your referral network spends GEMS in the Market. Deposits alone do not qualify.</p></div><span className="status-active">3 levels</span></div>
-   <div className="item"><div className="small">Your referral code</div><strong>{referral?.referral_code??"Generating…"}</strong><div className="small">Share this link with new players:</div><div className="row"><input readOnly value={referral?.referral_code?window.location.origin+"/GEMS/login/?ref="+encodeURIComponent(referral.referral_code):""}/><button disabled={!referral?.referral_code} onClick={()=>void copyReferralLink()}>Copy link</button></div></div>
+   <div className="item"><div className="small">Your referral code</div><strong>{referral?.referral_code??"Generating…"}</strong><div className="small">Share this link with new players:</div><div className="row"><input readOnly value={referralLink}/><button disabled={!referral?.referral_code} onClick={()=>void copyReferralLink()}>Copy link</button></div></div>
    <div className="grid">
     <div className="panel"><div className="small">Level 1 · 8%</div><div className="stat">{referral?.level1_count??0}</div><div className="small">Direct referrals</div></div>
     <div className="panel"><div className="small">Level 2 · 3%</div><div className="stat">{referral?.level2_count??0}</div><div className="small">Second generation</div></div>
