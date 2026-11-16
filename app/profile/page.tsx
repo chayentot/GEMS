@@ -3,6 +3,7 @@
 import { useEffect,useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase";
+import ProfileMenu from "@/components/profile-menu";
 
 type Wallet={gems_balance:number;diamonds_balance:number};
 type Tx={id:string;transaction_type:string;amount:number;description:string|null;created_at:string};
@@ -80,8 +81,8 @@ export default function ProfilePage(){
  }
  async function logout(){const sb=createClient();await sb.auth.signOut();window.location.href="/GEMS/login/";}
  return <main className="shell">
-  <header className="topbar"><Link href="/" className="brand">💎 GEMS MINING</Link><nav className="row"><Link href="/dashboard/">Dashboard</Link><Link href="/mining/">Mining</Link><Link href="/referral/">Referral</Link><Link href="/market/">Market</Link><Link href="/profile/" aria-current="page">Profile</Link></nav></header>
-  <div className="row"><div><h1>My Profile</h1><p className="muted">Account details, wallet services and transaction records.</p></div><button className="secondary" onClick={logout}>Sign out</button></div>
+  <header className="topbar"><Link href="/" className="brand">💎 GEMS MINING</Link><nav className="row"><Link href="/dashboard/">Dashboard</Link><Link href="/mining/">Mining</Link><Link href="/referral/">Referral</Link><Link href="/market/">Market</Link><ProfileMenu /></nav></header>
+  <div><h1>My Profile</h1><p className="muted">Account details, wallet services and transaction records.</p></div>
   {status&&<div className="notice">{status}</div>}
   <section className="grid section">
    <div className="panel"><div className="muted">Email address</div><strong>{email||"—"}</strong><div className="small">Registered account</div></div>
@@ -89,20 +90,20 @@ export default function ProfilePage(){
    <div className="panel"><div className="muted">GEMS wallet</div><div className="stat">{fmt(wallet?.gems_balance??0)}</div><div className="small">GEMS · ₱1 accounting value each</div></div>
   </section>
 
-  <section className="grid section">
+  <section id="recharge" className="grid section">
    <div className="panel"><h2>Recharge GEMS</h2><p className="small">Recharge fee: 0%. Your GEMS are credited after an administrator verifies your payment.</p>
     <label>Amount in PHP</label><input type="number" min="1" step="1" value={rechargeAmount} onChange={e=>setRechargeAmount(e.target.value)}/>
     <label>Payment reference</label><input value={reference} onChange={e=>setReference(e.target.value)} placeholder="Enter your payment reference"/>
     <button disabled={busy||Number(rechargeAmount)<1||!reference.trim()} onClick={()=>void submitRecharge()}>{busy?"Please wait…":"Submit recharge request"}</button>
    </div>
-   <div className="panel"><h2>Withdraw GEMS</h2><p className="small">Minimum 150 GEMS · 6% fee · estimated payout is 94% of the requested amount. Admin approval required.</p>
+   <div id="withdraw" className="panel"><h2>Withdraw GEMS</h2><p className="small">Minimum 150 GEMS · 6% fee · estimated payout is 94% of the requested amount. Admin approval required.</p>
     <label>GEMS amount</label><input type="number" min="150" step="1" value={withdrawAmount} onChange={e=>setWithdrawAmount(e.target.value)}/>
     <div className="notice">Estimated PHP payout: <strong>₱{fmt(Math.max(0,Number(withdrawAmount)||0)*0.94)}</strong></div>
     <label>Payout details</label><textarea value={payoutDetails} onChange={e=>setPayoutDetails(e.target.value)} placeholder="Enter payout method and account details"/>
     <button disabled={busy||Number(withdrawAmount)<150||Number(withdrawAmount)>(wallet?.gems_balance??0)||!payoutDetails.trim()} onClick={()=>void submitWithdrawal()}>{busy?"Please wait…":"Submit withdrawal request"}</button>
    </div>
   </section>
-  <section className="panel section"><h2>Transaction history</h2>
+  <section id="transactions" className="panel section"><h2>Transaction history</h2>
    {transactions.length===0?<p className="muted">No transactions recorded yet.</p>:<div className="transaction-list">{transactions.map(t=><div className="item row" key={t.id}><div><strong>{t.transaction_type.replaceAll("_"," ")}</strong><div className="small">{t.description??""}</div><div className="small">{new Date(t.created_at).toLocaleString()}</div></div><strong className={t.amount>=0?"success":"error"}>{t.amount>0?"+":""}{fmt(t.amount)} GEMS</strong></div>)}</div>}
   </section>
  </main>;
