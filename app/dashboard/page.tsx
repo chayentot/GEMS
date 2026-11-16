@@ -25,6 +25,17 @@ export default function Dashboard(){
   setWallet(w.data as Wallet);setInventory(((i.data??[]) as unknown as Inventory[]).filter(x=>x.is_unlocked||x.gemstones?.code==="GARNET").sort((a,b)=>order.indexOf(a.gemstones?.code)-order.indexOf(b.gemstones?.code)));setStatus("");
  }
  useEffect(()=>{void load();},[]);
+ useEffect(()=>{
+  const sb=createClient();let channel:ReturnType<typeof sb.channel>|undefined;let active=true;
+  void (async()=>{
+   const {data:{user}}=await sb.auth.getUser();if(!active||!user)return;
+   channel=sb.channel("gems-player-dashboard-"+user.id)
+    .on("postgres_changes",{event:"*",schema:"public",table:"wallets",filter:"user_id=eq."+user.id},()=>{void load();})
+    .on("postgres_changes",{event:"*",schema:"public",table:"player_gemstones",filter:"user_id=eq."+user.id},()=>{void load();})
+    .subscribe();
+  })();
+  return ()=>{active=false;if(channel)void sb.removeChannel(channel);};
+ },[]);
  return <main className="shell">
   <header className="topbar"><Link href="/" className="brand">💎 GEMS MINING</Link><nav className="row"><Link href="/dashboard/" aria-current="page">Dashboard</Link><Link href="/mining/">Mining</Link><Link href="/market/">Market</Link><Link href="/profile/">Profile</Link></nav></header>
   <div className="row"><div><h1>My Dashboard</h1><p className="muted">Your wallet and gemstone collection at a glance.</p></div><Link href="/mining/"><button>Go to Mining</button></Link></div>
