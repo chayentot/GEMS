@@ -155,7 +155,10 @@ export default function MiningEmpirePage() {
                 // Locked stations bypass material and never emit their own product.
                 let flowingMaterialIndex = 0;
                 for (let i = 0; i <= index; i++) {
-                  if (game.unlocked[i]) flowingMaterialIndex = i;
+                  const candidate = recipes[i];
+                  const candidateStored = candidate.inputs.reduce((sum, [materialId]) => sum + (game.stock[candidate.id * 100 + materialId] || 0), 0);
+                  const candidateFull = candidate.inputs.length > 0 && candidateStored >= 100;
+                  if (game.unlocked[i] && !candidateFull) flowingMaterialIndex = i;
                 }
                 const flowingMaterial = materialIcons[flowingMaterialIndex];
                 return (
