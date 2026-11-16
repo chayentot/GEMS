@@ -66,6 +66,32 @@ create policy "GEMS admins read all referral commissions"
 revoke all on public.referral_commissions from anon, authenticated;
 grant select on public.referral_commissions to authenticated;
 
+-- Every newly created player receives a unique referral code automatically.
+create or replace function public.assign_gems_referral_code()
+returns trigger
+language plpgsql
+security definer
+set search_path = public, pg_temp
+as $function$
+begin
+  if new.referral_code is null or btrim(new.referral_code) = '' then
+    loop
+      new.referral_code := 'GEMS' || upper(substr(replace(gen_random_uuid()::text,'-',''),1,8));
+      exit when not exists (
+        select 1 from public.profiles p
+        where p.referral_code = new.referral_code
+      );
+    end loop;
+  end if;
+  return new;
+end;
+$function$;
+
+drop trigger if exists profiles_assign_gems_referral_code on public.profiles;
+create trigger profiles_assign_gems_referral_code
+before insert on public.profiles
+for each row execute function public.assign_gems_referral_code();
+
 -- Bind a new account to the referral code submitted on the signup form.
 -- The zzzz trigger name makes this run after the existing profile-creation trigger.
 create or replace function public.apply_gems_signup_referral()
