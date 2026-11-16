@@ -90,7 +90,7 @@ export default function AdminPage(){
    <div className="panel"><div className="muted">Pending recharges</div><div className="stat">{pendingRecharge}</div></div>
    <div className="panel"><div className="muted">Open withdrawals</div><div className="stat">{openWithdrawals}</div></div>
    <div className="panel"><div className="muted">Total player GEMS</div><div className="stat">{fmt(wallets.reduce((sum,w)=>sum+Number(w.gems_balance||0),0))}</div></div>
-   <div className="panel"><div className="muted">Referral commissions credited</div><div className="stat">{fmt(totalReferralPaid)} GEMS</div></div>
+   <div className="panel"><div className="muted">Referral commissions (latest 500)</div><div className="stat">{fmt(totalReferralPaid)} GEMS</div></div>
   </section>
   <div className="row section">
    <button className={tab==="players"?"":"secondary"} onClick={()=>setTab("players")}>Players ({players.length})</button>
