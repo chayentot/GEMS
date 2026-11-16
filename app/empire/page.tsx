@@ -22,6 +22,11 @@ const recipes: Recipe[] = [
 
 const materialIcons = ["🪨", "🧱", "🔩", "⚙️", "🛠️", "🏗️", "⚡", "🖥️", "⛏️", "💎"];
 
+// Fixed gameplay speeds: each factory completes at most one batch per cycle.
+const FACTORY_CYCLE_MS = 1800;
+const CONVEYOR_BELT_LOOP_MS = 550;
+const CONVEYOR_MATERIAL_TRAVEL_MS = 3200;
+
 const initial: GameState = {
   gold: 0,
   unlocked: recipes.map((r) => r.id === 1),
@@ -87,7 +92,7 @@ export default function MiningEmpirePage() {
 
   useEffect(() => {
     if (!running || !authReady) return;
-    const timer = window.setInterval(() => setGame((current) => advance(current)), 1800);
+    const timer = window.setInterval(() => setGame((current) => advance(current)), FACTORY_CYCLE_MS);
     return () => window.clearInterval(timer);
   }, [running, authReady]);
 
@@ -133,7 +138,7 @@ export default function MiningEmpirePage() {
           <div><small>Materials sold</small><strong>{game.sold.toLocaleString()}</strong></div>
         </div>
         <div className="row empire-controls">
-          <span className="small">Simulation speed: 1 production check every 1.8 seconds</span>
+          <span className="small">Factory speed: 1 batch every {(FACTORY_CYCLE_MS / 1000).toFixed(1)}s · Conveyor loop: {(CONVEYOR_BELT_LOOP_MS / 1000).toFixed(2)}s · Material travel: {(CONVEYOR_MATERIAL_TRAVEL_MS / 1000).toFixed(1)}s</span>
           <div className="row">
             <button className="secondary" onClick={() => setRunning((v) => !v)}>{running ? "Ⅱ Pause" : "▶ Resume"}</button>
             <button className="secondary" onClick={() => { setGame(initial); setRunning(true); setMessage("Preview reset. The starter mine is running again."); }}>↻ Reset preview</button>
@@ -173,7 +178,8 @@ export default function MiningEmpirePage() {
                         {unlocked && <span className="world-smoke smoke-two" />}
                       </div>
                       <strong>{factory.name}</strong>
-                      <small>{!unlocked ? "Locked · material bypasses" : factory.id === 1 ? "Mining" : isFull ? "Storage full · bypassing" : "Auto processing"}</small>
+                      <small>{!unlocked ? "Locked · material bypasses" : factory.id === 1 ? "Mining · fixed cycle" : isFull ? "Storage full · bypassing" : "Auto processing · fixed cycle"}</small>
+                      {unlocked && <small className="world-factory-speed">Speed: 1 batch / {(FACTORY_CYCLE_MS / 1000).toFixed(1)} sec</small>}
                       {!unlocked && <button className="world-unlock-button" disabled={game.gold < factory.unlock} onClick={() => unlock(factory)}>Unlock · 🪙 {factory.unlock.toLocaleString()}</button>}
                     </div>
                     {true && (
