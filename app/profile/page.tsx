@@ -31,7 +31,9 @@ export default function ProfilePage(){
   if(err){setStatus(err.message);return;}
   setWallet(w.data as Wallet);setTransactions((t.data??[]) as Tx[]);
   setReferral((r.data??null) as ReferralSummary|null);
-  const code=(r.data as ReferralSummary|null)?.referral_code;\n  setReferralLink(code?window.location.origin+"/GEMS/login/?ref="+encodeURIComponent(code):"");\n  setCommissions((c.data??[]) as ReferralCommission[]);setStatus("");
+  const code=(r.data as ReferralSummary|null)?.referral_code;
+  setReferralLink(code?window.location.origin+"/GEMS/login/?ref="+encodeURIComponent(code):"");
+  setCommissions((c.data??[]) as ReferralCommission[]);setStatus("");
  }
  useEffect(()=>{void load();},[]);
  useEffect(()=>{
