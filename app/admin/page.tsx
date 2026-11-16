@@ -45,6 +45,17 @@ export default function AdminPage(){
   setWithdrawals((wd.data??[]) as Withdrawal[]);setStatus("");
  },[]);
  useEffect(()=>{void load();},[load]);
+ useEffect(()=>{
+  const sb=createClient();
+  const channel=sb.channel("gems-admin-live-updates")
+   .on("postgres_changes",{event:"*",schema:"public",table:"profiles"},()=>{void load();})
+   .on("postgres_changes",{event:"*",schema:"public",table:"wallets"},()=>{void load();})
+   .on("postgres_changes",{event:"*",schema:"public",table:"player_gemstones"},()=>{void load();})
+   .on("postgres_changes",{event:"*",schema:"public",table:"recharge_orders"},()=>{void load();})
+   .on("postgres_changes",{event:"*",schema:"public",table:"withdrawal_requests"},()=>{void load();})
+   .subscribe();
+  return ()=>{void sb.removeChannel(channel);};
+ },[load]);
 
  const playerMap=useMemo(()=>new Map(players.map(p=>[p.id,p])),[players]);
  const walletMap=useMemo(()=>new Map(wallets.map(w=>[w.user_id,w])),[wallets]);
