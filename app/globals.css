@@ -301,3 +301,56 @@ th { color:#aebbd0; font-size:12px; text-transform:uppercase; letter-spacing:.06
  .empire-rule-grid { grid-template-columns:minmax(0,1fr); }
  .empire-factory { padding:15px; }
 }
+
+
+/* Animated side-view Mining Empire conveyor world */
+.empire-world-wrap { margin:18px 0 24px; padding:16px; border:1px solid #e6bd6330; border-radius:18px; background:linear-gradient(180deg,#101d2d,#0b1320); overflow:hidden; }
+.empire-world-caption { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:14px; color:#aab8cb; font-size:10px; font-weight:900; letter-spacing:.14em; }
+.live-indicator { display:inline-flex; align-items:center; gap:7px; color:#79dfae; letter-spacing:.08em; }
+.live-indicator i { width:7px; height:7px; border-radius:50%; background:#49d995; box-shadow:0 0 10px #49d995; animation:world-live-pulse 1.4s ease-in-out infinite; }
+.empire-world-scroll { overflow-x:auto; overflow-y:hidden; padding:14px 4px 18px; scrollbar-color:#56647a #111b2b; scrollbar-width:thin; }
+.empire-world { display:flex; align-items:center; width:max-content; min-height:208px; padding:0 8px; }
+.empire-world-unit { display:flex; align-items:center; flex:0 0 auto; }
+.empire-world-station { position:relative; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; width:142px; height:172px; padding:10px 8px 12px; border:1px solid #6f819455; border-radius:13px; background:linear-gradient(180deg,#24364a 0%,#172538 65%,#111b2b 66%); text-align:center; box-shadow:0 8px 16px #0005; }
+.empire-world-station::after { content:""; position:absolute; bottom:0; left:10px; right:10px; height:5px; border-radius:5px 5px 0 0; background:#66788a; }
+.empire-world-station.station-open { border-color:#48c99577; box-shadow:0 0 18px #42c99412,0 8px 16px #0005; }
+.empire-world-station.station-locked { filter:saturate(.5); background:linear-gradient(180deg,#27303d 0%,#1b2430 65%,#141b26 66%); }
+.world-station-label { align-self:flex-start; color:#91a3ba; font-size:9px; font-weight:900; letter-spacing:.12em; }
+.world-machine { position:relative; display:flex; align-items:center; justify-content:center; width:82px; height:78px; margin:7px auto 8px; border:1px solid #e6bd6340; border-radius:12px; background:linear-gradient(145deg,#49576a,#202e40); }
+.station-open .world-machine { animation:machine-vibrate 2.4s ease-in-out infinite; }
+.world-machine-icon { font-size:39px; filter:drop-shadow(0 4px 3px #0008); }
+.world-gear { position:absolute; right:-10px; top:-10px; color:#f4cb70; font-size:25px; text-shadow:0 2px 5px #000; animation:world-gear-spin 5s linear infinite; }
+.world-lock { position:absolute; right:-8px; top:-8px; font-size:21px; filter:drop-shadow(0 2px 3px #000); }
+.empire-world-station strong { max-width:100%; color:#f2f5fa; font-size:11px; line-height:1.25; }
+.empire-world-station small,.world-sell-machine small { margin-top:4px; color:#9aabc0; font-size:9px; }
+.station-open small { color:#79dfae; }
+.world-smoke { position:absolute; top:2px; left:18px; width:7px; height:7px; border-radius:50%; background:#c4d2df88; filter:blur(2px); animation:world-smoke-rise 2.2s ease-out infinite; }
+.smoke-two { left:55px; animation-delay:1.1s; }
+.world-belt { position:relative; flex:0 0 78px; height:36px; margin:0 -1px; }
+.world-belt-surface { position:absolute; left:0; right:0; top:9px; height:20px; overflow:hidden; border:2px solid #637487; border-radius:5px; background:repeating-linear-gradient(90deg,#26384b 0 10px,#536477 10px 14px); background-size:28px 100%; animation:belt-scroll .55s linear infinite; box-shadow:0 5px 7px #0008; }
+.world-belt-surface i { display:none; }
+.world-ore { position:absolute; top:0; z-index:2; color:#e4b75e; font-size:15px; text-shadow:0 0 8px #f6d28a; animation:ore-travel 2.5s linear infinite; }
+.ore-a { left:0; animation-delay:0s; }.ore-b { left:0; animation-delay:.83s; }.ore-c { left:0; animation-delay:1.66s; }
+.world-sell-machine { position:relative; display:flex; flex-direction:column; align-items:center; justify-content:center; width:135px; height:145px; margin-left:8px; border:1px solid #e5b64b77; border-radius:14px; background:linear-gradient(150deg,#5c4828,#252b32 72%); box-shadow:0 0 22px #dca83a22; }
+.world-sell-machine > span { font-size:43px; animation:gold-bob 1.6s ease-in-out infinite; }
+.world-sell-machine strong { color:#f4d28a; font-size:11px; letter-spacing:.08em; }
+.gold-spark { position:absolute; color:#ffe49a; font-style:normal; animation:gold-sparkle 1.5s ease-in-out infinite; }
+.spark-a { top:19px; right:21px; }.spark-b { left:19px; bottom:35px; animation-delay:.7s; }
+.world-scroll-hint { margin:0; color:#8192a9; font-size:10px; text-align:center; }
+@keyframes belt-scroll { to { background-position:-28px 0; } }
+@keyframes ore-travel { 0% { transform:translateX(0) translateY(0) rotate(0); opacity:0; } 12% { opacity:1; } 85% { opacity:1; } 100% { transform:translateX(67px) translateY(-2px) rotate(180deg); opacity:0; } }
+@keyframes world-gear-spin { to { transform:rotate(360deg); } }
+@keyframes machine-vibrate { 0%,100% { transform:translateY(0); } 25% { transform:translateY(-1px); } 50% { transform:translateY(1px); } 75% { transform:translateY(-1px); } }
+@keyframes world-smoke-rise { 0% { transform:translateY(14px) scale(.5); opacity:0; } 30% { opacity:.7; } 100% { transform:translateY(-22px) scale(1.8); opacity:0; } }
+@keyframes gold-bob { 0%,100% { transform:translateY(0) scale(1); } 50% { transform:translateY(-6px) scale(1.08); } }
+@keyframes gold-sparkle { 0%,100% { opacity:0; transform:scale(.5) rotate(0); } 50% { opacity:1; transform:scale(1.2) rotate(45deg); } }
+@keyframes world-live-pulse { 0%,100% { opacity:1; } 50% { opacity:.35; } }
+@media(max-width:760px) {
+ .empire-world-wrap { padding:12px; margin-left:-2px; margin-right:-2px; }
+ .empire-world-caption { align-items:flex-start; flex-direction:column; }
+ .empire-world-station { width:128px; }
+ .world-belt { flex-basis:64px; }
+}
+@media(prefers-reduced-motion:reduce) {
+ .empire-world-wrap *, .empire-world-wrap *::before, .empire-world-wrap *::after { animation:none !important; }
+}
