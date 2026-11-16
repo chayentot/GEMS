@@ -3,6 +3,7 @@
 import { useEffect,useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase";
+import ProfileMenu from "@/components/profile-menu";
 
 type Summary={referral_code:string;level1_count:number;level2_count:number;level3_count:number;total_earned:number};
 type Commission={id:string;source_user_id:string;referral_level:number;spend_amount:number;commission_amount:number;source_type:string;source_description:string|null;source_units_spent:number|null;created_at:string};
@@ -21,7 +22,7 @@ export default function ReferralPage(){
  async function copy(){if(!link)return;await navigator.clipboard.writeText(link);setStatus("Referral link copied. Share it with new players.");}
  async function logout(){const sb=createClient();await sb.auth.signOut();window.location.href="/GEMS/login/";}
  return <main className="shell">
-  <header className="topbar"><Link href="/" className="brand">💎 GEMS MINING</Link><nav className="row"><Link href="/dashboard/">Dashboard</Link><Link href="/mining/">Mining</Link><Link href="/referral/" aria-current="page">Referral</Link><Link href="/market/">Market</Link><Link href="/profile/">Profile</Link></nav></header>
+  <header className="topbar"><Link href="/" className="brand">💎 GEMS MINING</Link><nav className="row"><Link href="/dashboard/">Dashboard</Link><Link href="/mining/">Mining</Link><Link href="/referral/" aria-current="page">Referral</Link><Link href="/market/">Market</Link><ProfileMenu /></nav></header>
   <div className="row"><div><h1>Referral Program</h1><p className="muted">Invite players and earn GEMS when your referral network unlocks or upgrades gemstones in Mining.</p></div><button className="secondary" onClick={logout}>Sign out</button></div>
   {status&&<div className="notice">{status}</div>}
   <section className="panel section"><div className="row"><div><h2>Your referral link</h2><p className="small">New players can register using this link. Market purchases, deposits and recharges do not earn referral commissions.</p></div><span className="status-active">3 levels</span></div>
