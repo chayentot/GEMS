@@ -74,3 +74,21 @@ nav.row { gap:18px; }
 nav a[aria-current="page"] { color:#fff; border-bottom:2px solid var(--gold); padding-bottom:5px; }
 select { width:100%; padding:12px; border-radius:9px; border:1px solid var(--line); background:#0b1424; color:white; margin:6px 0 14px; }
 @media(max-width:760px) { .topbar nav.row { flex-wrap:wrap; justify-content:flex-start; } .mining-card { min-height:0; } }
+
+
+/* Animated gemstone collection and mining scene */
+.gem-picture svg { animation: gem-float 3.2s ease-in-out infinite; transform-origin: center; }
+.mining-scene { height:112px; position:relative; display:flex; align-items:center; justify-content:center; overflow:hidden; margin:0 auto 8px; }
+.mining-crystal { position:relative; z-index:1; animation: crystal-glow 1.8s ease-in-out infinite alternate; }
+.mining-pickaxe { position:absolute; z-index:2; top:8px; left:calc(50% + 13px); font-size:36px; transform-origin:12px 28px; animation: pickaxe-hit .85s ease-in-out infinite; filter:drop-shadow(0 3px 5px #0009); }
+.mining-spark { position:absolute; z-index:3; width:6px; height:6px; border-radius:50%; background:#ffe69a; box-shadow:0 0 12px 3px #ffd76a; opacity:0; }
+.spark-one { left:42%; top:42%; animation: spark-burst .85s .12s infinite; }
+.spark-two { left:59%; top:55%; animation: spark-burst .85s .32s infinite; }
+.spark-three { left:48%; top:25%; animation: spark-burst .85s .5s infinite; }
+@keyframes gem-float { 0%,100% { transform:translateY(0) rotate(-2deg); } 50% { transform:translateY(-9px) rotate(2deg); } }
+@keyframes crystal-glow { from { filter:drop-shadow(0 0 5px #f3c96966); transform:scale(.96); } to { filter:drop-shadow(0 0 18px #f3c969cc); transform:scale(1.05); } }
+@keyframes pickaxe-hit { 0%,100% { transform:rotate(-38deg) translateY(-3px); } 45%,65% { transform:rotate(24deg) translateY(5px); } }
+@keyframes spark-burst { 0%,35% { opacity:0; transform:scale(.2); } 48% { opacity:1; transform:scale(1.5); } 100% { opacity:0; transform:translate(8px,-12px) scale(.1); } }
+@media (prefers-reduced-motion:reduce) {
+ .gem-picture svg,.mining-crystal,.mining-pickaxe,.mining-spark { animation:none !important; }
+}
