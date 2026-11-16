@@ -79,7 +79,6 @@ export default function ProfilePage(){
   await navigator.clipboard.writeText(url);
   setStatus("Referral link copied. Share it with a new player.");
  }
- async function logout(){const sb=createClient();await sb.auth.signOut();window.location.href="/GEMS/login/";}
  return <main className="shell">
   <header className="topbar"><Link href="/" className="brand">💎 GEMS MINING</Link><nav className="row"><Link href="/dashboard/">Dashboard</Link><Link href="/mining/">Mining</Link><Link href="/referral/">Referral</Link><Link href="/market/">Market</Link><ProfileMenu /></nav></header>
   <div><h1>My Profile</h1><p className="muted">Account details, wallet services and transaction records.</p></div>
