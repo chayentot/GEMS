@@ -26,11 +26,40 @@ export default function ProfilePage(){
   setWallet(w.data as Wallet);setTransactions((t.data??[]) as Tx[]);setStatus("");
  }
  useEffect(()=>{void load();},[]);
+ useEffect(()=>{
+  const sb=createClient();let channel:ReturnType<typeof sb.channel>|undefined;let active=true;
+  void (async()=>{
+   const {data:{user}}=await sb.auth.getUser();
+   if(!active||!user)return;
+   channel=sb.channel("profile-live-"+user.id)
+    .on("postgres_changes",{event:"*",schema:"public",table:"wallets",filter:"user_id=eq."+user.id},()=>{void load();})
+    .on("postgres_changes",{event:"*",schema:"public",table:"wallet_transactions",filter:"user_id=eq."+user.id},()=>{void load();})
+    .on("postgres_changes",{event:"*",schema:"public",table:"recharge_orders",filter:"user_id=eq."+user.id},()=>{void load();})
+    .on("postgres_changes",{event:"*",schema:"public",table:"withdrawal_requests",filter:"user_id=eq."+user.id},()=>{void load();})
+    .subscribe();
+  })();
+  return ()=>{active=false;if(channel)void sb.removeChannel(channel);};
+ },[]);
  async function rpc(name:string,args:Record<string,unknown>){
   setBusy(true);setStatus("");
-  try{const sb=createClient();const {error}=await sb.rpc(name,args);if(error)throw error;setStatus("Your request was submitted successfully. Recharge and withdrawal requests require administrator review.");await load();}
-  catch(e){setStatus(e instanceof Error?e.message:"Request failed.");}
+  try{const sb=createClient();const {error}=await sb.rpc(name,args);if(error)throw error;setStatus("Your request was submitted successfully. Recharge and withdrawal requests require administrator review.");await load();return true;}
+  catch(e){setStatus(e instanceof Error?e.message:"Request failed.");return false;}
   finally{setBusy(false);}
+ }
+ async function submitRecharge(){
+  const amount=Number(rechargeAmount);const ref=reference.trim();
+  if(!Number.isFinite(amount)||amount<1||!ref||busy)return;
+  const yes=window.confirm("Confirm recharge request?\n\nAmount: ₱"+fmt(amount)+"\nGEMS to request: "+fmt(amount)+"\nPayment reference: "+ref+"\n\nSubmit this request for administrator verification?");
+  if(!yes)return;
+  if(await rpc("create_recharge_request",{p_php_amount:amount,p_payment_reference:ref}))setReference("");
+ }
+ async function submitWithdrawal(){
+  const amount=Number(withdrawAmount);const details=payoutDetails.trim();
+  if(!Number.isFinite(amount)||amount<150||amount>Number(wallet?.gems_balance??0)||!details||busy)return;
+  const fee=amount*0.06;const payout=amount-fee;
+  const yes=window.confirm("Confirm withdrawal request?\n\nGEMS to withdraw: "+fmt(amount)+"\nWithdrawal fee (6%): "+fmt(fee)+" GEMS\nEstimated payout: ₱"+fmt(payout)+"\nPayout details: "+details+"\n\nSubmit this request for administrator approval?");
+  if(!yes)return;
+  if(await rpc("request_withdrawal",{p_gems_amount:amount,p_payout_details:details}))setPayoutDetails("");
  }
  async function logout(){const sb=createClient();await sb.auth.signOut();window.location.href="/GEMS/login/";}
  return <main className="shell">
@@ -41,19 +70,18 @@ export default function ProfilePage(){
    <div className="panel"><div className="muted">Email address</div><strong>{email||"—"}</strong><div className="small">Registered account</div></div>
    <div className="panel"><div className="muted">Username</div><strong>{username||"Not set"}</strong><div className="small">Player display name</div></div>
    <div className="panel"><div className="muted">GEMS wallet</div><div className="stat">{fmt(wallet?.gems_balance??0)}</div><div className="small">GEMS · ₱1 accounting value each</div></div>
-   
   </section>
   <section className="grid section">
    <div className="panel"><h2>Recharge GEMS</h2><p className="small">Recharge fee: 0%. Your GEMS are credited after an administrator verifies your payment.</p>
     <label>Amount in PHP</label><input type="number" min="1" step="1" value={rechargeAmount} onChange={e=>setRechargeAmount(e.target.value)}/>
     <label>Payment reference</label><input value={reference} onChange={e=>setReference(e.target.value)} placeholder="Enter your payment reference"/>
-    <button disabled={busy||Number(rechargeAmount)<1||!reference.trim()} onClick={()=>rpc("create_recharge_request",{p_php_amount:Number(rechargeAmount),p_payment_reference:reference.trim()})}>Submit recharge request</button>
+    <button disabled={busy||Number(rechargeAmount)<1||!reference.trim()} onClick={()=>void submitRecharge()}>{busy?"Please wait…":"Submit recharge request"}</button>
    </div>
    <div className="panel"><h2>Withdraw GEMS</h2><p className="small">Minimum 150 GEMS · 6% fee · estimated payout is 94% of the requested amount. Admin approval required.</p>
     <label>GEMS amount</label><input type="number" min="150" step="1" value={withdrawAmount} onChange={e=>setWithdrawAmount(e.target.value)}/>
     <div className="notice">Estimated PHP payout: <strong>₱{fmt(Math.max(0,Number(withdrawAmount)||0)*0.94)}</strong></div>
     <label>Payout details</label><textarea value={payoutDetails} onChange={e=>setPayoutDetails(e.target.value)} placeholder="Enter payout method and account details"/>
-    <button disabled={busy||Number(withdrawAmount)<150||Number(withdrawAmount)>(wallet?.gems_balance??0)||!payoutDetails.trim()} onClick={()=>rpc("request_withdrawal",{p_gems_amount:Number(withdrawAmount),p_payout_details:payoutDetails.trim()})}>Submit withdrawal request</button>
+    <button disabled={busy||Number(withdrawAmount)<150||Number(withdrawAmount)>(wallet?.gems_balance??0)||!payoutDetails.trim()} onClick={()=>void submitWithdrawal()}>{busy?"Please wait…":"Submit withdrawal request"}</button>
    </div>
   </section>
   <section className="panel section"><h2>Transaction history</h2>
