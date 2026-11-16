@@ -405,3 +405,28 @@ th { color:#aebbd0; font-size:12px; text-transform:uppercase; letter-spacing:.06
   .empire-world-station { width:100%; }
   .empire-rule-grid { grid-template-columns:minmax(0,1fr); }
 }
+
+
+/* Shared tabs for the two independent mining modes */
+.mining-tabs {
+  display:flex; justify-content:center; align-items:center; gap:10px;
+  margin:22px auto 18px; padding:6px; width:fit-content; max-width:100%;
+  border:1px solid var(--border,#293548); border-radius:14px;
+  background:rgba(12,20,32,.72);
+}
+.mining-tab {
+  display:inline-flex; align-items:center; justify-content:center; gap:8px;
+  min-height:44px; padding:10px 20px; border-radius:10px;
+  color:var(--muted,#9ca9ba); text-decoration:none; font-weight:700;
+  white-space:nowrap; transition:background .2s ease,color .2s ease,transform .2s ease;
+}
+.mining-tab:hover { color:var(--text,#fff); background:rgba(255,255,255,.06); }
+.mining-tab.active {
+  color:#fff; background:linear-gradient(135deg,#7358d8,#3c78bd);
+  box-shadow:0 5px 18px rgba(73,104,204,.24);
+}
+.empire-shell > .mining-tabs { margin-top:18px; }
+@media(max-width:480px) {
+  .mining-tabs { width:100%; gap:5px; }
+  .mining-tab { flex:1; padding:10px 8px; font-size:12px; }
+}
