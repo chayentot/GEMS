@@ -781,3 +781,281 @@ th { color:#aebbd0; font-size:12px; text-transform:uppercase; letter-spacing:.06
   .unit-left .empire-world-station::before,
   .unit-right .empire-world-station::before { width:clamp(18px,8vw,70px); }
 }
+
+
+
+/* Mining Empire: true serpentine production route, Factory 1 to Factory 10 to Gold */
+.empire-world {
+  display:flex !important;
+  flex-direction:column !important;
+  align-items:stretch !important;
+  gap:0 !important;
+  width:100%;
+}
+.empire-world-unit.factory-step-1,
+.empire-world-unit.factory-step-2,
+.empire-world-unit.factory-step-3,
+.empire-world-unit.factory-step-4,
+.empire-world-unit.factory-step-5,
+.empire-world-unit.factory-step-6,
+.empire-world-unit.factory-step-7,
+.empire-world-unit.factory-step-8,
+.empire-world-unit.factory-step-9,
+.empire-world-unit.factory-step-10 {
+  position:relative;
+  display:block;
+  width:100%;
+  height:238px;
+  min-height:238px;
+  flex:none;
+  overflow:visible;
+}
+.empire-world-unit.factory-step-1 { height:250px; min-height:250px; }
+.empire-world-unit.factory-step-10 { height:250px; min-height:250px; }
+.empire-world-station {
+  position:absolute !important;
+  top:18px !important;
+  z-index:5;
+  width:min(42%,230px) !important;
+  min-height:158px;
+}
+.factory-step-1 .empire-world-station {
+  left:50% !important;
+  right:auto !important;
+  top:0 !important;
+  width:min(48%,260px) !important;
+  transform:translateX(-50%);
+}
+.factory-step-2 .empire-world-station,
+.factory-step-4 .empire-world-station,
+.factory-step-6 .empire-world-station,
+.factory-step-8 .empire-world-station,
+.factory-step-10 .empire-world-station {
+  left:3% !important;
+  right:auto !important;
+}
+.factory-step-3 .empire-world-station,
+.factory-step-5 .empire-world-station,
+.factory-step-7 .empire-world-station,
+.factory-step-9 .empire-world-station {
+  right:3% !important;
+  left:auto !important;
+}
+/* Conveyor segments are centered vertically after Factory 1 and Factory 10,
+   and span horizontally between the alternating factories. */
+.world-belt {
+  position:absolute !important;
+  z-index:2;
+  margin:0 !important;
+  transform:none !important;
+  overflow:visible;
+}
+.factory-step-1 .world-belt,
+.factory-step-10 .world-belt {
+  left:calc(50% - 32px) !important;
+  right:auto !important;
+  top:160px !important;
+  bottom:0 !important;
+  width:64px !important;
+  height:90px !important;
+}
+.factory-step-1 .world-belt-surface,
+.factory-step-10 .world-belt-surface {
+  position:absolute;
+  left:22px !important;
+  right:22px !important;
+  top:0 !important;
+  bottom:0 !important;
+  width:20px !important;
+  height:auto !important;
+  background:repeating-linear-gradient(180deg,#26384b 0 10px,#536477 10px 14px);
+  background-size:100% 28px;
+  animation:belt-scroll-vertical .55s linear infinite;
+}
+.factory-step-1 .world-material,
+.factory-step-10 .world-material {
+  top:0 !important;
+  left:50% !important;
+  animation:material-travel-vertical 2.7s linear infinite !important;
+}
+.factory-step-1 .world-belt-arrow,
+.factory-step-10 .world-belt-arrow {
+  left:50% !important;
+  right:auto !important;
+  bottom:0 !important;
+  top:auto !important;
+  transform:translateX(-50%);
+}
+.factory-step-2 .world-belt,
+.factory-step-3 .world-belt,
+.factory-step-4 .world-belt,
+.factory-step-5 .world-belt,
+.factory-step-6 .world-belt,
+.factory-step-7 .world-belt,
+.factory-step-8 .world-belt,
+.factory-step-9 .world-belt {
+  left:0 !important;
+  right:0 !important;
+  top:auto !important;
+  bottom:0 !important;
+  width:100% !important;
+  height:58px !important;
+}
+.factory-step-2 .world-belt-surface,
+.factory-step-3 .world-belt-surface,
+.factory-step-4 .world-belt-surface,
+.factory-step-5 .world-belt-surface,
+.factory-step-6 .world-belt-surface,
+.factory-step-7 .world-belt-surface,
+.factory-step-8 .world-belt-surface,
+.factory-step-9 .world-belt-surface {
+  position:absolute;
+  left:0 !important;
+  right:0 !important;
+  top:19px !important;
+  bottom:19px !important;
+  width:auto !important;
+  height:20px !important;
+  background:repeating-linear-gradient(90deg,#26384b 0 10px,#536477 10px 14px);
+  background-size:28px 100%;
+  animation:belt-scroll-horizontal .55s linear infinite;
+}
+@keyframes belt-scroll-horizontal {
+  from { background-position:0 0; }
+  to { background-position:28px 0; }
+}
+.factory-step-2 .world-material,
+.factory-step-3 .world-material,
+.factory-step-4 .world-material,
+.factory-step-5 .world-material,
+.factory-step-6 .world-material,
+.factory-step-7 .world-material,
+.factory-step-8 .world-material,
+.factory-step-9 .world-material {
+  top:50% !important;
+  left:0 !important;
+  margin-top:-17px;
+  animation:material-travel-horizontal 3.2s linear infinite !important;
+}
+@keyframes material-travel-horizontal {
+  0% { transform:translateX(-12px) scale(.7); opacity:0; }
+  12% { opacity:1; transform:translateX(10px) scale(1); }
+  88% { opacity:1; }
+  100% { transform:translateX(calc(100vw - 30px)) scale(.85); opacity:0; }
+}
+.factory-step-2 .world-belt-arrow,
+.factory-step-3 .world-belt-arrow,
+.factory-step-4 .world-belt-arrow,
+.factory-step-5 .world-belt-arrow,
+.factory-step-6 .world-belt-arrow,
+.factory-step-7 .world-belt-arrow,
+.factory-step-8 .world-belt-arrow,
+.factory-step-9 .world-belt-arrow {
+  left:auto !important;
+  right:8px !important;
+  top:50% !important;
+  bottom:auto !important;
+  transform:translateY(-50%) rotate(-90deg);
+}
+/* Side-entry and exit branches visibly join the main horizontal run */
+.factory-step-2 .empire-world-station::before,
+.factory-step-4 .empire-world-station::before,
+.factory-step-6 .empire-world-station::before,
+.factory-step-8 .empire-world-station::before,
+.factory-step-10 .empire-world-station::before {
+  content:"IN";
+  position:absolute;
+  left:100%;
+  right:auto;
+  top:45%;
+  width:clamp(26px,8vw,110px);
+  height:14px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:#d8e8f8;
+  font-size:8px;
+  font-weight:900;
+  background:repeating-linear-gradient(90deg,#26384b 0 8px,#536477 8px 12px);
+  border-top:2px solid #8296aa;
+  border-bottom:2px solid #42566d;
+}
+.factory-step-3 .empire-world-station::before,
+.factory-step-5 .empire-world-station::before,
+.factory-step-7 .empire-world-station::before,
+.factory-step-9 .empire-world-station::before {
+  content:"IN";
+  position:absolute;
+  right:100%;
+  left:auto;
+  top:45%;
+  width:clamp(26px,8vw,110px);
+  height:14px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:#d8e8f8;
+  font-size:8px;
+  font-weight:900;
+  background:repeating-linear-gradient(90deg,#26384b 0 8px,#536477 8px 12px);
+  border-top:2px solid #8296aa;
+  border-bottom:2px solid #42566d;
+}
+/* Gold Seller is centered below the final vertical outlet */
+.world-sell-unit {
+  display:flex !important;
+  justify-content:center !important;
+  align-items:flex-start !important;
+  position:relative;
+  min-height:175px;
+  padding-top:8px;
+}
+.world-sell-machine { margin:0 auto; z-index:4; }
+@media(max-width:760px) {
+  .empire-world-unit.factory-step-1,
+  .empire-world-unit.factory-step-2,
+  .empire-world-unit.factory-step-3,
+  .empire-world-unit.factory-step-4,
+  .empire-world-unit.factory-step-5,
+  .empire-world-unit.factory-step-6,
+  .empire-world-unit.factory-step-7,
+  .empire-world-unit.factory-step-8,
+  .empire-world-unit.factory-step-9,
+  .empire-world-unit.factory-step-10 {
+    height:228px;
+    min-height:228px;
+  }
+  .empire-world-unit.factory-step-1,
+  .empire-world-unit.factory-step-10 { height:240px; min-height:240px; }
+  .empire-world-station { width:44% !important; min-height:150px; }
+  .factory-step-1 .empire-world-station { width:58% !important; }
+  .factory-step-1 .world-belt,
+  .factory-step-10 .world-belt { top:152px !important; }
+  .factory-step-2 .empire-world-station::before,
+  .factory-step-4 .empire-world-station::before,
+  .factory-step-6 .empire-world-station::before,
+  .factory-step-8 .empire-world-station::before,
+  .factory-step-10 .empire-world-station::before,
+  .factory-step-3 .empire-world-station::before,
+  .factory-step-5 .empire-world-station::before,
+  .factory-step-7 .empire-world-station::before,
+  .factory-step-9 .empire-world-station::before { width:clamp(20px,7vw,65px); }
+}
+@media(max-width:420px) {
+  .empire-world-unit.factory-step-1,
+  .empire-world-unit.factory-step-2,
+  .empire-world-unit.factory-step-3,
+  .empire-world-unit.factory-step-4,
+  .empire-world-unit.factory-step-5,
+  .empire-world-unit.factory-step-6,
+  .empire-world-unit.factory-step-7,
+  .empire-world-unit.factory-step-8,
+  .empire-world-unit.factory-step-9,
+  .empire-world-unit.factory-step-10 { height:220px; min-height:220px; }
+  .empire-world-unit.factory-step-1,
+  .empire-world-unit.factory-step-10 { height:232px; min-height:232px; }
+  .empire-world-station { width:47% !important; padding:8px 6px !important; }
+  .factory-step-1 .empire-world-station { width:66% !important; }
+  .factory-step-1 .world-belt,
+  .factory-step-10 .world-belt { top:146px !important; }
+}
