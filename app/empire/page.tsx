@@ -176,7 +176,7 @@ export default function MiningEmpirePage() {
                       <small>{!unlocked ? "Locked · material bypasses" : factory.id === 1 ? "Mining" : isFull ? "Storage full · bypassing" : "Auto processing"}</small>
                       {!unlocked && <button className="world-unlock-button" disabled={game.gold < factory.unlock} onClick={() => unlock(factory)}>Unlock · 🪙 {factory.unlock.toLocaleString()}</button>}
                     </div>
-                    {index < recipes.length - 1 && (
+                    {true && (
                       <div className={`world-belt ${unlocked && !isFull ? "belt-active" : "belt-bypass"}`} aria-hidden="true">
                         <div className="world-belt-surface"><i /><i /><i /><i /><i /><i /></div>
                         <span className="world-material material-a" role="img" aria-label={`${recipes[flowingMaterialIndex].name} moving on conveyor`}>{flowingMaterial}</span>
