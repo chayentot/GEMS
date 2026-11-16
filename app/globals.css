@@ -151,3 +151,7 @@ th { color:#aebbd0; font-size:12px; text-transform:uppercase; letter-spacing:.06
  .profile-tabs { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:7px; }
  .profile-tabs .profile-tab { min-width:0; padding:11px 8px; font-size:12px; }
 }
+
+/* Simple direct Profile navigation link (no dropdown) */
+.profile-menu-link { display:inline-flex; align-items:center; padding:10px 13px; border-radius:10px; color:#aebbd0; font-size:13px; font-weight:700; text-decoration:none; }
+.profile-menu-link:hover { color:var(--gold); background:#f4cb7015; }
