@@ -112,6 +112,10 @@ export default function MiningEmpirePage() {
           <Link href="/empire/" aria-current="page">Mining Empire</Link><Link href="/market/">Market</Link>
         </nav>
       </header>
+      <div className="mining-tabs" role="tablist" aria-label="Mining modes">
+        <Link href="/mining/" className="mining-tab" role="tab" aria-selected="false">💎 Gemstone Mining</Link>
+        <Link href="/empire/" className="mining-tab active" role="tab" aria-selected="true">🏭 Mining Empire</Link>
+      </div>
 
       <section className="empire-hero panel">
         <div className="row">
