@@ -139,7 +139,7 @@ export default function MiningEmpirePage() {
       <section className="section">
         <div className="row empire-section-heading"><div><h2>Conveyor & factory line</h2><p className="small">Locked factories are bypassed. Full factories pass excess material forward. Anything with no available unlocked destination is sold for Gold.</p></div></div>
         <div className="empire-world-wrap">
-          <div className="empire-world-caption"><span>LIVE CONVEYOR VIEW</span><span className="live-indicator"><i /> FACTORY LINE RUNNING</span></div>
+          <div className="empire-world-caption"><span>VERTICAL MINING WORLD</span><span className="live-indicator"><i /> FACTORY LINE RUNNING</span></div>
           <div className="empire-world-scroll">
             <div className="empire-world">
               {recipes.map((factory, index) => {
@@ -156,7 +156,8 @@ export default function MiningEmpirePage() {
                         {unlocked && <span className="world-smoke smoke-two" />}
                       </div>
                       <strong>{factory.name}</strong>
-                      <small>{unlocked ? (factory.id === 1 ? "Mining" : "Auto processing") : "Bypass only"}</small>
+                      <small>{unlocked ? (factory.id === 1 ? "Mining" : "Auto processing") : "Material bypasses this station"}</small>
+                      {!unlocked && <button className="world-unlock-button" disabled={game.gold < factory.unlock} onClick={() => unlock(factory)}>Unlock · 🪙 {factory.unlock.toLocaleString()}</button>}
                     </div>
                     {index < recipes.length - 1 && (
                       <div className="world-belt" aria-hidden="true">
@@ -164,6 +165,7 @@ export default function MiningEmpirePage() {
                         <span className="world-ore ore-a">◆</span>
                         <span className="world-ore ore-b">◆</span>
                         <span className="world-ore ore-c">◆</span>
+                        <span className="world-belt-arrow">▼</span>
                       </div>
                     )}
                   </div>
@@ -177,43 +179,10 @@ export default function MiningEmpirePage() {
               </div>
             </div>
           </div>
-          <p className="world-scroll-hint">← Scroll sideways to see the complete production line →</p>
-        </div>
-        <div className="empire-factory-grid">
-          {recipes.map((factory, index) => {
-            const unlocked = game.unlocked[index];
-            const inputText = factory.inputs.length ? factory.inputs.map(([id, qty]) => `${qty} × ${recipes[id - 1].name}`).join(" + ") : "Produces 5 Iron Ore per cycle";
-            const stored = factory.inputs.reduce((sum, [id]) => sum + (game.stock[factory.id * 100 + id] || 0), 0);
-            const capacityPercent = Math.min(100, stored);
-            return (
-              <article className={`empire-factory panel ${unlocked ? "is-unlocked" : "is-locked"}`} key={factory.id}>
-                <div className="row empire-factory-top">
-                  <span className="factory-number">FACTORY {String(factory.id).padStart(2, "0")}</span>
-                  <span className={unlocked ? "status-active" : "status-locked"}>{unlocked ? "UNLOCKED" : "🔒 LOCKED"}</span>
-                </div>
-                <div className="factory-art">{factory.id === 1 ? "⛏️" : factory.id === 10 ? "💠" : "🏭"}</div>
-                <h3>{factory.name}</h3>
-                <p className="small">{factory.id === 1 ? "Starter mine" : `Recipe: ${inputText}`}</p>
-                {unlocked ? (
-                  <>
-                    <div className="factory-storage"><div className="row"><span>Input storage</span><b>{stored} / 100</b></div><div className="storage-track"><i style={{ width: `${capacityPercent}%` }} /></div></div>
-                    <div className="factory-status success">● Automatic production enabled</div>
-                  </>
-                ) : (
-                  <div className="factory-unlock">
-                    <div className="small">Unlock with Gold</div>
-                    <strong>🪙 {factory.unlock.toLocaleString()}</strong>
-                    <button disabled={game.gold < factory.unlock} onClick={() => unlock(factory)}>Unlock factory</button>
-                  </div>
-                )}
-                <div className="factory-footer"><span>Sell value</span><b>{factory.value} Gold / unit</b></div>
-              </article>
-            );
-          })}
+          <p className="world-scroll-hint">Follow the production line from the mine at the top down to the Gold seller.</p>
         </div>
       </section>
 
-      <section className="panel section empire-rules">
         <h2>How the factory system works</h2>
         <div className="empire-rule-grid">
           <div><b>1. Locked</b><p className="small">Material bypasses the locked factory and continues along the conveyor.</p></div>
