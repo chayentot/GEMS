@@ -4,6 +4,7 @@ import { useEffect,useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase";
 import GemArt from "@/components/gem-art";
+import ProfileMenu from "@/components/profile-menu";
 
 type Gemstone={id:string;code:string;name:string};
 type Inventory={id:string;gemstone_id:string;level:number;gemstone_units_balance:number;is_active:boolean;is_unlocked:boolean;gemstones:Gemstone};
@@ -37,7 +38,7 @@ export default function Dashboard(){
   return ()=>{active=false;if(channel)void sb.removeChannel(channel);};
  },[]);
  return <main className="shell">
-  <header className="topbar"><Link href="/" className="brand">💎 GEMS MINING</Link><nav className="row"><Link href="/dashboard/" aria-current="page">Dashboard</Link><Link href="/mining/">Mining</Link><Link href="/referral/">Referral</Link><Link href="/market/">Market</Link><Link href="/profile/">Profile</Link></nav></header>
+  <header className="topbar"><Link href="/" className="brand">💎 GEMS MINING</Link><nav className="row"><Link href="/dashboard/" aria-current="page">Dashboard</Link><Link href="/mining/">Mining</Link><Link href="/referral/">Referral</Link><Link href="/market/">Market</Link><ProfileMenu /></nav></header>
   <div className="row"><div><h1>My Dashboard</h1><p className="muted">Your wallet and gemstone collection at a glance.</p></div><Link href="/mining/"><button>Go to Mining</button></Link></div>
   {status&&<div className="notice">{status}</div>}
   <section className="grid section">
