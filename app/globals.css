@@ -1059,3 +1059,24 @@ th { color:#aebbd0; font-size:12px; text-transform:uppercase; letter-spacing:.06
   .factory-step-1 .world-belt,
   .factory-step-10 .world-belt { top:146px !important; }
 }
+
+
+/* Mining Empire: fixed, clearly defined conveyor animation speeds */
+.empire-world {
+  --conveyor-belt-loop:550ms;
+  --conveyor-material-travel:3200ms;
+}
+.empire-world .world-belt-surface {
+  animation-duration:var(--conveyor-belt-loop) !important;
+}
+.empire-world .world-material {
+  animation-duration:var(--conveyor-material-travel) !important;
+}
+.world-factory-speed {
+  display:block;
+  margin-top:5px;
+  color:#f4cb70;
+  font-size:10px;
+  font-weight:800;
+  letter-spacing:.02em;
+}
