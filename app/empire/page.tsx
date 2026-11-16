@@ -162,7 +162,7 @@ export default function MiningEmpirePage() {
                 }
                 const flowingMaterial = materialIcons[flowingMaterialIndex];
                 return (
-                  <div className={`empire-world-unit ${index === 0 ? "unit-center" : index % 2 === 1 ? "unit-left" : "unit-right"}`} key={factory.id}>
+                  <div className={`empire-world-unit factory-step-${index + 1} ${index === 0 ? "unit-center" : index % 2 === 1 ? "unit-left" : "unit-right"}`} key={factory.id}>
                     <div className={`empire-world-station ${unlocked ? "station-open" : "station-locked"}`}>
                       <div className="world-station-label">FACTORY {String(factory.id).padStart(2, "0")}</div>
                       <div className="world-machine">
