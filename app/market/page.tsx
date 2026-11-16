@@ -33,6 +33,7 @@ export default function MarketPage() {
  const [sellUnits,setSellUnits]=useState("");
  const [status,setStatus]=useState("Loading market…");
  const [busy,setBusy]=useState(false);
+ const [activeTab,setActiveTab]=useState<"buy"|"sell"|"rates">("buy");
 
  async function load() {
   const supabase=createClient();
@@ -76,38 +77,33 @@ export default function MarketPage() {
 
  return <main className="shell">
   <header className="topbar"><Link href="/" className="brand">💎 GEMS MINING</Link><nav className="row"><Link href="/dashboard/">Dashboard</Link><Link href="/mining/">Mining</Link><Link href="/referral/">Referral</Link><Link href="/market/" aria-current="page">Market</Link><ProfileMenu /></nav></header>
-  <h1>GEMS Market</h1>
-  <p className="muted">Exchange GEMS for gemstone units, or sell your gemstone units back for GEMS. Platform exchange rate with a 5% fee on every trade.</p>
-  <section className="panel section row"><div><div className="muted">Available GEMS</div><div className="stat">{fmt(wallet?.gems_balance??0)} GEMS</div></div><div className="small">5% market fee applies to both buying and selling.</div></section>
+  <div><h1>GEMS Market</h1><p className="muted">Buy and sell gemstone units, or review the current platform exchange rates.</p></div>
+  <section className="panel section row"><div><div className="muted">Available GEMS</div><div className="stat">{fmt(wallet?.gems_balance??0)} GEMS</div></div><div className="small">A 5% market fee applies to both buying and selling.</div></section>
   {status&&<div className="notice section">{status}</div>}
-  <section className="grid section">
-   <div className="panel">
-    <h2>Buy gemstone units</h2>
-    <p className="small">Choose a gemstone and the amount of GEMS to spend. Units are added directly to your gemstone collection.</p>
-    <label>Gemstone</label>
-    <select value={buyGem} onChange={e=>setBuyGem(e.target.value)}>{catalog.map(g=><option key={g.id} value={g.id}>{g.name}</option>)}</select>
-    {selectedBuy&&<div className="row section"><GemArt code={selectedBuy.code}/><div><strong>{selectedBuy.name}</strong><div className="small">Market exchange</div></div></div>}
-    <label>GEMS to spend</label>
-    <input type="number" min="0.00000001" step="0.00000001" value={buyAmount} onChange={e=>setBuyAmount(e.target.value)}/>
-    <div className="item"><div className="row"><span className="small">Gemstone units you receive</span><strong>{fmt(buyUnits)}</strong></div><div className="row"><span className="small">5% fee (unit equivalent)</span><span className="small">{fmt(Math.max(0,Number(buyAmount)||0)*(selectedBuy?.units_per_gems||0)*0.05)}</span></div></div>
-    <button disabled={busy||!selectedBuy||Number(buyAmount)<=0||Number(buyAmount)>(wallet?.gems_balance??0)} onClick={()=>trade("market_buy_gemstone",{p_gemstone_id:buyGem,p_gems_amount:Number(buyAmount)})}>Buy gemstone units</button>
-   </div>
-   <div className="panel">
-    <h2>Sell gemstone units</h2>
-    <p className="small">Choose a gemstone from your collection. The net GEMS after the 5% fee will be credited to your wallet.</p>
-    <label>Your gemstone</label>
-    <select value={sellInventory} onChange={e=>setSellInventory(e.target.value)}>{inventory.map(g=><option key={g.id} value={g.id}>{g.gemstones?.name??"Gemstone"} — {fmt(g.gemstone_units_balance)} units</option>)}</select>
-    {selectedSell&&<div className="row section"><GemArt code={selectedSell.gemstones?.code??""}/><div><strong>{selectedSell.gemstones?.name}</strong><div className="small">Available: {fmt(selectedSell.gemstone_units_balance)} units</div></div></div>}
-    <label>Units to sell</label>
-    <input type="number" min="0.00000001" step="0.00000001" max={selectedSell?.gemstone_units_balance??0} value={sellUnits} onChange={e=>setSellUnits(e.target.value)}/>
-    <div className="item"><div className="row"><span className="small">GEMS you receive</span><strong>{fmt(sellNet)}</strong></div><div className="row"><span className="small">5% fee</span><span className="small">{fmt(Math.max(0,Number(sellUnits)||0)/(selectedSell?.gemstones?.units_per_gems||1)*0.05)} GEMS</span></div></div>
-    <button disabled={busy||!selectedSell||Number(sellUnits)<=0||Number(sellUnits)>selectedSell.gemstone_units_balance||sellNet<=0} onClick={()=>trade("market_sell_gemstone",{p_player_gemstone_id:sellInventory,p_gemstone_units:Number(sellUnits)})}>Sell gemstone units</button>
-   </div>
-  </section>
-  <section className="panel section">
-   <h2>Market exchange rates</h2>
-   <div className="grid">{catalog.map(g=><div className="item row" key={g.id}><div className="row"><GemArt code={g.code}/><strong>{g.name}</strong></div><span className="small">1 GEMS base rate = {fmt(g.units_per_gems)} units</span></div>)}</div>
-   <p className="small section">The 5% fee is deducted from the gemstone units received when buying, and from the GEMS payout when selling. Mining earnings and level-up requirements remain unchanged.</p>
-  </section>
+  <div className="profile-tabs" role="tablist" aria-label="Market sections">
+   <button type="button" role="tab" aria-selected={activeTab==="buy"} className={activeTab==="buy"?"profile-tab active":"profile-tab"} onClick={()=>setActiveTab("buy")}>Buy Gemstone</button>
+   <button type="button" role="tab" aria-selected={activeTab==="sell"} className={activeTab==="sell"?"profile-tab active":"profile-tab"} onClick={()=>setActiveTab("sell")}>Sell Gemstone</button>
+   <button type="button" role="tab" aria-selected={activeTab==="rates"} className={activeTab==="rates"?"profile-tab active":"profile-tab"} onClick={()=>setActiveTab("rates")}>Market Exchange Rate</button>
+  </div>
+  {activeTab==="buy"&&<section className="section"><div className="panel">
+   <h2>Buy gemstone units</h2><p className="small">Choose a gemstone and the amount of GEMS to spend. Units are added directly to your gemstone collection. The 5% market fee is deducted from the units received.</p>
+   <label>Gemstone</label><select value={buyGem} onChange={e=>setBuyGem(e.target.value)}>{catalog.map(g=><option key={g.id} value={g.id}>{g.name}</option>)}</select>
+   {selectedBuy&&<div className="row section"><GemArt code={selectedBuy.code}/><div><strong>{selectedBuy.name}</strong><div className="small">Base rate: {fmt(selectedBuy.units_per_gems)} units per GEMS</div></div></div>}
+   <label>GEMS to spend</label><input type="number" min="0.00000001" step="0.00000001" value={buyAmount} onChange={e=>setBuyAmount(e.target.value)}/>
+   <div className="item"><div className="row"><span className="small">Gemstone units you receive (after fee)</span><strong>{fmt(buyUnits)}</strong></div><div className="row"><span className="small">5% fee (unit equivalent)</span><span className="small">{fmt(Math.max(0,Number(buyAmount)||0)*(selectedBuy?.units_per_gems||0)*0.05)}</span></div></div>
+   <button disabled={busy||!selectedBuy||Number(buyAmount)<=0||Number(buyAmount)>(wallet?.gems_balance??0)} onClick={()=>trade("market_buy_gemstone",{p_gemstone_id:buyGem,p_gems_amount:Number(buyAmount)})}>{busy?"Please wait…":"Buy gemstone"}</button>
+  </div></section>}
+  {activeTab==="sell"&&<section className="section"><div className="panel">
+   <h2>Sell gemstone units</h2><p className="small">Choose a gemstone from your collection. The net GEMS after the 5% market fee will be credited to your wallet.</p>
+   <label>Your gemstone</label><select value={sellInventory} onChange={e=>setSellInventory(e.target.value)}>{inventory.map(g=><option key={g.id} value={g.id}>{g.gemstones?.name??"Gemstone"} — {fmt(g.gemstone_units_balance)} units</option>)}</select>
+   {selectedSell&&<div className="row section"><GemArt code={selectedSell.gemstones?.code??""}/><div><strong>{selectedSell.gemstones?.name}</strong><div className="small">Available: {fmt(selectedSell.gemstone_units_balance)} units</div></div></div>}
+   <label>Units to sell</label><input type="number" min="0.00000001" step="0.00000001" max={selectedSell?.gemstone_units_balance??0} value={sellUnits} onChange={e=>setSellUnits(e.target.value)}/>
+   <div className="item"><div className="row"><span className="small">GEMS you receive (after fee)</span><strong>{fmt(sellNet)}</strong></div><div className="row"><span className="small">5% fee</span><span className="small">{fmt(Math.max(0,Number(sellUnits)||0)/(selectedSell?.gemstones?.units_per_gems||1)*0.05)} GEMS</span></div></div>
+   <button disabled={busy||!selectedSell||Number(sellUnits)<=0||Number(sellUnits)>selectedSell.gemstone_units_balance||sellNet<=0} onClick={()=>trade("market_sell_gemstone",{p_player_gemstone_id:sellInventory,p_gemstone_units:Number(sellUnits)})}>{busy?"Please wait…":"Sell gemstone"}</button>
+  </div></section>}
+  {activeTab==="rates"&&<section className="panel section"><h2>Market exchange rates</h2><p className="small">Base conversion rates used by the market. A 5% fee is applied to each buy or sell transaction.</p>
+   <div className="grid">{catalog.map(g=><div className="item row" key={g.id}><div className="row"><GemArt code={g.code}/><strong>{g.name}</strong></div><span className="small">1 GEMS = {fmt(g.units_per_gems)} units</span></div>)}</div>
+   <p className="small section">The fee is deducted from the gemstone units received when buying, and from the GEMS payout when selling. Mining earnings and level-up requirements remain unchanged.</p>
+  </section>}
  </main>;
 }
