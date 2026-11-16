@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase";
+import ProfileMenu from "@/components/profile-menu";
 
 type Gemstone = { id:string; code:string; name:string; units_per_gems:number; is_available:boolean };
 type Inventory = { id:string; gemstone_id:string; level:number; gemstone_units_balance:number; gemstones:Gemstone };
@@ -74,10 +75,7 @@ export default function MarketPage() {
  }
 
  return <main className="shell">
-  <header className="topbar">
-   <Link href="/" className="brand">💎 GEMS MINING</Link>
-   <nav className="row"><Link href="/dashboard/">Dashboard</Link><Link href="/mining/">Mining</Link><Link href="/referral/">Referral</Link><Link href="/market/" aria-current="page">Market</Link><Link href="/profile/">Profile</Link></nav>
-  </header>
+  <header className="topbar"><Link href="/" className="brand">💎 GEMS MINING</Link><nav className="row"><Link href="/dashboard/">Dashboard</Link><Link href="/mining/">Mining</Link><Link href="/referral/">Referral</Link><Link href="/market/" aria-current="page">Market</Link><ProfileMenu /></nav></header>
   <h1>GEMS Market</h1>
   <p className="muted">Exchange GEMS for gemstone units, or sell your gemstone units back for GEMS. Platform exchange rate with a 5% fee on every trade.</p>
   <section className="panel section row"><div><div className="muted">Available GEMS</div><div className="stat">{fmt(wallet?.gems_balance??0)} GEMS</div></div><div className="small">5% market fee applies to both buying and selling.</div></section>
