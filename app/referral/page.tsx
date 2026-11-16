@@ -6,7 +6,7 @@ import { createClient } from "@/lib/supabase";
 
 type Summary={referral_code:string;level1_count:number;level2_count:number;level3_count:number;total_earned:number};
 type Commission={id:string;source_user_id:string;referral_level:number;spend_amount:number;commission_amount:number;source_type:string;source_description:string|null;source_units_spent:number|null;created_at:string};
-const fmt=(n:number)=>Number(n||0).toLocaleString(undefined,{maximumFractionDigits:8});
+const fmt=(n:number)=>Number(n||0).toFixed(2);
 
 export default function ReferralPage(){
  const [summary,setSummary]=useState<Summary|null>(null);const [link,setLink]=useState("");const [commissions,setCommissions]=useState<Commission[]>([]);const [status,setStatus]=useState("Loading referral details…");
