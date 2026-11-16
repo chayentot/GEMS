@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase";
+import ProfileMenu from "@/components/profile-menu";
 
 type Recipe = { id: number; name: string; inputs: [number, number][]; value: number; unlock: number };
 type Shipment = { id: number; materialId: number; amount: number; remainingMs: number };
@@ -143,7 +144,7 @@ export default function MiningEmpirePage() {
         <Link href="/dashboard/" className="brand">💎 GEMS MINING</Link>
         <nav className="row">
           <Link href="/dashboard/">Dashboard</Link><Link href="/mining/">Mining</Link>
-          <Link href="/empire/" aria-current="page">Mining Empire</Link><Link href="/market/">Market</Link>
+          <Link href="/referral/">Referral</Link><Link href="/market/">Market</Link><ProfileMenu />
         </nav>
       </header>
       <div className="mining-tabs" role="tablist" aria-label="Mining modes">
