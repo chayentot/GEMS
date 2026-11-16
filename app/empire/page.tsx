@@ -138,6 +138,47 @@ export default function MiningEmpirePage() {
 
       <section className="section">
         <div className="row empire-section-heading"><div><h2>Conveyor & factory line</h2><p className="small">Locked factories are bypassed. Full factories pass excess material forward. Anything with no available unlocked destination is sold for Gold.</p></div></div>
+        <div className="empire-world-wrap">
+          <div className="empire-world-caption"><span>LIVE CONVEYOR VIEW</span><span className="live-indicator"><i /> FACTORY LINE RUNNING</span></div>
+          <div className="empire-world-scroll">
+            <div className="empire-world">
+              {recipes.map((factory, index) => {
+                const unlocked = game.unlocked[index];
+                return (
+                  <div className="empire-world-unit" key={factory.id}>
+                    <div className={`empire-world-station ${unlocked ? "station-open" : "station-locked"}`}>
+                      <div className="world-station-label">FACTORY {String(factory.id).padStart(2, "0")}</div>
+                      <div className="world-machine">
+                        <span className="world-machine-icon">{factory.id === 1 ? "⛏️" : factory.id === 10 ? "💎" : "🏭"}</span>
+                        {unlocked && <span className="world-gear">⚙</span>}
+                        {!unlocked && <span className="world-lock">🔒</span>}
+                        {unlocked && <span className="world-smoke smoke-one" />}
+                        {unlocked && <span className="world-smoke smoke-two" />}
+                      </div>
+                      <strong>{factory.name}</strong>
+                      <small>{unlocked ? (factory.id === 1 ? "Mining" : "Auto processing") : "Bypass only"}</small>
+                    </div>
+                    {index < recipes.length - 1 && (
+                      <div className="world-belt" aria-hidden="true">
+                        <div className="world-belt-surface"><i /><i /><i /><i /><i /><i /></div>
+                        <span className="world-ore ore-a">◆</span>
+                        <span className="world-ore ore-b">◆</span>
+                        <span className="world-ore ore-c">◆</span>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+              <div className="empire-world-unit world-sell-unit">
+                <div className="world-sell-machine">
+                  <span>🪙</span><strong>GOLD SELLER</strong><small>Sell overflow</small>
+                  <i className="gold-spark spark-a">✦</i><i className="gold-spark spark-b">✦</i>
+                </div>
+              </div>
+            </div>
+          </div>
+          <p className="world-scroll-hint">← Scroll sideways to see the complete production line →</p>
+        </div>
         <div className="empire-factory-grid">
           {recipes.map((factory, index) => {
             const unlocked = game.unlocked[index];
