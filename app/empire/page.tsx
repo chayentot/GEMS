@@ -179,7 +179,7 @@ export default function MiningEmpirePage() {
                       </div>
                       <strong>{factory.name}</strong>
                       <small>{!unlocked ? "Locked · material bypasses" : factory.id === 1 ? "Mining · fixed cycle" : isFull ? "Storage full · bypassing" : "Auto processing · fixed cycle"}</small>
-                      {unlocked && <small className="world-factory-speed">Speed: 1 batch / {(FACTORY_CYCLE_MS / 1000).toFixed(1)} sec</small>}
+                      {unlocked && <small className="world-factory-speed">Cycle: {(FACTORY_CYCLE_MS / 1000).toFixed(1)} sec</small>}
                       {!unlocked && <button className="world-unlock-button" disabled={game.gold < factory.unlock} onClick={() => unlock(factory)}>Unlock · 🪙 {factory.unlock.toLocaleString()}</button>}
                     </div>
                     {true && (
