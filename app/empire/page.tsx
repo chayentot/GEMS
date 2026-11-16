@@ -20,6 +20,8 @@ const recipes: Recipe[] = [
   { id: 10, name: "Ultimate Mining Core", inputs: [[6, 1], [7, 1], [8, 1], [9, 1]], value: 60, unlock: 1600 }
 ];
 
+const materialIcons = ["🪨", "🧱", "🔩", "⚙️", "🛠️", "🏗️", "⚡", "🖥️", "⛏️", "💎"];
+
 const initial: GameState = {
   gold: 0,
   unlocked: recipes.map((r) => r.id === 1),
@@ -166,9 +168,9 @@ export default function MiningEmpirePage() {
                     {index < recipes.length - 1 && (
                       <div className="world-belt" aria-hidden="true">
                         <div className="world-belt-surface"><i /><i /><i /><i /><i /><i /></div>
-                        <span className="world-ore ore-a">◆</span>
-                        <span className="world-ore ore-b">◆</span>
-                        <span className="world-ore ore-c">◆</span>
+                        <span className="world-material material-a" role="img" aria-label={`${factory.name} moving on conveyor`}>{materialIcons[index]}</span>
+                        <span className="world-material material-b" role="img" aria-label={`${factory.name} moving on conveyor`}>{materialIcons[index]}</span>
+                        <span className="world-material material-c" role="img" aria-label={`${factory.name} moving on conveyor`}>{materialIcons[index]}</span>
                         <span className="world-belt-arrow">▼</span>
                       </div>
                     )}
