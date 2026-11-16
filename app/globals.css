@@ -492,3 +492,100 @@ th { color:#aebbd0; font-size:12px; text-transform:uppercase; letter-spacing:.06
   .world-belt-surface { left:24px; right:24px; }
   .world-belt-arrow { left:30px; }
 }
+
+
+/* Mining Empire: alternating side conveyor with visible factory entry */
+.empire-world { align-items:stretch; gap:0; }
+.empire-world-unit {
+  position:relative;
+  display:block;
+  width:100%;
+  min-height:228px;
+}
+.empire-world-station {
+  position:absolute;
+  top:8px;
+  z-index:3;
+  width:min(48%,220px);
+  min-height:150px;
+}
+.empire-world-unit.unit-left .empire-world-station { left:2%; right:auto; }
+.empire-world-unit.unit-right .empire-world-station { right:2%; left:auto; }
+.world-belt {
+  position:absolute;
+  top:0;
+  z-index:2;
+  width:58px;
+  height:100%;
+  min-height:190px;
+  margin:0;
+  flex:none;
+}
+.unit-left .world-belt { right:13%; left:auto; }
+.unit-right .world-belt { left:13%; right:auto; }
+.world-belt-surface {
+  top:0;
+  bottom:0;
+  left:19px;
+  right:19px;
+  width:20px;
+  height:auto;
+  border-width:3px;
+  background:repeating-linear-gradient(180deg,#26384b 0 10px,#536477 10px 14px);
+  background-size:100% 28px;
+  animation:belt-scroll-vertical .55s linear infinite;
+}
+/* A short side feeder makes the material visibly enter the factory */
+.empire-world-station::before {
+  content:"";
+  position:absolute;
+  top:48%;
+  width:clamp(24px,7vw,56px);
+  height:10px;
+  z-index:1;
+  border-top:3px solid #8296aa;
+  border-bottom:3px solid #42566d;
+  background:repeating-linear-gradient(90deg,#26384b 0 7px,#536477 7px 10px);
+  box-shadow:0 3px 7px #0008;
+}
+.unit-left .empire-world-station::before { right:100%; }
+.unit-right .empire-world-station::before { left:100%; }
+.world-material {
+  top:4px;
+  left:50%;
+  animation:material-travel-vertical 2.7s linear infinite;
+}
+.world-belt-arrow { left:21px; bottom:0; top:auto; }
+.world-belt.belt-bypass .world-belt-surface {
+  border-color:#b18a4c;
+  filter:saturate(.65);
+}
+.world-belt.belt-bypass::after {
+  content:"BYPASS";
+  position:absolute;
+  bottom:22px;
+  left:50%;
+  transform:translateX(-50%) rotate(-90deg);
+  z-index:5;
+  color:#f0c878;
+  font-size:8px;
+  font-weight:900;
+  letter-spacing:.12em;
+  text-shadow:0 1px 4px #000;
+}
+.world-belt.belt-active .world-belt-surface { border-color:#65cda5; }
+@media(max-width:760px) {
+  .empire-world-unit { min-height:218px; }
+  .empire-world-station { width:min(48%,210px); min-height:146px; }
+  .unit-left .world-belt { right:11%; }
+  .unit-right .world-belt { left:11%; }
+}
+@media(max-width:420px) {
+  .empire-world-unit { min-height:210px; }
+  .empire-world-station { width:52%; padding:9px 8px 11px; }
+  .unit-left .empire-world-station { left:0; }
+  .unit-right .empire-world-station { right:0; }
+  .unit-left .world-belt { right:8%; }
+  .unit-right .world-belt { left:8%; }
+  .empire-world-station::before { width:26px; }
+}
