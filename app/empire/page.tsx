@@ -183,15 +183,6 @@ export default function MiningEmpirePage() {
         </div>
       </section>
 
-        <h2>How the factory system works</h2>
-        <div className="empire-rule-grid">
-          <div><b>1. Locked</b><p className="small">Material bypasses the locked factory and continues along the conveyor.</p></div>
-          <div><b>2. Unlocked</b><p className="small">The factory accepts its recipe ingredients, up to 100 input units in this preview.</p></div>
-          <div><b>3. Automatic</b><p className="small">As soon as a complete recipe batch is available, the factory consumes it and creates its product.</p></div>
-          <div><b>4. Full / no destination</b><p className="small">Material keeps moving to another eligible unlocked factory. If none can accept it, it is sold for Gold.</p></div>
-        </div>
-        <p className="small empire-note">Preview only: progress and Gold are stored in this browser session and reset when you refresh. This does not use your GEMS wallet, Supabase balances, recharge or withdrawal system. Unlock prices, production quantities and selling values are sample values for testing the flow.</p>
-      </section>
     </main>
   );
 }
