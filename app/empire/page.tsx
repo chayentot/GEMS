@@ -24,7 +24,7 @@ const recipes: Recipe[] = [
 
 const materialIcons = ["🪨", "🧱", "🔩", "⚙️", "🛠️", "🏗️", "⚡", "🖥️", "⛏️", "💎"];
 
-// Fixed gameplay speeds: each factory completes at most one batch per cycle.
+// Factory production checks every 1.8 seconds; factories can process all available batches.
 const FACTORY_CYCLE_MS = 1800;
 const CONVEYOR_BELT_LOOP_MS = 550;
 const CONVEYOR_MATERIAL_TRAVEL_MS = 3200;
@@ -63,19 +63,23 @@ function advance(current: GameState): GameState {
   next = routeMaterial(next, 1, 5, 1);
   next.produced += 5;
 
-  // Every unlocked factory automatically processes a batch as soon as all ingredients arrive.
+  // Each unlocked factory processes repeatedly during this cycle until it
+  // runs out of any required input. Every completed batch consumes its recipe.
   for (const factory of recipes.slice(1)) {
     if (!next.unlocked[factory.id - 1]) continue;
-    const canProcess = factory.inputs.every(([materialId, quantity]) =>
+    let completedBatches = 0;
+    while (factory.inputs.every(([materialId, quantity]) =>
       (next.stock[factory.id * 100 + materialId] || 0) >= quantity
-    );
-    if (!canProcess) continue;
-    for (const [materialId, quantity] of factory.inputs) {
-      const key = factory.id * 100 + materialId;
-      next.stock[key] = (next.stock[key] || 0) - quantity;
+    )) {
+      for (const [materialId, quantity] of factory.inputs) {
+        const key = factory.id * 100 + materialId;
+        next.stock[key] = (next.stock[key] || 0) - quantity;
+      }
+      completedBatches += 1;
     }
-    next.produced += 1;
-    next = routeMaterial(next, factory.id, 1, factory.id);
+    if (completedBatches === 0) continue;
+    next.produced += completedBatches;
+    next = routeMaterial(next, factory.id, completedBatches, factory.id);
   }
   return next;
 }
