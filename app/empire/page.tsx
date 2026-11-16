@@ -5,7 +5,8 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase";
 
 type Recipe = { id: number; name: string; inputs: [number, number][]; value: number; unlock: number };
-type GameState = { gold: number; unlocked: boolean[]; stock: Record<number, number>; sold: number; produced: number; tick: number };
+type Shipment = { id: number; materialId: number; amount: number; remainingMs: number };
+type GameState = { gold: number; unlocked: boolean[]; stock: Record<number, number>; sold: number; produced: number; tick: number; shipments: Shipment[]; nextShipmentId: number };
 
 const recipes: Recipe[] = [
   { id: 1, name: "Iron Ore", inputs: [], value: 1, unlock: 0 },
@@ -33,7 +34,9 @@ const initial: GameState = {
   stock: {},
   sold: 0,
   produced: 0,
-  tick: 0
+  tick: 0,
+  shipments: [],
+  nextShipmentId: 1
 };
 
 function routeMaterial(state: GameState, materialId: number, amount: number, producerId: number): GameState {
@@ -47,8 +50,8 @@ function routeMaterial(state: GameState, materialId: number, amount: number, pro
     const key = target.id * 100 + materialId;
     next.stock[key] = (next.stock[key] || 0) + amount;
   } else {
-    next.gold += amount * recipes[materialId - 1].value;
-    next.sold += amount;
+    // No unlocked downstream factory can accept this material: send it to the Gold Seller.
+    next.shipments.push({ id: next.nextShipmentId++, materialId, amount, remainingMs: CONVEYOR_MATERIAL_TRAVEL_MS });
   }
   return next;
 }
@@ -80,7 +83,7 @@ export default function MiningEmpirePage() {
   const [game, setGame] = useState<GameState>(initial);
   const [authReady, setAuthReady] = useState(false);
   const [running, setRunning] = useState(true);
-  const [message, setMessage] = useState("Your starter mine is running. Iron Ore is sold until its next factory is unlocked.");
+  const [message, setMessage] = useState("Two-factory test running. Factory 2 is locked, so Iron Ore bypasses it and travels to the Gold Seller.");
 
   useEffect(() => {
     const sb = createClient();
@@ -96,7 +99,28 @@ export default function MiningEmpirePage() {
     return () => window.clearInterval(timer);
   }, [running, authReady]);
 
-  const factoryCount = game.unlocked.filter(Boolean).length;
+  // Material only becomes Gold after completing the full 3.2-second conveyor journey.
+  useEffect(() => {
+    if (!authReady) return;
+    const timer = window.setInterval(() => {
+      setGame((current) => {
+        if (current.shipments.length === 0) return current;
+        const shipments = current.shipments.map((shipment) => ({
+          ...shipment,
+          remainingMs: shipment.remainingMs - 100
+        }));
+        const arrived = shipments.filter((shipment) => shipment.remainingMs <= 0);
+        const travelling = shipments.filter((shipment) => shipment.remainingMs > 0);
+        if (arrived.length === 0) return { ...current, shipments: travelling };
+        const goldEarned = arrived.reduce((sum, shipment) => sum + shipment.amount * recipes[shipment.materialId - 1].value, 0);
+        const soldAmount = arrived.reduce((sum, shipment) => sum + shipment.amount, 0);
+        return { ...current, shipments: travelling, gold: current.gold + goldEarned, sold: current.sold + soldAmount };
+      });
+    }, 100);
+    return () => window.clearInterval(timer);
+  }, [authReady]);
+
+  const factoryCount = game.unlocked.slice(0, 2).filter(Boolean).length;
   const stockTotal = useMemo(() => Object.values(game.stock).reduce((sum, n) => sum + n, 0), [game.stock]);
 
   function unlock(factory: Recipe) {
@@ -133,27 +157,27 @@ export default function MiningEmpirePage() {
         </div>
         <div className="empire-stats">
           <div><small>Gold</small><strong>🪙 {game.gold.toLocaleString()}</strong></div>
-          <div><small>Factories</small><strong>{factoryCount} / 10</strong></div>
+          <div><small>Factories</small><strong>{factoryCount} / 2</strong></div>
           <div><small>Stored inputs</small><strong>{stockTotal} / {factoryCount * 100}</strong></div>
           <div><small>Materials sold</small><strong>{game.sold.toLocaleString()}</strong></div>
         </div>
         <div className="row empire-controls">
-          <span className="small">Factory speed: 1 batch every {(FACTORY_CYCLE_MS / 1000).toFixed(1)}s · Conveyor loop: {(CONVEYOR_BELT_LOOP_MS / 1000).toFixed(2)}s · Material travel: {(CONVEYOR_MATERIAL_TRAVEL_MS / 1000).toFixed(1)}s</span>
+          <span className="small">Factory cycle: {(FACTORY_CYCLE_MS / 1000).toFixed(1)}s · Belt loop: {(CONVEYOR_BELT_LOOP_MS / 1000).toFixed(2)}s · Factory-to-seller travel: {(CONVEYOR_MATERIAL_TRAVEL_MS / 1000).toFixed(1)}s</span>
           <div className="row">
             <button className="secondary" onClick={() => setRunning((v) => !v)}>{running ? "Ⅱ Pause" : "▶ Resume"}</button>
-            <button className="secondary" onClick={() => { setGame(initial); setRunning(true); setMessage("Preview reset. The starter mine is running again."); }}>↻ Reset preview</button>
+            <button className="secondary" onClick={() => { setGame(initial); setRunning(true); setMessage("Two-factory test reset. Factory 2 is locked and materials bypass it."); }}>↻ Reset preview</button>
           </div>
         </div>
         <div className="notice empire-message">{message}</div>
       </section>
 
       <section className="section">
-        <div className="row empire-section-heading"><div><h2>Conveyor & factory line</h2><p className="small">Locked factories are bypassed. Full factories pass excess material forward. Anything with no available unlocked destination is sold for Gold.</p></div></div>
+        <div className="row empire-section-heading"><div><h2>Conveyor & factory line</h2><p className="small">Two-factory timing test: Factory 1 produces Iron Ore. Factory 2 bypasses while locked and processes Iron Ore when unlocked. Materials take 3.2 seconds to reach the Gold Seller.</p></div></div>
         <div className="empire-world-wrap">
           <div className="empire-world-caption"><span>VERTICAL MINING WORLD</span><span className="live-indicator"><i /> FACTORY LINE RUNNING</span></div>
           <div className="empire-world-scroll">
             <div className="empire-world">
-              {recipes.map((factory, index) => {
+              {recipes.slice(0, 2).map((factory, index) => {
                 const unlocked = game.unlocked[index];
                 const factoryStored = factory.inputs.reduce((sum, [materialId]) => sum + (game.stock[factory.id * 100 + materialId] || 0), 0);
                 const isFull = factory.inputs.length > 0 && factoryStored >= 100;
@@ -182,7 +206,7 @@ export default function MiningEmpirePage() {
                       {unlocked && <small className="world-factory-speed">Cycle: {(FACTORY_CYCLE_MS / 1000).toFixed(1)} sec</small>}
                       {!unlocked && <button className="world-unlock-button" disabled={game.gold < factory.unlock} onClick={() => unlock(factory)}>Unlock · 🪙 {factory.unlock.toLocaleString()}</button>}
                     </div>
-                    {true && (
+                    {index < 2 && (
                       <div className={`world-belt ${unlocked && !isFull ? "belt-active" : "belt-bypass"}`} aria-hidden="true">
                         <div className="world-belt-surface"><i /><i /><i /><i /><i /><i /></div>
                         <span className="world-material material-a" role="img" aria-label={`${recipes[flowingMaterialIndex].name} moving on conveyor`}>{flowingMaterial}</span>
@@ -196,13 +220,13 @@ export default function MiningEmpirePage() {
               })}
               <div className="empire-world-unit world-sell-unit">
                 <div className="world-sell-machine">
-                  <span>🪙</span><strong>GOLD SELLER</strong><small>Sell overflow</small>
+                  <span>🪙</span><strong>GOLD SELLER</strong><small>Receives material after 3.2 sec</small>
                   <i className="gold-spark spark-a">✦</i><i className="gold-spark spark-b">✦</i>
                 </div>
               </div>
             </div>
           </div>
-          <p className="world-scroll-hint">Follow the production line from the mine at the top down to the Gold seller.</p>
+          <p className="world-scroll-hint">TEST LINE: Factory 1 → Factory 2 (bypass when locked / process when unlocked) → Gold Seller</p>
         </div>
       </section>
 
