@@ -246,7 +246,8 @@ revoke all on function public.get_my_referral_summary() from public, anon;
 grant execute on function public.get_my_referral_summary() to authenticated;
 
 -- Referral commission rows are private to the beneficiary and GEMS admins.
-revoke all on function public.assign_gems_referral_code() from public, anon, authenticated;\nrevoke all on function public.apply_gems_signup_referral() from public, anon, authenticated;
+revoke all on function public.assign_gems_referral_code() from public, anon, authenticated;
+revoke all on function public.apply_gems_signup_referral() from public, anon, authenticated;
 revoke all on function public.award_gems_referral_commissions() from public, anon, authenticated;
 
 -- Add the commission ledger to the existing Supabase Realtime publication if present.
