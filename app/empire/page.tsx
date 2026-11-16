@@ -150,6 +150,12 @@ export default function MiningEmpirePage() {
             <div className="empire-world">
               {recipes.map((factory, index) => {
                 const unlocked = game.unlocked[index];
+                // Locked stations bypass material and never emit their own product.
+                let flowingMaterialIndex = 0;
+                for (let i = 0; i <= index; i++) {
+                  if (game.unlocked[i]) flowingMaterialIndex = i;
+                }
+                const flowingMaterial = materialIcons[flowingMaterialIndex];
                 return (
                   <div className="empire-world-unit" key={factory.id}>
                     <div className={`empire-world-station ${unlocked ? "station-open" : "station-locked"}`}>
@@ -168,9 +174,9 @@ export default function MiningEmpirePage() {
                     {index < recipes.length - 1 && (
                       <div className="world-belt" aria-hidden="true">
                         <div className="world-belt-surface"><i /><i /><i /><i /><i /><i /></div>
-                        <span className="world-material material-a" role="img" aria-label={`${factory.name} moving on conveyor`}>{materialIcons[index]}</span>
-                        <span className="world-material material-b" role="img" aria-label={`${factory.name} moving on conveyor`}>{materialIcons[index]}</span>
-                        <span className="world-material material-c" role="img" aria-label={`${factory.name} moving on conveyor`}>{materialIcons[index]}</span>
+                        <span className="world-material material-a" role="img" aria-label={`${recipes[flowingMaterialIndex].name} moving on conveyor`}>{flowingMaterial}</span>
+                        <span className="world-material material-b" role="img" aria-label={`${recipes[flowingMaterialIndex].name} moving on conveyor`}>{flowingMaterial}</span>
+                        <span className="world-material material-c" role="img" aria-label={`${recipes[flowingMaterialIndex].name} moving on conveyor`}>{flowingMaterial}</span>
                         <span className="world-belt-arrow">▼</span>
                       </div>
                     )}
