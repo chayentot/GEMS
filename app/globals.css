@@ -1080,3 +1080,75 @@ th { color:#aebbd0; font-size:12px; text-transform:uppercase; letter-spacing:.06
   font-weight:800;
   letter-spacing:.02em;
 }
+
+
+/* Mining Empire factory storage inspection */
+.empire-world-station { cursor:pointer; }
+.empire-world-station.station-selected {
+  outline:2px solid #f4cb70;
+  outline-offset:3px;
+}
+.world-factory-storage {
+  display:flex;
+  flex-direction:column;
+  gap:3px;
+  width:100%;
+  margin-top:7px;
+  padding:6px 8px;
+  border:1px solid rgba(244,203,112,.24);
+  border-radius:8px;
+  background:rgba(5,12,22,.72);
+  text-align:left;
+}
+.world-factory-storage small {
+  display:block;
+  color:#d8e4f1;
+  font-size:9px;
+  line-height:1.35;
+}
+.world-factory-storage .world-storage-limit {
+  color:#f4cb70;
+  font-weight:900;
+}
+.world-unlock-button { cursor:pointer; }
+.empire-factory-inspector {
+  margin:14px 8px 8px;
+  padding:14px;
+  border:1px solid rgba(244,203,112,.35);
+  border-radius:14px;
+}
+.empire-inspector-grid {
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:10px;
+  margin-top:12px;
+}
+.empire-inspector-grid > div {
+  display:flex;
+  flex-direction:column;
+  gap:5px;
+  padding:10px;
+  border-radius:9px;
+  background:rgba(255,255,255,.045);
+}
+.empire-inspector-grid small,
+.empire-inspector-inputs small { color:#9eafc3; font-size:11px; }
+.empire-inspector-grid strong { font-size:13px; }
+.empire-inspector-inputs {
+  display:grid;
+  gap:7px;
+  margin-top:10px;
+}
+.empire-inspector-inputs > div {
+  display:flex;
+  justify-content:space-between;
+  gap:12px;
+  padding:9px 10px;
+  border-radius:8px;
+  background:rgba(255,255,255,.04);
+  font-size:12px;
+}
+@media(max-width:560px) {
+  .empire-inspector-grid { grid-template-columns:1fr; }
+  .empire-inspector-inputs > div { flex-direction:column; }
+}
