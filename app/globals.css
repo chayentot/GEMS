@@ -125,3 +125,19 @@ th { color:#aebbd0; font-size:12px; text-transform:uppercase; letter-spacing:.06
  *,*::before,*::after { scroll-behavior:auto !important; transition:none !important; }
  .gem-picture svg,.mining-crystal,.mining-pickaxe,.mining-spark { animation:none !important; }
 }
+
+/* Compact profile dropdown in the main navigation */
+.profile-menu { position:relative; z-index:20; }
+.profile-menu details { position:relative; }
+.profile-menu summary { list-style:none; cursor:pointer; color:#aebbd0; font-size:13px; font-weight:700; padding:10px 13px; border-radius:10px; user-select:none; }
+.profile-menu summary::-webkit-details-marker { display:none; }
+.profile-menu summary:hover,.profile-menu details[open] summary { color:var(--gold); background:#f4cb7015; }
+.profile-menu-arrow { margin-left:5px; color:var(--gold); }
+.profile-menu-dropdown { position:absolute; right:0; top:calc(100% + 9px); width:210px; padding:7px; border:1px solid #ffffff20; border-radius:14px; background:#101a2b; box-shadow:0 16px 38px #0009; display:grid; gap:3px; }
+.profile-menu-dropdown a,.profile-menu-dropdown button { display:block; width:100%; padding:11px 12px; border:0; border-radius:9px; background:transparent; color:#dce5f3; text-align:left; font-size:13px; font-weight:650; box-shadow:none; }
+.profile-menu-dropdown a:hover { background:#ffffff0c; color:var(--gold); }
+.profile-menu-dropdown .profile-menu-logout { margin-top:4px; border-top:1px solid #ffffff16; border-radius:0 0 9px 9px; color:#ff9d9d; }
+.profile-menu-dropdown .profile-menu-logout:hover { background:#8d394422; }
+@media(max-width:760px) {
+ .profile-menu-dropdown { left:0; right:auto; }
+}
