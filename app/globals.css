@@ -155,3 +155,89 @@ th { color:#aebbd0; font-size:12px; text-transform:uppercase; letter-spacing:.06
 /* Simple direct Profile navigation link (no dropdown) */
 .profile-menu-link { display:inline-flex; align-items:center; padding:10px 13px; border-radius:10px; color:#aebbd0; font-size:13px; font-weight:700; text-decoration:none; }
 .profile-menu-link:hover { color:var(--gold); background:#f4cb7015; }
+
+/* Mobile-only interface refinement: preserve desktop layout and all game behavior */
+@media (max-width:760px) {
+  html, body { max-width:100%; overflow-x:hidden; }
+  .shell { width:calc(100% - 20px); max-width:600px; padding:12px 0 36px; }
+  .topbar {
+    align-items:center;
+    flex-direction:column;
+    gap:10px;
+    margin-bottom:20px;
+    padding:12px;
+  }
+  .brand { align-self:flex-start; font-size:19px; }
+  .topbar nav.row {
+    display:flex;
+    flex-wrap:nowrap;
+    justify-content:flex-start;
+    align-items:center;
+    width:100%;
+    gap:5px;
+    overflow-x:auto;
+    overflow-y:hidden;
+    padding:2px 1px 6px;
+    -webkit-overflow-scrolling:touch;
+    scrollbar-width:none;
+  }
+  .topbar nav.row::-webkit-scrollbar { display:none; }
+  .topbar nav.row a,
+  .topbar nav.row .profile-menu-link {
+    flex:0 0 auto;
+    min-height:42px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    padding:10px 12px;
+    white-space:nowrap;
+    font-size:13px;
+  }
+  .topbar nav.row a[aria-current="page"] { padding:9px 11px; }
+  h1 { font-size:clamp(27px,7vw,36px); line-height:1.12; }
+  h2 { font-size:19px; line-height:1.25; }
+  h3 { font-size:16px; }
+  p { overflow-wrap:anywhere; }
+  .small { font-size:13px; line-height:1.55; overflow-wrap:anywhere; }
+  .panel { min-width:0; padding:15px; }
+  .grid { grid-template-columns:minmax(0,1fr); gap:11px; }
+  .row { min-width:0; gap:10px; }
+  .row > * { min-width:0; }
+  .stat { font-size:clamp(25px,7vw,32px); overflow-wrap:anywhere; }
+  button { min-height:44px; padding:12px 15px; }
+  input, textarea, select { min-height:46px; font-size:16px; }
+  textarea { min-height:110px; }
+  label { font-size:14px; }
+  .profile-tabs { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .profile-tabs .profile-tab { min-height:46px; font-size:13px; }
+  .transaction-list { max-height:none; overflow:visible; padding-right:0; }
+  .item { min-width:0; }
+  .item .row { align-items:flex-start; }
+  .item strong, .item span, .notice, .status-active, .status-inactive, .status-locked {
+    overflow-wrap:anywhere;
+  }
+  .gem-card { min-height:0; }
+  .mining-scene { max-width:100%; }
+  form { max-width:100%; }
+  table { display:block; max-width:100%; overflow-x:auto; white-space:nowrap; -webkit-overflow-scrolling:touch; }
+}
+
+@media (max-width:420px) {
+  .shell { width:calc(100% - 16px); }
+  .topbar { padding:10px; }
+  .brand { font-size:17px; }
+  .topbar nav.row a,
+  .topbar nav.row .profile-menu-link { min-height:42px; padding:9px 10px; font-size:12px; }
+  .panel { padding:13px; border-radius:14px; }
+  .profile-tabs .profile-tab { padding:10px 6px; font-size:12px; }
+  .row > button { max-width:100%; }
+}
+
+/* Make long account identifiers and emails safe on narrow screens */
+@media (max-width:760px) {
+  .notice, .item, .panel, .profile-menu, .profile-menu-link {
+    overflow-wrap:anywhere;
+    word-break:normal;
+  }
+}
+
