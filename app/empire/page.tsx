@@ -157,7 +157,7 @@ export default function MiningEmpirePage() {
                 }
                 const flowingMaterial = materialIcons[flowingMaterialIndex];
                 return (
-                  <div className="empire-world-unit" key={factory.id}>
+                  <div className={`empire-world-unit ${index % 2 === 0 ? "unit-left" : "unit-right"}`} key={factory.id}>
                     <div className={`empire-world-station ${unlocked ? "station-open" : "station-locked"}`}>
                       <div className="world-station-label">FACTORY {String(factory.id).padStart(2, "0")}</div>
                       <div className="world-machine">
@@ -172,7 +172,7 @@ export default function MiningEmpirePage() {
                       {!unlocked && <button className="world-unlock-button" disabled={game.gold < factory.unlock} onClick={() => unlock(factory)}>Unlock · 🪙 {factory.unlock.toLocaleString()}</button>}
                     </div>
                     {index < recipes.length - 1 && (
-                      <div className="world-belt" aria-hidden="true">
+                      <div className={`world-belt ${unlocked ? "belt-active" : "belt-bypass"}`} aria-hidden="true">
                         <div className="world-belt-surface"><i /><i /><i /><i /><i /><i /></div>
                         <span className="world-material material-a" role="img" aria-label={`${recipes[flowingMaterialIndex].name} moving on conveyor`}>{flowingMaterial}</span>
                         <span className="world-material material-b" role="img" aria-label={`${recipes[flowingMaterialIndex].name} moving on conveyor`}>{flowingMaterial}</span>
