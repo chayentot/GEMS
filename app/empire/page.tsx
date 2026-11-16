@@ -150,6 +150,8 @@ export default function MiningEmpirePage() {
             <div className="empire-world">
               {recipes.map((factory, index) => {
                 const unlocked = game.unlocked[index];
+                const factoryStored = factory.inputs.reduce((sum, [materialId]) => sum + (game.stock[factory.id * 100 + materialId] || 0), 0);
+                const isFull = factory.inputs.length > 0 && factoryStored >= 100;
                 // Locked stations bypass material and never emit their own product.
                 let flowingMaterialIndex = 0;
                 for (let i = 0; i <= index; i++) {
@@ -168,11 +170,11 @@ export default function MiningEmpirePage() {
                         {unlocked && <span className="world-smoke smoke-two" />}
                       </div>
                       <strong>{factory.name}</strong>
-                      <small>{unlocked ? (factory.id === 1 ? "Mining" : "Auto processing") : "Material bypasses this station"}</small>
+                      <small>{!unlocked ? "Locked · material bypasses" : factory.id === 1 ? "Mining" : isFull ? "Storage full · bypassing" : "Auto processing"}</small>
                       {!unlocked && <button className="world-unlock-button" disabled={game.gold < factory.unlock} onClick={() => unlock(factory)}>Unlock · 🪙 {factory.unlock.toLocaleString()}</button>}
                     </div>
                     {index < recipes.length - 1 && (
-                      <div className={`world-belt ${unlocked ? "belt-active" : "belt-bypass"}`} aria-hidden="true">
+                      <div className={`world-belt ${unlocked && !isFull ? "belt-active" : "belt-bypass"}`} aria-hidden="true">
                         <div className="world-belt-surface"><i /><i /><i /><i /><i /><i /></div>
                         <span className="world-material material-a" role="img" aria-label={`${recipes[flowingMaterialIndex].name} moving on conveyor`}>{flowingMaterial}</span>
                         <span className="world-material material-b" role="img" aria-label={`${recipes[flowingMaterialIndex].name} moving on conveyor`}>{flowingMaterial}</span>
