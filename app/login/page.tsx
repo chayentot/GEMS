@@ -29,7 +29,7 @@ export default function LoginPage() {
           options: { data: { username, referral_code: referralCode.trim().toUpperCase() || null } }
         });
         if (error) throw error;
-        setMessage("Account created. If you registered with a valid referral code, the inviter will be linked automatically. Check your email if confirmation is enabled, then sign in.");
+        setMessage("Account created");
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
