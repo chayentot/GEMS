@@ -141,3 +141,13 @@ th { color:#aebbd0; font-size:12px; text-transform:uppercase; letter-spacing:.06
 @media(max-width:760px) {
  .profile-menu-dropdown { left:0; right:auto; }
 }
+
+/* Click-to-display profile section tabs */
+.profile-tabs { display:flex; flex-wrap:wrap; gap:9px; margin-top:25px; padding:8px; border:1px solid #ffffff14; border-radius:15px; background:#0d1524b8; }
+.profile-tabs .profile-tab { flex:1 1 170px; padding:12px 15px; border:1px solid transparent; border-radius:10px; background:transparent; color:#b9c6d9; box-shadow:none; font-size:13px; font-weight:750; }
+.profile-tabs .profile-tab:hover:not(:disabled) { transform:none; background:#ffffff0b; color:#fff; box-shadow:none; }
+.profile-tabs .profile-tab.active { color:#211a0b; background:linear-gradient(135deg,#f7d98d,#e8b84f); border-color:#f4cb70; }
+@media(max-width:520px) {
+ .profile-tabs { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:7px; }
+ .profile-tabs .profile-tab { min-width:0; padding:11px 8px; font-size:12px; }
+}
