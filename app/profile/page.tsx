@@ -77,7 +77,7 @@ export default function ProfilePage(){
  }
  async function logout(){const sb=createClient();await sb.auth.signOut();window.location.href="/GEMS/login/";}
  return <main className="shell">
-  <header className="topbar"><Link href="/" className="brand">💎 GEMS MINING</Link><nav className="row"><Link href="/dashboard/">Dashboard</Link><Link href="/mining/">Mining</Link><Link href="/market/">Market</Link><Link href="/profile/" aria-current="page">Profile</Link></nav></header>
+  <header className="topbar"><Link href="/" className="brand">💎 GEMS MINING</Link><nav className="row"><Link href="/dashboard/">Dashboard</Link><Link href="/mining/">Mining</Link><Link href="/referral/">Referral</Link><Link href="/market/">Market</Link><Link href="/profile/" aria-current="page">Profile</Link></nav></header>
   <div className="row"><div><h1>My Profile</h1><p className="muted">Account details, wallet services and transaction records.</p></div><button className="secondary" onClick={logout}>Sign out</button></div>
   {status&&<div className="notice">{status}</div>}
   <section className="grid section">
@@ -85,18 +85,7 @@ export default function ProfilePage(){
    <div className="panel"><div className="muted">Username</div><strong>{username||"Not set"}</strong><div className="small">Player display name</div></div>
    <div className="panel"><div className="muted">GEMS wallet</div><div className="stat">{fmt(wallet?.gems_balance??0)}</div><div className="small">GEMS · ₱1 accounting value each</div></div>
   </section>
-  <section className="panel section">
-   <div className="row"><div><h2>Referral Program</h2><p className="small">Earn GEMS when your referral network spends GEMS in the Market. Deposits alone do not qualify.</p></div><span className="status-active">3 levels</span></div>
-   <div className="item"><div className="small">Your referral code</div><strong>{referral?.referral_code??"Generating…"}</strong><div className="small">Share this link with new players:</div><div className="row"><input readOnly value={referralLink}/><button disabled={!referral?.referral_code} onClick={()=>void copyReferralLink()}>Copy link</button></div></div>
-   <div className="grid">
-    <div className="panel"><div className="small">Level 1 · 8%</div><div className="stat">{referral?.level1_count??0}</div><div className="small">Direct referrals</div></div>
-    <div className="panel"><div className="small">Level 2 · 3%</div><div className="stat">{referral?.level2_count??0}</div><div className="small">Second generation</div></div>
-    <div className="panel"><div className="small">Level 3 · 1%</div><div className="stat">{referral?.level3_count??0}</div><div className="small">Third generation</div></div>
-   </div>
-   <div className="notice">Total referral commissions: <strong>{fmt(Number(referral?.total_earned??0))} GEMS</strong></div>
-   <h3>Referral earnings history</h3>
-   {commissions.length===0?<p className="small muted">No referral commissions yet. You earn only when someone in your referral network spends GEMS in the Market.</p>:<div className="transaction-list">{commissions.map(c=><div className="item row" key={c.id}><div><strong>Level {c.referral_level} commission</strong><div className="small">Player {c.source_user_id.slice(0,8)} · Spent {fmt(Number(c.spend_amount))} GEMS · {new Date(c.created_at).toLocaleString()}</div></div><strong className="success">+{fmt(Number(c.commission_amount))} GEMS</strong></div>)}</div>}
-  </section>
+
   <section className="grid section">
    <div className="panel"><h2>Recharge GEMS</h2><p className="small">Recharge fee: 0%. Your GEMS are credited after an administrator verifies your payment.</p>
     <label>Amount in PHP</label><input type="number" min="1" step="1" value={rechargeAmount} onChange={e=>setRechargeAmount(e.target.value)}/>
