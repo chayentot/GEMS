@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect,useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase";
 
@@ -9,8 +9,15 @@ export default function LoginPage() {
   const [email,setEmail] = useState("");
   const [password,setPassword] = useState("");
   const [username,setUsername] = useState("");
+  const [referralCode,setReferralCode] = useState("");
   const [message,setMessage] = useState("");
   const [busy,setBusy] = useState(false);
+
+  useEffect(()=>{
+    const params=new URLSearchParams(window.location.search);
+    const code=(params.get("ref")||"").trim().toUpperCase();
+    if(code){setReferralCode(code);setMode("signup");}
+  },[]);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault(); setBusy(true); setMessage("");
@@ -19,10 +26,10 @@ export default function LoginPage() {
       if (mode === "signup") {
         const { error } = await supabase.auth.signUp({
           email, password,
-          options: { data: { username } }
+          options: { data: { username, referral_code: referralCode.trim().toUpperCase() || null } }
         });
         if (error) throw error;
-        setMessage("Account created. Check your email if email confirmation is enabled, then sign in.");
+        setMessage("Account created. If you registered with a valid referral code, the inviter will be linked automatically. Check your email if confirmation is enabled, then sign in.");
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
@@ -43,7 +50,7 @@ export default function LoginPage() {
         <button className={mode==="signup" ? "" : "secondary"} onClick={()=>{setMode("signup");setMessage("");}}>Register</button>
       </div>
       <form onSubmit={submit} className="section">
-        {mode==="signup" && <><label>Username</label><input value={username} onChange={e=>setUsername(e.target.value)} required minLength={3} maxLength={24} placeholder="Your player name"/></>}
+        {mode==="signup" && <><label>Username</label><input value={username} onChange={e=>setUsername(e.target.value)} required minLength={3} maxLength={24} placeholder="Your player name"/><label>Referral code (optional)</label><input value={referralCode} onChange={e=>setReferralCode(e.target.value.toUpperCase())} maxLength={20} placeholder="Enter inviter's code"/></>}
         <label>Email</label><input type="email" value={email} onChange={e=>setEmail(e.target.value)} required autoComplete="email"/>
         <label>Password</label><input type="password" value={password} onChange={e=>setPassword(e.target.value)} required minLength={8} autoComplete={mode==="login"?"current-password":"new-password"}/>
         <button disabled={busy} type="submit">{busy?"Please wait…":mode==="login"?"Sign in":"Create account"}</button>
