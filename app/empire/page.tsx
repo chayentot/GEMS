@@ -83,6 +83,7 @@ export default function MiningEmpirePage() {
   const [game, setGame] = useState<GameState>(initial);
   const [authReady, setAuthReady] = useState(false);
   const [running, setRunning] = useState(true);
+  const [selectedFactoryId, setSelectedFactoryId] = useState<number | null>(null);
   const [message, setMessage] = useState("Two-factory test running. Factory 2 is locked, so Iron Ore bypasses it and travels to the Gold Seller.");
 
   useEffect(() => {
@@ -122,6 +123,8 @@ export default function MiningEmpirePage() {
 
   const factoryCount = game.unlocked.slice(0, 2).filter(Boolean).length;
   const stockTotal = useMemo(() => Object.values(game.stock).reduce((sum, n) => sum + n, 0), [game.stock]);
+  const selectedFactory = selectedFactoryId ? recipes[selectedFactoryId - 1] : null;
+  const selectedFactoryStored = selectedFactory ? selectedFactory.inputs.reduce((sum, [materialId]) => sum + (game.stock[selectedFactory.id * 100 + materialId] || 0), 0) : 0;
 
   function unlock(factory: Recipe) {
     if (game.unlocked[factory.id - 1]) return;
@@ -192,7 +195,7 @@ export default function MiningEmpirePage() {
                 const flowingMaterial = materialIcons[flowingMaterialIndex];
                 return (
                   <div className={`empire-world-unit factory-step-${index + 1} ${index === 0 ? "unit-center" : index % 2 === 1 ? "unit-left" : "unit-right"}`} key={factory.id}>
-                    <div className={`empire-world-station ${unlocked ? "station-open" : "station-locked"}`}>
+                    <div className={`empire-world-station ${unlocked ? "station-open" : "station-locked"} ${selectedFactoryId === factory.id ? "station-selected" : ""}`} role="button" tabIndex={0} aria-label={`Inspect ${factory.name} storage and capacity`} onClick={() => setSelectedFactoryId(factory.id)} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); setSelectedFactoryId(factory.id); } }}>
                       <div className="world-station-label">FACTORY {String(factory.id).padStart(2, "0")}</div>
                       <div className="world-machine">
                         <span className="world-machine-icon">{factory.id === 1 ? "⛏️" : factory.id === 10 ? "💎" : "🏭"}</span>
@@ -204,7 +207,11 @@ export default function MiningEmpirePage() {
                       <strong>{factory.name}</strong>
                       <small>{!unlocked ? "Locked · material bypasses" : factory.id === 1 ? "Mining · fixed cycle" : isFull ? "Storage full · bypassing" : "Auto processing · fixed cycle"}</small>
                       {unlocked && <small className="world-factory-speed">Cycle: {(FACTORY_CYCLE_MS / 1000).toFixed(1)} sec</small>}
-                      {!unlocked && <button className="world-unlock-button" disabled={game.gold < factory.unlock} onClick={() => unlock(factory)}>Unlock · 🪙 {factory.unlock.toLocaleString()}</button>}
+                      <div className="world-factory-storage">
+                        {factory.inputs.length === 0 ? <small>Input storage: None · raw-material producer</small> : factory.inputs.map(([materialId]) => <small key={materialId}>{recipes[materialId - 1].name}: {game.stock[factory.id * 100 + materialId] || 0} units</small>)}
+                        <small className="world-storage-limit">{factory.inputs.length === 0 ? "Tap factory to inspect" : `Storage: ${factoryStored} / 100`}</small>
+                      </div>
+                      <button className="world-unlock-button" onClick={(event) => { event.stopPropagation(); if (!unlocked) unlock(factory); else setSelectedFactoryId(factory.id); }}>{unlocked ? "Check storage & limit" : `Unlock · 🪙 ${factory.unlock.toLocaleString()}`}</button>
                     </div>
                     {index < 2 && (
                       <div className={`world-belt ${unlocked && !isFull ? "belt-active" : "belt-bypass"}`} aria-hidden="true">
@@ -226,6 +233,15 @@ export default function MiningEmpirePage() {
               </div>
             </div>
           </div>
+          {selectedFactory && <div className="panel empire-factory-inspector">
+            <div className="row"><div><strong>🏭 Factory {selectedFactory.id}: {selectedFactory.name}</strong><p className="small">Storage inspection · click another factory to view its limits</p></div><button className="secondary" onClick={() => setSelectedFactoryId(null)}>Close</button></div>
+            <div className="empire-inspector-grid">
+              <div><small>Factory status</small><strong>{game.unlocked[selectedFactory.id - 1] ? "Unlocked · operating" : "Locked · bypassing"}</strong></div>
+              <div><small>Input storage limit</small><strong>{selectedFactory.inputs.length ? "100 units" : "Not applicable · producer"}</strong></div>
+              <div><small>Stored inputs</small><strong>{selectedFactory.inputs.length ? `${selectedFactoryStored} / 100 units` : "No input materials"}</strong></div>
+            </div>
+            {selectedFactory.inputs.length > 0 ? <div className="empire-inspector-inputs">{selectedFactory.inputs.map(([materialId, quantity]) => <div key={materialId}><span>{materialIcons[materialId - 1]} {recipes[materialId - 1].name}</span><strong>{game.stock[selectedFactory.id * 100 + materialId] || 0} units <small>· recipe needs {quantity}</small></strong></div>)}</div> : <p className="small">This factory creates raw Iron Ore and has no incoming material storage.</p>}
+          </div>}
           <p className="world-scroll-hint">TEST LINE: Factory 1 → Factory 2 (bypass when locked / process when unlocked) → Gold Seller</p>
         </div>
       </section>
