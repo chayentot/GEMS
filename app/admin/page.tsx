@@ -122,7 +122,7 @@ export default function AdminPage(){
     {r.status==="approved"&&<button className="section" disabled={!!busy} onClick={()=>act("admin_mark_withdrawal_paid",{p_request_id:r.id},"Confirm that you have already sent the PHP payout?")}>Mark as paid</button>}
    </div>;})}</div>}
   </section>}
-  {tab==="referrals"&&<section className="panel section"><h2>Referral commission ledger</h2><p className="small">Commissions are credited only when GEMS are spent in a successful Market purchase. Rates: Level 1 8%, Level 2 3%, Level 3 1%.</p>
+  {tab==="referrals"&&<section className="panel section"><h2>Referral commission ledger</h2><p className="small">Commissions are credited only when a referred player successfully unlocks a gemstone or levels one up in Mining. Market purchases, deposits and recharges do not earn commissions. Rates: Level 1 8%, Level 2 3%, Level 3 1%.</p>
    {commissions.length===0?<p className="muted">No referral commissions have been credited yet.</p>:<div className="transaction-list">{commissions.map(c=>{const beneficiary=playerMap.get(c.beneficiary_id);const source=playerMap.get(c.source_user_id);return <div className="item" key={c.id}>
     <div className="row"><div><strong>{beneficiary?.username||beneficiary?.email||c.beneficiary_id}</strong><div className="small">Earned from {source?.username||source?.email||c.source_user_id} · {when(c.created_at)}</div></div><strong className="success">+{fmt(Number(c.commission_amount))} GEMS</strong></div>
     <div className="small">Level {c.referral_level} · Spend: {fmt(Number(c.spend_amount))} GEMS · Rate: {Number(c.referral_level===1?8:c.referral_level===2?3:1)}%</div>
