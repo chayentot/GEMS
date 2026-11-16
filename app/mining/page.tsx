@@ -4,6 +4,7 @@ import { useEffect,useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase";
 import GemArt from "@/components/gem-art";
+import ProfileMenu from "@/components/profile-menu";
 
 type Gemstone={id:string;code:string;name:string;earning_units_per_minute:number[];level_up_cost_units:number[];unlock_cost_units:number;requires_gemstone_id:string|null;units_per_gems:number};
 type Inventory={id:string;gemstone_id:string;level:number;is_active:boolean;is_unlocked:boolean;gemstone_units_balance:number;gemstones:Gemstone};
@@ -42,7 +43,7 @@ export default function MiningPage(){
  const owned=new Map(inventory.map(x=>[x.gemstone_id,x]));
  const active=new Map(sessions.map(x=>[x.player_gemstone_id,x]));
  return <main className="shell">
-  <header className="topbar"><Link href="/" className="brand">💎 GEMS</Link><nav className="row"><Link href="/dashboard/">Dashboard</Link><Link href="/mining/" aria-current="page">Mining</Link><Link href="/referral/">Referral</Link><Link href="/market/">Market</Link><Link href="/profile/">Profile</Link></nav></header>
+  <header className="topbar"><Link href="/" className="brand">💎 GEMS</Link><nav className="row"><Link href="/dashboard/">Dashboard</Link><Link href="/mining/" aria-current="page">Mining</Link><Link href="/referral/">Referral</Link><Link href="/market/">Market</Link><ProfileMenu /></nav></header>
   <h1>Mining</h1>
   {status&&<div className="notice">{status}</div>}
   <div className="grid section">
