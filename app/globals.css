@@ -241,3 +241,63 @@ th { color:#aebbd0; font-size:12px; text-transform:uppercase; letter-spacing:.06
   }
 }
 
+
+
+/* GEMS: Mining Empire gameplay preview */
+.empire-shell { padding-bottom:80px; }
+.empire-hero { padding:clamp(20px,4vw,38px); border-color:#d9a83f35; background:radial-gradient(ellipse at 90% 0%,#61491f55,transparent 42%),linear-gradient(145deg,#17263b,#101827); }
+.empire-kicker { margin:0 0 8px; color:var(--gold); font-size:11px; font-weight:900; letter-spacing:.18em; }
+.empire-hero h1 span { color:var(--gold); }
+.empire-hero h1 { margin-bottom:12px; }
+.empire-hero p { max-width:680px; }
+.empire-demo-tag { flex:0 0 auto; padding:9px 12px; border:1px solid #f4cb7044; border-radius:999px; color:var(--gold); background:#f4cb7012; font-size:10px; font-weight:900; letter-spacing:.12em; }
+.empire-stats { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; margin-top:28px; }
+.empire-stats > div { min-width:0; padding:15px; border:1px solid #ffffff13; border-radius:14px; background:#08111f88; }
+.empire-stats small { display:block; color:var(--muted); font-size:11px; margin-bottom:8px; }
+.empire-stats strong { display:block; color:var(--gold); font-size:clamp(17px,2.5vw,24px); overflow-wrap:anywhere; }
+.empire-controls { margin-top:20px; align-items:center; }
+.empire-controls .row { gap:8px; }
+.empire-message { margin:16px 0 0; }
+.empire-section-heading { margin-bottom:15px; }
+.empire-section-heading p { margin:0; max-width:760px; }
+.empire-factory-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; }
+.empire-factory { min-width:0; padding:19px; position:relative; overflow:hidden; }
+.empire-factory.is-unlocked { border-color:#56ddb044; }
+.empire-factory.is-locked { background:linear-gradient(145deg,#141d2c,#0e1522); }
+.empire-factory-top { align-items:center; }
+.factory-number { color:#9aa9bf; font-size:10px; font-weight:900; letter-spacing:.14em; }
+.factory-art { display:flex; align-items:center; justify-content:center; width:58px; height:58px; margin:17px 0 12px; border:1px solid #f4cb7033; border-radius:16px; background:linear-gradient(145deg,#3a3428,#192238); font-size:30px; }
+.empire-factory h3 { font-size:19px; margin-bottom:6px; }
+.empire-factory > p { min-height:38px; margin:0; }
+.factory-storage { margin-top:18px; }
+.factory-storage .row { color:#aebbd0; font-size:11px; }
+.factory-storage b { color:#f4f6fb; font-variant-numeric:tabular-nums; }
+.storage-track { height:8px; margin-top:8px; overflow:hidden; border-radius:999px; background:#26344b; }
+.storage-track i { display:block; height:100%; border-radius:inherit; background:linear-gradient(90deg,#42b883,#b6e8a3); transition:width .2s ease; }
+.factory-status { margin-top:14px; font-size:11px; font-weight:750; }
+.factory-unlock { display:grid; gap:8px; margin-top:16px; padding:13px; border:1px solid #ffffff12; border-radius:12px; background:#0b1322; }
+.factory-unlock strong { color:var(--gold); font-size:20px; }
+.factory-unlock button { width:100%; margin-top:3px; }
+.factory-footer { display:flex; justify-content:space-between; gap:10px; margin-top:17px; padding-top:12px; border-top:1px solid #ffffff12; color:var(--muted); font-size:11px; }
+.factory-footer b { color:#e6c77f; }
+.empire-rules h2 { margin-bottom:18px; }
+.empire-rule-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:13px; }
+.empire-rule-grid > div { padding:14px; border:1px solid #ffffff12; border-radius:12px; background:#0b132288; }
+.empire-rule-grid b { color:var(--gold); font-size:13px; }
+.empire-rule-grid p { margin:8px 0 0; }
+.empire-note { margin:20px 0 0; padding-top:16px; border-top:1px solid #ffffff12; }
+@media(max-width:760px) {
+ .empire-stats { grid-template-columns:repeat(2,minmax(0,1fr)); }
+ .empire-factory-grid { grid-template-columns:minmax(0,1fr); }
+ .empire-rule-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+ .empire-demo-tag { margin-top:5px; }
+}
+@media(max-width:420px) {
+ .empire-stats { gap:8px; }
+ .empire-stats > div { padding:12px; }
+ .empire-controls { align-items:flex-start; }
+ .empire-controls .row { width:100%; }
+ .empire-controls button { flex:1; padding:10px; }
+ .empire-rule-grid { grid-template-columns:minmax(0,1fr); }
+ .empire-factory { padding:15px; }
+}
