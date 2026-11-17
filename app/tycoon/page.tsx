@@ -38,6 +38,6 @@ export default function ReferralPage(){
     <div className={styles.blueZone + " " + styles.blue8} />
    </div>
   </section>
-  <section className="panel section"><h2>Referral earnings history</h2>{commissions.length===0?<p className="small muted">No referral commissions yet. You earn when someone in your referral network successfully unlocks or upgrades a gemstone in Mining.</p>:<div className="transaction-list">{commissions.map(c=><div className="item row" key={c.id}><div><strong>Level {c.referral_level} commission</strong><div className="small">{c.source_description??(c.source_type==="market_buy"?"Historical Market purchase":"Mining action")} · Player {c.source_user_id.slice(0,8)} · {fmt(Number(c.source_units_spent??0))} units · GEMS equivalent: {fmt(Number(c.spend_amount))} · {new Date(c.created_at).toLocaleString()}</div></div><strong className="success">+{fmt(Number(c.commission_amount))} GEMS</strong></div>)}</div>}</section>
+  
  </main>;
 }
