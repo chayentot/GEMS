@@ -1,6 +1,6 @@
 .stage {
-  min-height: 100vh;
   width: 100%;
+  min-height: 100vh;
   box-sizing: border-box;
   padding: 24px;
   display: flex;
@@ -8,133 +8,25 @@
   align-items: flex-start;
   overflow: auto;
   background: #080d19;
-  color: #edf3ff;
-  font-family: Arial, Helvetica, sans-serif;
 }
 
 .canvas {
-  position: relative;
   flex: 0 0 1020px;
   width: 1020px;
   height: 1500px;
   box-sizing: border-box;
-  overflow: hidden;
-  padding: 30px 48px 24px;
   border: 1px solid #8aa0bd;
   background-color: #101a2b;
   background-image:
-    linear-gradient(to right, rgba(150, 185, 225, 0.20) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(150, 185, 225, 0.20) 1px, transparent 1px),
-    radial-gradient(ellipse at 50% 18%, #17294a 0%, #101a30 36%, #0b1222 72%, #080d19 100%);
-  background-size: 60px 60px, 60px 60px, 100% 100%;
-  background-position: 0 0, 0 0, center;
+    linear-gradient(to right, rgba(160, 190, 225, 0.42) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(160, 190, 225, 0.42) 1px, transparent 1px);
+  background-size: 60px 60px;
+  background-position: 0 0;
 }
-
-.header, .brand, .sectionHeading, .panelHeading, .stoneRow, .footer {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.header {
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  border-bottom: 1px solid rgba(171, 196, 235, .25);
-  padding-bottom: 17px;
-  gap: 14px;
-}
-.siteNav {
-  width: 100%;
-  display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
-  gap: 8px;
-}
-.siteNav a {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 42px;
-  box-sizing: border-box;
-  color: #d7e6fa;
-  text-decoration: none;
-  padding: 8px 5px;
-  border: 1px solid #3a5275;
-  border-radius: 6px;
-  background: rgba(16, 31, 54, .88);
-  text-align: center;
-  white-space: nowrap;
-  font-size: 11px;
-  font-weight: 700;
-}
-.siteNav a:hover, .siteNav a[aria-current="page"] {
-  color: #8bcfff;
-  border-color: #70bfff;
-  background: rgba(80, 160, 230, .24);
-}
-.brand { justify-content: flex-start; gap: 9px; font-size: 16px; font-weight: 800; letter-spacing: 2px; }
-.brandMark { color: #79caff; font-size: 22px; }
-.eyebrow, .count, .status, .lock, .footer {
-  color: #8498b8;
-  letter-spacing: 2px;
-  font-size: 10px;
-}
-.hero { text-align: center; padding: 48px 0 20px; }
-.eyebrow { margin: 0 0 12px; color: #7fc9ff; font-weight: 700; }
-.hero h1 { margin: 0; font-size: 68px; line-height: .98; letter-spacing: 6px; font-weight: 900; }
-.hero h1 span { display: block; margin-top: 8px; color: #8bcfff; }
-.tagline { color: #c3d2e8; letter-spacing: 4px; text-transform: uppercase; font-size: 12px; margin: 18px 0 0; }
-.crystalStage { height: 205px; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; margin: 8px auto 0; }
-.crystalGlow { position: absolute; width: 170px; height: 150px; border-radius: 50%; background: #2b8fff; filter: blur(55px); opacity: .24; }
-.crystal {
-  z-index: 1;
-  width: 105px;
-  height: 125px;
-  display: grid;
-  place-items: center;
-  color: #dff7ff;
-  font-size: 66px;
-  text-shadow: 0 0 18px #59caff, 0 0 45px #238cff;
-  clip-path: polygon(50% 0, 91% 25%, 82% 78%, 50% 100%, 18% 78%, 9% 25%);
-  background: linear-gradient(145deg, #e4fbff 0%, #55caff 24%, #236de3 58%, #132c78 100%);
-}
-.crystalName { margin-top: 12px; z-index: 1; color: #a7dfff; font-size: 10px; font-weight: 800; letter-spacing: 4px; }
-.intro { max-width: 520px; margin: 0 auto; color: #a9b9d1; line-height: 1.6; font-size: 13px; }
-.menu { width: min(100%, 390px); margin: 26px auto 35px; display: grid; gap: 10px; }
-.menu a {
-  min-height: 48px;
-  box-sizing: border-box;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 13px;
-  text-decoration: none;
-  border-radius: 7px;
-  font-size: 13px;
-  font-weight: 800;
-  letter-spacing: 1.5px;
-}
-.primaryButton { color: #071321; background: linear-gradient(90deg, #a4e7ff, #56baff); }
-.menuButton { color: #dce9fb; border: 1px solid #3a5275; background: rgba(16, 31, 54, .78); }
-.previewPanel { padding: 22px 26px; border: 1px solid #2b4162; border-radius: 8px; background: rgba(13, 25, 44, .82); }
-.panelHeading { color: #8fa6c6; font-size: 10px; letter-spacing: 2px; font-weight: 800; }
-.status { color: #f0c879; border: 1px solid rgba(240, 200, 121, .4); border-radius: 20px; padding: 6px 10px; font-size: 8px; }
-.previewPanel h2, .howTo h2 { font-size: 27px; line-height: 1.15; margin: 17px 0 8px; }
-.previewPanel p, .howTo p:last-child { color: #9eafc8; line-height: 1.6; max-width: 560px; font-size: 12px; margin-bottom: 0; }
-.collection { padding: 42px 0 30px; }
-.sectionHeading { align-items: end; margin-bottom: 16px; }
-.sectionHeading h2 { margin: 0; font-size: 25px; }
-.count { padding-bottom: 5px; }
-.stoneList { border-top: 1px solid #526783; }
-.stoneRow { min-height: 42px; border-bottom: 1px solid #526783; gap: 14px; justify-content: flex-start; }
-.stoneNumber { width: 26px; color: #9aacc5; font-size: 10px; }
-.stoneIcon { color: #83cfff; font-size: 16px; width: 20px; text-align: center; }
-.stoneName { flex: 1; font-size: 12px; font-weight: 700; }
-.lock { font-size: 8px; }
-.howTo { border-top: 1px solid rgba(171, 196, 235, .25); padding: 32px 0 35px; }
-.howTo h2 { margin-top: 0; }
-.footer { border-top: 1px solid rgba(171, 196, 235, .25); padding-top: 16px; font-size: 8px; }
 
 @media (max-width: 1068px) {
-  .stage { justify-content: flex-start; padding: 12px; }
+  .stage {
+    justify-content: flex-start;
+    padding: 12px;
+  }
 }
