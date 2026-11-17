@@ -116,7 +116,7 @@ export default function MiningEmpirePage() {
   // FIFO conveyor: exactly one material unit travels for 3.2 seconds.
   // The next unit starts only after the active unit reaches its factory or seller.
   useEffect(() => {
-    if (!authReady) return;
+    if (!authReady || !running) return;
     const timer = window.setInterval(() => {
       setGame((current) => {
         if (current.shipments.length === 0) return current;
@@ -140,7 +140,7 @@ export default function MiningEmpirePage() {
       });
     }, 100);
     return () => window.clearInterval(timer);
-  }, [authReady]);
+  }, [authReady, running]);
 
   const factoryCount = game.unlocked.slice(0, 2).filter(Boolean).length;
   const stockTotal = useMemo(() => Object.values(game.stock).reduce((sum, n) => sum + n, 0), [game.stock]);
