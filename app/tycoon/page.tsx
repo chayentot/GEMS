@@ -8,7 +8,12 @@ import styles from "./page.module.css";
 
 type Summary={referral_code:string;level1_count:number;level2_count:number;level3_count:number;total_earned:number};
 type Commission={id:string;source_user_id:string;referral_level:number;spend_amount:number;commission_amount:number;source_type:string;source_description:string|null;source_units_spent:number|null;created_at:string};
-const fmt=(n:number)=>Number(n||0).toFixed(2);\n\ntype MovingStone={id:number;distance:number};\nconst STAR_ROUTE=[{x:485,y:185},{x:485,y:245},{x:485,y:305},{x:965,y:305},{x:965,y:545},{x:5,y:545}];\nconst STAR_ROUTE_LENGTH=STAR_ROUTE.slice(1).reduce((total,p,i)=>total+Math.hypot(p.x-STAR_ROUTE[i].x,p.y-STAR_ROUTE[i].y),0);\nfunction starStonePosition(distance:number){let remaining=distance;for(let i=1;i<STAR_ROUTE.length;i++){const from=STAR_ROUTE[i-1],to=STAR_ROUTE[i],length=Math.hypot(to.x-from.x,to.y-from.y);if(remaining<=length){const ratio=length===0?0:remaining/length;return{x:from.x+(to.x-from.x)*ratio,y:from.y+(to.y-from.y)*ratio};}remaining-=length;}return STAR_ROUTE[STAR_ROUTE.length-1];}
+const fmt=(n:number)=>Number(n||0).toFixed(2);
+
+type MovingStone={id:number;distance:number};
+const STAR_ROUTE=[{x:485,y:185},{x:485,y:245},{x:485,y:305},{x:965,y:305},{x:965,y:545},{x:5,y:545}];
+const STAR_ROUTE_LENGTH=STAR_ROUTE.slice(1).reduce((total,p,i)=>total+Math.hypot(p.x-STAR_ROUTE[i].x,p.y-STAR_ROUTE[i].y),0);
+function starStonePosition(distance:number){let remaining=distance;for(let i=1;i<STAR_ROUTE.length;i++){const from=STAR_ROUTE[i-1],to=STAR_ROUTE[i],length=Math.hypot(to.x-from.x,to.y-from.y);if(remaining<=length){const ratio=length===0?0:remaining/length;return{x:from.x+(to.x-from.x)*ratio,y:from.y+(to.y-from.y)*ratio};}remaining-=length;}return STAR_ROUTE[STAR_ROUTE.length-1];}
 
 export default function ReferralPage(){
  const [summary,setSummary]=useState<Summary|null>(null);const [starStoneCount,setStarStoneCount]=useState(0);const [movingStones,setMovingStones]=useState<MovingStone[]>([]);const lastFrame=useRef(0);const lastSpawn=useRef(0);const nextStoneId=useRef(1);const [link,setLink]=useState("");const [commissions,setCommissions]=useState<Commission[]>([]);const [status,setStatus]=useState("Loading referral details…");
@@ -69,7 +74,8 @@ export default function ReferralPage(){
     <div className={styles.grayZone + " " + styles.grayVertical + " " + styles.gray11} />
     <div className={styles.grayZone + " " + styles.grayVertical + " " + styles.gray12} />
     <div className={styles.grayZone + " " + styles.grayVertical + " " + styles.gray13} />
-    <div className={styles.conveyorSeparator} aria-label="Solid separator between conveyor rows 10 and 11" />\n    {movingStones.map(stone=>{const position=starStonePosition(stone.distance);return <div key={stone.id} className={styles.movingStarStone} style={{left:position.x,top:position.y}} aria-label={"Star Stone "+stone.id+" moving on conveyor"}><svg viewBox="0 0 50 50" width="50" height="50" aria-hidden="true"><defs><linearGradient id="movingStoneFill" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stopColor="#e9fbff"/><stop offset="45%" stopColor="#58c9ff"/><stop offset="100%" stopColor="#1761d8"/></linearGradient></defs><path d="M25 2 39 11 47 26 36 43 18 48 4 34 3 17Z" fill="url(#movingStoneFill)" stroke="#d9f7ff" strokeWidth="2"/><path d="M25 2 25 25 39 11Z" fill="#e8fcff" opacity=".82"/><path d="M25 25 47 26 36 43Z" fill="#0e48b5" opacity=".58"/><path d="m25 10 3.2 9.1 9.6.3-7.6 5.8 2.8 9.2-8-5.5-8 5.5 2.8-9.2-7.6-5.8 9.6-.3Z" fill="#fff8c9" stroke="#fff" strokeWidth=".8"/></svg></div>;})}
+    <div className={styles.conveyorSeparator} aria-label="Solid separator between conveyor rows 10 and 11" />
+    {movingStones.map(stone=>{const position=starStonePosition(stone.distance);return <div key={stone.id} className={styles.movingStarStone} style={{left:position.x,top:position.y}} aria-label={"Star Stone "+stone.id+" moving on conveyor"}><svg viewBox="0 0 50 50" width="50" height="50" aria-hidden="true"><defs><linearGradient id="movingStoneFill" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stopColor="#e9fbff"/><stop offset="45%" stopColor="#58c9ff"/><stop offset="100%" stopColor="#1761d8"/></linearGradient></defs><path d="M25 2 39 11 47 26 36 43 18 48 4 34 3 17Z" fill="url(#movingStoneFill)" stroke="#d9f7ff" strokeWidth="2"/><path d="M25 2 25 25 39 11Z" fill="#e8fcff" opacity=".82"/><path d="M25 25 47 26 36 43Z" fill="#0e48b5" opacity=".58"/><path d="m25 10 3.2 9.1 9.6.3-7.6 5.8 2.8 9.2-8-5.5-8 5.5 2.8-9.2-7.6-5.8 9.6-.3Z" fill="#fff8c9" stroke="#fff" strokeWidth=".8"/></svg></div>;})}
    </div>
   </section>
   
