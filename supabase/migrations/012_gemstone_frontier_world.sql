@@ -27,7 +27,7 @@ values
   (7,'Gem Lab','🧪','REFINING',700,18,'[[6,2]]'),
   (8,'Vault Workshop','🏦','STORAGE',950,25,'[[7,2]]'),
   (9,'Deep Core Drill','🚜','DEEP MINING',1250,35,'[[8,2]]'),
-  (10,'Legendary Crystal Forge','✨','MASTER FORGE',1600,60,'[[6,1],[7,1],[8,1],[9,1]]')
+  (10,'Legendary Crystal Forge','✨','MASTER FORGE',1600,60,'[[9,2]]')
 on conflict (id) do update set
   name=excluded.name, icon=excluded.icon, kind=excluded.kind,
   unlock_cost_gold=excluded.unlock_cost_gold,
