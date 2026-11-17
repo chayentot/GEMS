@@ -180,3 +180,15 @@
 .movingNebulite { position:absolute; width:50px; height:50px; z-index:9; pointer-events:none; filter:drop-shadow(0 2px 5px rgba(0,0,0,.7)); }
 .movingNebulite svg { display:block; }
 @media (prefers-reduced-motion: reduce) { .factoryClawGrab,.factoryClawRelease { animation:none; } }
+
+
+/* Factory 3: Nebulite pickup and Sol Crystal output */
+.factoryThreeInfo { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:7px; color:#f3f7ff; text-align:center; text-shadow:0 1px 3px #07142b; pointer-events:none; }
+.factoryThreeInfo strong { font-size:19px; letter-spacing:1px; font-weight:900; }
+.factoryThreeInfo span { font-size:12px; line-height:1.2; font-weight:800; }
+.factory3ClawGrab,.factory3ClawRelease { position:absolute; z-index:11; height:34px; width:100px; display:flex; align-items:center; pointer-events:none; }
+.factory3ClawGrab { left:480px; top:888px; justify-content:flex-start; flex-direction:row-reverse; animation:clawGrab .7s ease-in-out both; transform-origin:right center; }
+.factory3ClawRelease { left:870px; top:888px; justify-content:flex-end; animation:clawRelease .85s ease-in-out both; transform-origin:left center; }
+.movingSolCrystal { position:absolute; width:50px; height:50px; z-index:10; pointer-events:none; filter:drop-shadow(0 2px 5px rgba(0,0,0,.7)); }
+.movingSolCrystal svg { display:block; }
+@media (prefers-reduced-motion: reduce) { .factory3ClawGrab,.factory3ClawRelease { animation:none; } }
