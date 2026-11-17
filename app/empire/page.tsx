@@ -6,7 +6,7 @@ import { createClient } from "@/lib/supabase";
 import ProfileMenu from "@/components/profile-menu";
 
 type Recipe = { id: number; name: string; inputs: [number, number][]; value: number; unlock: number };
-type Shipment = { id: number; materialId: number; amount: number; remainingMs: number; destinationFactoryId: number | null };
+type Shipment = { id: number; materialId: number; amount: number; remainingMs: number; producerId: number; destinationFactoryId: number | null; routeDecided: boolean };
 type GameState = { gold: number; unlocked: boolean[]; busy: boolean[]; stock: Record<number, number>; sold: number; produced: number; tick: number; shipments: Shipment[]; nextShipmentId: number };
 
 const recipes: Recipe[] = [
@@ -42,20 +42,19 @@ const initial: GameState = {
 };
 
 function routeMaterial(state: GameState, materialId: number, amount: number, producerId: number): GameState {
-  let next = { ...state, stock: { ...state.stock }, shipments: [...state.shipments] };
-  // Each physical unit joins one FIFO line. Its first downstream factory is the
-  // only possible factory destination; otherwise it is routed to the Gold Seller.
-  const target = recipes.find((r) => r.id > producerId && r.inputs.some(([id]) => id === materialId));
+  const next = { ...state, shipments: [...state.shipments] };
+  // Do not decide the destination when production happens. Materials may wait
+  // in the FIFO queue for a while, so choose the first downstream factory only
+  // when each unit actually reaches the head and is ready to travel.
   for (let unit = 0; unit < amount; unit += 1) {
-    const stored = target?.inputs.reduce((sum, [id]) => sum + (next.stock[target.id * 100 + id] || 0), 0) ?? 0;
-    const reserved = target ? next.shipments.filter((shipment) => shipment.destinationFactoryId === target.id).length : 0;
-    const canAccept = Boolean(target && next.unlocked[target.id - 1] && !next.busy[target.id - 1] && stored + reserved + 1 <= 100);
     next.shipments.push({
       id: next.nextShipmentId++,
       materialId,
       amount: 1,
-      remainingMs: CONVEYOR_MATERIAL_TRAVEL_MS - 100,
-      destinationFactoryId: canAccept && target ? target.id : null
+      remainingMs: CONVEYOR_MATERIAL_TRAVEL_MS,
+      producerId,
+      destinationFactoryId: null,
+      routeDecided: false
     });
   }
   return next;
@@ -133,6 +132,15 @@ export default function MiningEmpirePage() {
       setGame((current) => {
         if (current.shipments.length === 0) return current;
         const [active, ...waiting] = current.shipments;
+        if (!active.routeDecided) {
+          const target = recipes.find((recipe) => recipe.id > active.producerId && recipe.inputs.some(([id]) => id === active.materialId));
+          const stored = target
+            ? target.inputs.reduce((sum, [materialId]) => sum + (current.stock[target.id * 100 + materialId] || 0), 0)
+            : 0;
+          const canDispatchToFactory = Boolean(target && current.unlocked[target.id - 1] && !current.busy[target.id - 1] && stored + 1 <= 100);
+          const routed = { ...active, routeDecided: true, destinationFactoryId: canDispatchToFactory && target ? target.id : null };
+          return { ...current, shipments: [routed, ...waiting] };
+        }
         const remainingMs = active.remainingMs - 100;
         if (remainingMs > 0) {
           return { ...current, shipments: [{ ...active, remainingMs }, ...waiting] };
@@ -226,7 +234,7 @@ export default function MiningEmpirePage() {
               <path className="empire-track-shadow" d="M105 665 H690 V500 H110 V335 H690 V170 H400 V95" />
               <path className="empire-track-line" d="M105 665 H690 V500 H110 V335 H690 V170 H400 V95" />
               <path className="empire-track-center" d="M105 665 H690 V500 H110 V335 H690 V170 H400 V95" />
-              {activeShipment && running && <circle key={activeShipment.id} className="empire-moving-material" r="17">
+              {activeShipment && activeShipment.routeDecided && running && <circle key={activeShipment.id} className="empire-moving-material" r="17">
                 <animateMotion dur="3.2s" repeatCount="indefinite" rotate="auto"><mpath href={activeShipment.destinationFactoryId ? "#empire-to-factory" : "#empire-to-seller"} /></animateMotion>
               </circle>}
               <path id="empire-to-seller" d="M105 665 H690 V500 H110 V335 H690 V170 H400 V95" fill="none" />
@@ -245,7 +253,7 @@ export default function MiningEmpirePage() {
             <div className="empire-board-node board-node-seller">
               <span className="board-node-icon">🏪</span><strong>GOLD SELLER</strong><small>ARRIVAL = SOLD</small><b>🪙 {game.gold.toLocaleString()}</b>
             </div>
-            <div className="empire-board-label board-label-queue">{activeShipment ? (activeShipment.destinationFactoryId ? "IN TRANSIT → FIRST FACTORY" : "IN TRANSIT → GOLD SELLER") : "ONE AT A TIME · NO OVERTAKING"}</div>
+            <div className="empire-board-label board-label-queue">{activeShipment ? (!activeShipment.routeDecided ? "NEXT UNIT · CHECKING FACTORY" : activeShipment.destinationFactoryId ? "IN TRANSIT → FIRST FACTORY" : "IN TRANSIT → GOLD SELLER") : "ONE AT A TIME · NO OVERTAKING"}</div>
             <div className="empire-board-legend">
               <span><i className="legend-belt" /> Continuous conveyor</span>
               <span><i className="legend-unit" /> Single moving material</span>
