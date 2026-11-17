@@ -168,7 +168,7 @@
 .factoryTwoInfo strong { font-size:19px; letter-spacing:1px; font-weight:900; }
 .factoryTwoInfo span { font-size:12px; line-height:1.2; font-weight:800; }
 .factoryClawGrab,.factoryClawRelease { position:absolute; z-index:10; height:34px; pointer-events:none; display:flex; align-items:center; }
-.factoryClawGrab { left:8px; top:888px; width:116px; justify-content:flex-end; animation:clawGrab .7s ease-in-out both; transform-origin:right center; }
+.factoryClawGrab { left:20px; top:888px; width:100px; justify-content:flex-start; flex-direction:row-reverse; animation:clawGrab .7s ease-in-out both; transform-origin:right center; }
 .factoryClawRelease { left:398px; top:888px; width:94px; justify-content:flex-end; animation:clawRelease .85s ease-in-out both; transform-origin:left center; }
 .clawArm { height:10px; flex:1; border:2px solid #dce6f2; border-radius:5px; background:linear-gradient(180deg,#b9c8da,#53677f); box-shadow:0 2px 5px #07101f; }
 .clawHand { width:20px; height:24px; margin-left:-2px; position:relative; border:3px solid #e8f0fa; border-top:0; border-radius:0 0 8px 8px; filter:drop-shadow(0 2px 2px #07101f); }
