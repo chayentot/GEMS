@@ -129,7 +129,6 @@ export default function MiningEmpirePage() {
             next.factoryTwoRemainingMs = CYCLE_MS;
             next.factoryTwoAccumulatorMs = 0;
             next.factoryTwoInputAccumulatorMs = 0;
-            setMessage("All 360 Iron Ore reached Factory 2. Iron Bar production has started.");
           }
         }
 
@@ -189,33 +188,34 @@ export default function MiningEmpirePage() {
   function unlockFactory(factoryId: number) {
     const materialId = factoryId - 1;
     const required = UNLOCK_COSTS[factoryId - 1];
+    if (game.unlocked[factoryId - 1]) return;
+    const availableNow = game.banks[materialId] || 0;
+    if (availableNow < required) {
+      setMessage("You need " + required.toLocaleString() + " " + FACTORY_NAMES[materialId] + " in its bank to unlock Factory " + factoryId + ".");
+      return;
+    }
     setGame((current) => {
-      if (current.unlocked[factoryId - 1]) return current;
-      const available = current.banks[materialId] || 0;
-      if (available < required) {
-        setMessage("You need " + required.toLocaleString() + " " + FACTORY_NAMES[materialId] + " in its bank to unlock Factory " + factoryId + ".");
-        return current;
-      }
+      if (current.unlocked[factoryId - 1] || (current.banks[materialId] || 0) < required) return current;
       const unlocked = [...current.unlocked];
       unlocked[factoryId - 1] = true;
-      const banks = { ...current.banks, [materialId]: available - required };
-      setMessage("Factory " + factoryId + " unlocked permanently. " + required.toLocaleString() + " " + FACTORY_NAMES[materialId] + " has been consumed.");
+      const banks = { ...current.banks, [materialId]: (current.banks[materialId] || 0) - required };
       return { ...current, unlocked, banks, ...(factoryId === 2 ? { factoryTwoPhase: "idle" as FactoryTwoPhase } : {}) };
     });
+    setMessage("Factory " + factoryId + " unlocked permanently. " + required.toLocaleString() + " " + FACTORY_NAMES[materialId] + " has been consumed.");
   }
 
   function startFactoryTwo() {
+    if (!game.unlocked[1] || game.factoryTwoPhase !== "idle") return;
+    const availableNow = game.banks[1] || 0;
+    if (availableNow < 360) {
+      setMessage("Factory 2 needs the full 360 Iron Ore in the Ore Bank before it can start. Current balance: " + availableNow + ".");
+      return;
+    }
     setGame((current) => {
-      if (!current.unlocked[1] || current.factoryTwoPhase !== "idle") return current;
-      const available = current.banks[1] || 0;
-      if (available < 360) {
-        setMessage("Factory 2 needs the full 360 Iron Ore in the Ore Bank before it can start. Current balance: " + available + ".");
-        return current;
-      }
-      setMessage("Factory 2 is receiving 360 Iron Ore through its conveyor. The 3-minute production timer will begin after all Ore arrives.");
+      if (!current.unlocked[1] || current.factoryTwoPhase !== "idle" || (current.banks[1] || 0) < 360) return current;
       return {
         ...current,
-        banks: { ...current.banks, 1: available - 360 },
+        banks: { ...current.banks, 1: (current.banks[1] || 0) - 360 },
         factoryTwoPhase: "transferring",
         factoryTwoInputRemaining: 360,
         factoryTwoInputAccumulatorMs: 0,
@@ -223,6 +223,7 @@ export default function MiningEmpirePage() {
         factoryTwoAccumulatorMs: 0
       };
     });
+    setMessage("Factory 2 is receiving 360 Iron Ore through its conveyor. The 3-minute production timer will begin after all Ore arrives.");
   }
 
   const oreBank = game.banks[1] || 0;
