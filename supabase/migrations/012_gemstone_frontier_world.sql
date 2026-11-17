@@ -170,7 +170,7 @@ begin
     from public.gem_world_catalog c
     join public.gem_world_facilities f
       on f.user_id=v_user and f.facility_id=c.id and f.is_unlocked
-    where c.id>1 and c.inputs @> '[ [1, 1] ]'::jsonb
+    where c.id>1 and exists (select 1 from jsonb_array_elements(c.inputs) e(value) where (e.value->>0)::integer=1)
       and coalesce((select sum(i.amount) from public.gem_world_inventory i
                     where i.user_id=v_user and i.facility_id=c.id),0) < 100
     order by c.id limit 1;
@@ -228,7 +228,7 @@ begin
         join public.gem_world_facilities f
           on f.user_id=v_user and f.facility_id=c.id and f.is_unlocked
         where c.id>v_factory.id
-          and c.inputs @> jsonb_build_array(jsonb_build_array(v_factory.id,1))
+          and exists (select 1 from jsonb_array_elements(c.inputs) e(value) where (e.value->>0)::integer=v_factory.id)
           and coalesce((select sum(i.amount) from public.gem_world_inventory i
                         where i.user_id=v_user and i.facility_id=c.id),0) < 100
         order by c.id limit 1;
