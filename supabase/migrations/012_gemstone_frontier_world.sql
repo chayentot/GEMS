@@ -132,6 +132,8 @@ declare
   v_due_units numeric := 0;
   v_created integer := 0;
   v_material_value numeric;
+  v_mine_level integer := 1;
+  v_deliver numeric;
 begin
   if v_user is null then raise exception 'You must be signed in.'; end if;
 
@@ -164,8 +166,12 @@ begin
   -- Offline progress is deliberately capped at 24 hours per visit.
   v_elapsed := least(1440,greatest(0,floor(extract(epoch from (now()-v_world.last_tick_at))/60)::integer));
 
+  select coalesce(level,1) into v_mine_level from public.gem_world_facilities
+  where user_id=v_user and facility_id=1 and is_unlocked;
+  v_mine_level := coalesce(v_mine_level,1);
+
   for v_tick in 1..v_elapsed loop
-    -- The starter mine extracts five units each simulated minute.
+    -- The starter mine extracts five units per level each simulated minute.
     select c.id into v_target
     from public.gem_world_catalog c
     join public.gem_world_facilities f
@@ -176,16 +182,24 @@ begin
     order by c.id limit 1;
 
     if v_target is not null then
-      insert into public.gem_world_inventory(user_id,facility_id,material_id,amount)
-      values(v_user,v_target,1,5)
-      on conflict (user_id,facility_id,material_id)
-      do update set amount=least(100,gem_world_inventory.amount+5),updated_at=now();
+      select coalesce(amount,0) into v_current from public.gem_world_inventory
+      where user_id=v_user and facility_id=v_target and material_id=1;
+      v_deliver := least(5*v_mine_level,greatest(0,100-coalesce(v_current,0)));
+      if v_deliver>0 then
+        insert into public.gem_world_inventory(user_id,facility_id,material_id,amount)
+        values(v_user,v_target,1,v_deliver)
+        on conflict (user_id,facility_id,material_id)
+        do update set amount=least(100,gem_world_inventory.amount+excluded.amount),updated_at=now();
+      end if;
+      if 5*v_mine_level>v_deliver then
+        insert into public.gem_world_shipments(user_id,material_id,amount,sale_value_gold,arrive_at)
+        values(v_user,1,5*v_mine_level-v_deliver,1,now()+interval '20 seconds');
+      end if;
     else
       insert into public.gem_world_shipments(user_id,material_id,amount,sale_value_gold,arrive_at)
-      values(v_user,1,5,1,now()+interval '20 seconds');
-      v_created := v_created+5;
+      values(v_user,1,5*v_mine_level,1,now()+interval '20 seconds');
     end if;
-    update public.gem_worlds set total_produced=total_produced+5 where user_id=v_user;
+    update public.gem_worlds set total_produced=total_produced+(5*v_mine_level) where user_id=v_user;
 
     -- Run unlocked processing facilities in deterministic order.
     for v_factory in
@@ -218,7 +232,7 @@ begin
              and material_id=(v_input.value->>0)::integer;
         end loop;
         v_batches := v_batches+1;
-        exit when v_batches>=100;
+        exit when v_batches>=10*(select level from public.gem_world_facilities where user_id=v_user and facility_id=v_factory.id);
       end loop;
 
       if v_batches>0 then
@@ -234,13 +248,18 @@ begin
         order by c.id limit 1;
 
         if v_target is not null then
-          insert into public.gem_world_inventory(user_id,facility_id,material_id,amount)
-          values(v_user,v_target,v_factory.id,least(100,v_batches))
-          on conflict (user_id,facility_id,material_id)
-          do update set amount=least(100,gem_world_inventory.amount+excluded.amount),updated_at=now();
-          if v_batches>100 then
+          select coalesce(amount,0) into v_current from public.gem_world_inventory
+          where user_id=v_user and facility_id=v_target and material_id=v_factory.id;
+          v_deliver := least(v_batches,greatest(0,100-coalesce(v_current,0)));
+          if v_deliver>0 then
+            insert into public.gem_world_inventory(user_id,facility_id,material_id,amount)
+            values(v_user,v_target,v_factory.id,v_deliver)
+            on conflict (user_id,facility_id,material_id)
+            do update set amount=least(100,gem_world_inventory.amount+excluded.amount),updated_at=now();
+          end if;
+          if v_batches>v_deliver then
             insert into public.gem_world_shipments(user_id,material_id,amount,sale_value_gold,arrive_at)
-            values(v_user,v_factory.id,v_batches-100,v_factory.sale_value_gold,now()+interval '20 seconds');
+            values(v_user,v_factory.id,v_batches-v_deliver,v_factory.sale_value_gold,now()+interval '20 seconds');
           end if;
         else
           insert into public.gem_world_shipments(user_id,material_id,amount,sale_value_gold,arrive_at)
@@ -272,6 +291,46 @@ begin
       from public.gem_world_shipments s where s.user_id=v_user
     ),'[]'::jsonb)
   );
+end;
+$function$;
+
+
+create or replace function public.gem_world_upgrade(p_facility_id integer)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public, auth, pg_temp
+as $function$
+declare
+  v_user uuid := auth.uid();
+  v_facility public.gem_world_facilities%rowtype;
+  v_world public.gem_worlds%rowtype;
+  v_cost numeric(20,4);
+begin
+  if v_user is null then raise exception 'You must be signed in.'; end if;
+  perform public.gem_world_advance();
+
+  select * into v_facility from public.gem_world_facilities
+  where user_id=v_user and facility_id=p_facility_id and is_unlocked
+  for update;
+  if not found then raise exception 'Unlock this facility before upgrading it.'; end if;
+  if v_facility.level>=10 then raise exception 'This facility is already at maximum level.'; end if;
+
+  v_cost := greatest(100,(select unlock_cost_gold from public.gem_world_catalog where id=p_facility_id))
+            * v_facility.level;
+  select * into v_world from public.gem_worlds where user_id=v_user for update;
+  if v_world.gold_balance<v_cost then
+    raise exception 'Not enough Gold. Upgrade cost: %.',v_cost;
+  end if;
+
+  update public.gem_worlds
+     set gold_balance=gold_balance-v_cost,updated_at=now()
+   where user_id=v_user;
+  update public.gem_world_facilities
+     set level=level+1,updated_at=now()
+   where user_id=v_user and facility_id=p_facility_id;
+
+  return public.gem_world_advance();
 end;
 $function$;
 
@@ -319,8 +378,10 @@ $function$;
 
 revoke all on function public.gem_world_advance() from public,anon;
 revoke all on function public.gem_world_unlock(integer) from public,anon;
+revoke all on function public.gem_world_upgrade(integer) from public,anon;
 grant execute on function public.gem_world_advance() to authenticated;
 grant execute on function public.gem_world_unlock(integer) to authenticated;
+grant execute on function public.gem_world_upgrade(integer) to authenticated;
 
 commit;
 
