@@ -114,7 +114,7 @@ export default function MiningEmpirePage() {
   }, [running, authReady]);
 
   // FIFO conveyor: exactly one material unit travels for 3.2 seconds.
-  // The next unit starts only after the current unit is sold at the Gold Seller.
+  // The next unit starts only after the active unit reaches its factory or seller.
   useEffect(() => {
     if (!authReady) return;
     const timer = window.setInterval(() => {
@@ -211,10 +211,11 @@ export default function MiningEmpirePage() {
               <path className="empire-track-shadow" d="M105 665 H690 V500 H110 V335 H690 V170 H400 V95" />
               <path className="empire-track-line" d="M105 665 H690 V500 H110 V335 H690 V170 H400 V95" />
               <path className="empire-track-center" d="M105 665 H690 V500 H110 V335 H690 V170 H400 V95" />
-              {game.shipments.length > 0 && <circle className="empire-moving-material" r="17">
-                <animateMotion dur="3.2s" repeatCount="indefinite" rotate="auto"><mpath href="#empire-material-path" /></animateMotion>
+              {activeShipment && <circle className="empire-moving-material" r="17">
+                <animateMotion dur="3.2s" repeatCount="indefinite" rotate="auto"><mpath href={activeShipment.destinationFactoryId ? "#empire-to-factory" : "#empire-to-seller"} /></animateMotion>
               </circle>}
-              <path id="empire-to-seller" d="M105 665 H690 V500 H110 V335 H690 V170 H400 V95" fill="none" />\n              <path id="empire-to-factory" d="M105 665 H690 V500" fill="none" />
+              <path id="empire-to-seller" d="M105 665 H690 V500 H110 V335 H690 V170 H400 V95" fill="none" />
+              <path id="empire-to-factory" d="M105 665 H690 V500" fill="none" />
             </svg>
             <div className="empire-board-label board-label-mine">START · RAW ORE</div>
             <div className="empire-board-node board-node-mine">
