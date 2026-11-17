@@ -11,7 +11,7 @@ type Commission={id:string;source_user_id:string;referral_level:number;spend_amo
 const fmt=(n:number)=>Number(n||0).toFixed(2);
 
 export default function ReferralPage(){
- const [summary,setSummary]=useState<Summary|null>(null);const [link,setLink]=useState("");const [commissions,setCommissions]=useState<Commission[]>([]);const [status,setStatus]=useState("Loading referral details…");
+ const [summary,setSummary]=useState<Summary|null>(null);const [starStoneCount,setStarStoneCount]=useState(0);const [link,setLink]=useState("");const [commissions,setCommissions]=useState<Commission[]>([]);const [status,setStatus]=useState("Loading referral details…");
  async function load(){
   const sb=createClient();const {data:{user},error}=await sb.auth.getUser();if(error||!user){window.location.href="/GEMS/login/";return;}
   const [s,c]=await Promise.all([sb.rpc("get_my_referral_summary"),sb.from("referral_commissions").select("id,source_user_id,referral_level,spend_amount,commission_amount,source_type,source_description,source_units_spent,created_at").eq("beneficiary_id",user.id).order("created_at",{ascending:false}).limit(50)]);
@@ -19,6 +19,7 @@ export default function ReferralPage(){
   const data=(s.data??null) as Summary|null;setSummary(data);setLink(data?.referral_code?window.location.origin+"/GEMS/login/?ref="+encodeURIComponent(data.referral_code):"");setCommissions((c.data??[]) as Commission[]);setStatus("");
  }
  useEffect(()=>{void load();},[]);
+ useEffect(()=>{const timer=window.setInterval(()=>setStarStoneCount(count=>count+1),1000);return()=>window.clearInterval(timer);},[]);
  useEffect(()=>{const sb=createClient();let channel:ReturnType<typeof sb.channel>|undefined;let active=true;void(async()=>{const {data:{user}}=await sb.auth.getUser();if(!active||!user)return;channel=sb.channel("referral-live-"+user.id).on("postgres_changes",{event:"*",schema:"public",table:"referral_commissions",filter:"beneficiary_id=eq."+user.id},()=>{void load();}).subscribe();})();return()=>{active=false;if(channel)void sb.removeChannel(channel);};},[]);
  async function copy(){if(!link)return;await navigator.clipboard.writeText(link);setStatus("Referral link copied. Share it with new players.");}
  return <main className="shell">
@@ -27,7 +28,24 @@ export default function ReferralPage(){
   {status&&<div className="notice">{status}</div>}
   <section className={styles.stage} aria-label="Gems Tycoon grid">
    <div className={styles.canvas} aria-label="1020 by 2400 pixel grid with one yellow test area and eight blue 5 by 5 zones">
-    <div className={styles.highlight} aria-label="Yellow 3 by 3 test area centered at column 9, row 3" />
+    <div className={styles.highlight} aria-label="Star Stone generator producing one stone every second">
+     <div className={styles.starStone} role="img" aria-label="50 by 50 pixel Star Stone">
+      <svg viewBox="0 0 50 50" width="50" height="50" aria-hidden="true">
+       <defs>
+        <linearGradient id="starStoneFill" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stopColor="#e9fbff"/><stop offset="42%" stopColor="#58c9ff"/><stop offset="100%" stopColor="#1761d8"/></linearGradient>
+        <linearGradient id="starStoneEdge" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#ffffff"/><stop offset="100%" stopColor="#55aaff"/></linearGradient>
+       </defs>
+       <path d="M25 2 39 11 47 26 36 43 18 48 4 34 3 17Z" fill="url(#starStoneFill)" stroke="url(#starStoneEdge)" strokeWidth="2"/>
+       <path d="M25 2 25 25 39 11Z" fill="#e8fcff" opacity=".82"/>
+       <path d="M25 25 47 26 36 43Z" fill="#0e48b5" opacity=".58"/>
+       <path d="M25 2 25 25 4 34 3 17Z" fill="#8ce4ff" opacity=".52"/>
+       <path d="m25 10 3.2 9.1 9.6.3-7.6 5.8 2.8 9.2-8-5.5-8 5.5 2.8-9.2-7.6-5.8 9.6-.3Z" fill="#fff8c9" stroke="#ffffff" strokeWidth=".8"/>
+      </svg>
+     </div>
+     <span className={styles.starStoneName}>STAR STONE</span>
+     <span className={styles.starStoneCount}>{starStoneCount.toLocaleString()} produced</span>
+     <span className={styles.starStoneRate}>+1 every second</span>
+    </div>
     <div className={styles.blueZone + " " + styles.blue1} />
     <div className={styles.blueZone + " " + styles.blue2} />
     <div className={styles.blueZone + " " + styles.blue3} />
