@@ -64,7 +64,33 @@
 .red1 { left: 120px; top: 420px; width: 300px; }
 .red2 { left: 600px; top: 420px; width: 300px; }
 
-.grayZone { position: absolute; background: rgba(145, 153, 165, 0.82); box-shadow: inset 0 0 0 1px #c4cbd4; pointer-events: none; }
+.grayZone {
+  position: absolute;
+  overflow: hidden;
+  background-color: rgba(105, 117, 133, 0.9);
+  background-image: repeating-linear-gradient(90deg, rgba(235, 244, 255, 0.34) 0 5px, transparent 5px 18px);
+  background-size: 36px 100%;
+  box-shadow: inset 0 0 0 2px #c4cbd4, inset 0 8px 0 rgba(20, 29, 43, 0.32), inset 0 -8px 0 rgba(20, 29, 43, 0.32);
+  animation: beltHorizontal 1s linear infinite;
+  pointer-events: none;
+}
+.grayHorizontal { animation-name: beltHorizontal; }
+.grayVertical {
+  background-image: repeating-linear-gradient(0deg, rgba(235, 244, 255, 0.34) 0 5px, transparent 5px 18px);
+  background-size: 100% 36px;
+  animation-name: beltVertical;
+}
+@keyframes beltHorizontal {
+  from { background-position: 0 0; }
+  to { background-position: 36px 0; }
+}
+@keyframes beltVertical {
+  from { background-position: 0 0; }
+  to { background-position: 0 36px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .grayZone { animation: none; }
+}
 .gray1 { left: 480px; top: 240px; width: 60px; height: 60px; }
 .gray2 { left: 480px; top: 300px; width: 540px; height: 60px; }
 .gray3 { left: 960px; top: 360px; width: 60px; height: 120px; }
