@@ -82,6 +82,23 @@ Only mark a withdrawal paid after the payout has actually been sent.
 
 In Supabase → **Authentication → URL Configuration**, set the Site URL to the final website address and add the corresponding sign-in/confirmation redirect URLs. The exact URL depends on the hosting method selected.
 
+
+## 6. Install the persistent Gemstone Frontier backend
+
+The Gemstone Frontier world is an optional game mode and uses a separate **Gold** balance. It does not change the GEMS wallet, recharge approvals, withdrawal requests, referral commissions, or the existing ten-gem mining economy.
+
+After your existing GEMS migrations are installed (including the legacy compatibility and original economy migrations, plus the referral migrations used by your current project):
+
+1. Open Supabase → SQL Editor.
+2. Open [012_gemstone_frontier_world.sql](supabase/migrations/012_gemstone_frontier_world.sql) from this repository.
+3. Copy the complete SQL file into a new SQL Editor query and run it once.
+4. Confirm the query completes successfully.
+5. Sign in to GEMS and open **Mining World**. Supabase creates the player's world and starter Garnet Mine automatically.
+
+The migration creates an independent catalog, per-player Gold balance, facility ownership/levels, factory input inventory and shipment queue. Production and unlock/upgrade costs are processed by authenticated database functions. Offline production is capped at 24 hours per visit. The browser cannot directly edit Gold, facility ownership, levels, or inventory.
+
+Do not run `001_gems_schema.sql` on the existing GEMS database. Migration 012 is additive and is intended for the original database described above.
+
 ## Hosting note: GitHub + Supabase
 
 GitHub stores the source code; Supabase provides authentication and database services. Supabase does not host this Next.js website. GitHub Pages may be usable if the app can be built as a static export, but it needs a compatible configuration and route testing. I will verify that before asking you to configure hosting. We do not need to use Vercel if we can deploy successfully with GitHub Pages.
