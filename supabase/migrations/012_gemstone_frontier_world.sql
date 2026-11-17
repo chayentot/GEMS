@@ -269,8 +269,11 @@ begin
     end loop;
   end loop;
 
-  update public.gem_worlds set last_tick_at=now(),updated_at=now()
-  where user_id=v_user returning * into v_world;
+  update public.gem_worlds
+     set last_tick_at=case when v_elapsed>=1440 then now()
+                           else last_tick_at+make_interval(mins=>v_elapsed) end,
+         updated_at=now()
+   where user_id=v_user returning * into v_world;
 
   return jsonb_build_object(
     'gold_balance',v_world.gold_balance,
