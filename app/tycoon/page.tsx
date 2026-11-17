@@ -26,7 +26,7 @@ export default function ReferralPage(){
   <div><h1>Gems Tycoon</h1><p className="muted">Invite players and earn GEMS when your referral network unlocks or upgrades gemstones in Mining.</p></div>
   {status&&<div className="notice">{status}</div>}
   <section className={styles.stage} aria-label="Gems Tycoon grid">
-   <div className={styles.canvas} aria-label="Blank 1020 by 1500 pixel grid with 60 by 60 pixel cells" />
+   <div className={styles.canvas} aria-label="1020 by 1500 pixel grid with a yellow 3 by 3 highlighted area centered at column 9, row 3"><div className={styles.highlight} aria-label="Yellow 3 by 3 cell highlight" /></div>
   </section>
   <section className="panel section"><h2>Referral earnings history</h2>{commissions.length===0?<p className="small muted">No referral commissions yet. You earn when someone in your referral network successfully unlocks or upgrades a gemstone in Mining.</p>:<div className="transaction-list">{commissions.map(c=><div className="item row" key={c.id}><div><strong>Level {c.referral_level} commission</strong><div className="small">{c.source_description??(c.source_type==="market_buy"?"Historical Market purchase":"Mining action")} · Player {c.source_user_id.slice(0,8)} · {fmt(Number(c.source_units_spent??0))} units · GEMS equivalent: {fmt(Number(c.spend_amount))} · {new Date(c.created_at).toLocaleString()}</div></div><strong className="success">+{fmt(Number(c.commission_amount))} GEMS</strong></div>)}</div>}</section>
  </main>;
