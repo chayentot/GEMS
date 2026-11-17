@@ -11,7 +11,7 @@ type Commission={id:string;source_user_id:string;referral_level:number;spend_amo
 const fmt=(n:number)=>Number(n||0).toFixed(2);
 
 type MovingStone={id:number;distance:number};
-const STAR_ROUTE=[{x:485,y:185},{x:485,y:245},{x:485,y:305},{x:965,y:305},{x:965,y:545},{x:5,y:545}];
+const STAR_ROUTE=[{x:485,y:245},{x:485,y:305},{x:965,y:305},{x:5,y:545},{x:5,y:1505},{x:485,y:1505},{x:485,y:665},{x:965,y:665},{x:965,y:2405},{x:485,y:2405},{x:485,y:1565},{x:5,y:1565},{x:5,y:2405}];
 const STAR_ROUTE_LENGTH=STAR_ROUTE.slice(1).reduce((total,p,i)=>total+Math.hypot(p.x-STAR_ROUTE[i].x,p.y-STAR_ROUTE[i].y),0);
 function starStonePosition(distance:number){let remaining=distance;for(let i=1;i<STAR_ROUTE.length;i++){const from=STAR_ROUTE[i-1],to=STAR_ROUTE[i],length=Math.hypot(to.x-from.x,to.y-from.y);if(remaining<=length){const ratio=length===0?0:remaining/length;return{x:from.x+(to.x-from.x)*ratio,y:from.y+(to.y-from.y)*ratio};}remaining-=length;}return STAR_ROUTE[STAR_ROUTE.length-1];}
 
