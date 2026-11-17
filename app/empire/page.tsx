@@ -127,8 +127,10 @@ export default function MiningEmpirePage() {
         }
         const destinationId = active.destinationFactoryId;
         const destination = destinationId ? recipes[destinationId - 1] : null;
-        const stored = destination?.inputs.reduce((sum, [materialId]) => sum + (current.stock[destinationId! * 100 + materialId] || 0), 0) ?? 0;
-        const canEnterFactory = Boolean(destination && current.unlocked[destinationId! - 1] && !current.busy[destinationId! - 1] && stored + 1 <= 100);
+        const stored = destination
+          ? destination.inputs.reduce((sum, [materialId]) => sum + (current.stock[destination.id * 100 + materialId] || 0), 0)
+          : 0;
+        const canEnterFactory = Boolean(destination && current.unlocked[destination.id - 1] && !current.busy[destination.id - 1] && stored + 1 <= 100);
         if (destination && canEnterFactory) {
           const key = destination.id * 100 + active.materialId;
           return { ...current, shipments: waiting, stock: { ...current.stock, [key]: (current.stock[key] || 0) + 1 } };
@@ -211,7 +213,7 @@ export default function MiningEmpirePage() {
               <path className="empire-track-shadow" d="M105 665 H690 V500 H110 V335 H690 V170 H400 V95" />
               <path className="empire-track-line" d="M105 665 H690 V500 H110 V335 H690 V170 H400 V95" />
               <path className="empire-track-center" d="M105 665 H690 V500 H110 V335 H690 V170 H400 V95" />
-              {activeShipment && <circle className="empire-moving-material" r="17">
+              {activeShipment && running && <circle key={activeShipment.id} className="empire-moving-material" r="17">
                 <animateMotion dur="3.2s" repeatCount="indefinite" rotate="auto"><mpath href={activeShipment.destinationFactoryId ? "#empire-to-factory" : "#empire-to-seller"} /></animateMotion>
               </circle>}
               <path id="empire-to-seller" d="M105 665 H690 V500 H110 V335 H690 V170 H400 V95" fill="none" />
