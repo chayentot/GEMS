@@ -337,19 +337,21 @@ export default function MiningEmpirePage() {
           <div><h2>Production line</h2><p className="small">Factory 1 → Ore Bank → Factory 2 → Iron Bar Bank. Each conveyor is short, and materials visibly move one at a time.</p></div>
         </div>
 
-        <div className="empire-production-line">
-          <article className="empire-machine-card is-open">
-            <div className="empire-machine-top"><span>FACTORY 1</span><span className={game.mineRunning ? "factory-pill is-running" : "factory-pill"}>{game.mineRunning ? "RUNNING" : "STOPPED"}</span></div>
-            <div className="empire-machine-art">⛏️</div>
-            <h3>Iron Ore Mine</h3>
-            <p>Produces 1 Iron Ore every second.</p>
-            <div className="empire-timer">{game.mineRunning ? clock(game.mineRemainingMs) : game.mineRemainingMs === 0 ? "00:00" : clock(game.mineRemainingMs)}</div>
-            <small className="empire-card-caption">{game.mineRunning ? "TIME REMAINING" : "3-MINUTE CYCLE"}</small>
-            <div className="empire-machine-count"><span>Unredeemed Ore</span><b>{game.mineOutput.toLocaleString()}</b></div>
-            <button onClick={startFactoryOne} disabled={game.mineRunning || game.mineRemainingMs > 0}>
-              {game.mineRunning ? "PRODUCING…" : game.mineRemainingMs > 0 ? "CYCLE ACTIVE" : "▶ START · 3 MIN"}
+        <div className="empire-production-line empire-production-floor">
+          <article className="empire-machine-unit" data-name="Iron Ore Mine">
+            <button
+              type="button"
+              className="empire-machine-body"
+              aria-label={game.mineRunning ? "Iron Ore Mine running" : "Start Iron Ore Mine"}
+              onClick={() => startFactoryOne()}
+            >
+              <span className="empire-machine-art" aria-hidden="true">⛏️</span>
+              <span className="empire-machine-time">{game.mineRunning ? clock(game.mineRemainingMs) : "00:00"}</span>
+              <span className="empire-machine-state">{game.mineRunning ? "RUNNING" : game.mineRemainingMs > 0 ? "CYCLE ACTIVE" : "STOPPED"}</span>
             </button>
-            <button className="secondary" onClick={redeemOre} disabled={game.mineOutput === 0}>REDEEM ORE TO BANK</button>
+            <button className="empire-machine-redeem" onClick={redeemOre} disabled={game.mineOutput === 0}>
+              REDEEM · {game.mineOutput.toLocaleString()} ORE
+            </button>
           </article>
 
           <div className="empire-conveyor-block">
@@ -376,28 +378,30 @@ export default function MiningEmpirePage() {
             <small>{game.factoryTwoPhase === "transferring" ? game.factoryTwoInputRemaining.toLocaleString() + " Ore remaining" : "Ore Bank → Factory 2"}</small>
           </div>
 
-          <article className={"empire-machine-card " + (game.unlocked[1] ? "is-open" : "is-locked")}>
-            <div className="empire-machine-top"><span>FACTORY 2</span><span className={game.factoryTwoPhase === "running" ? "factory-pill is-running" : "factory-pill"}>{game.unlocked[1] ? game.factoryTwoPhase.toUpperCase() : "LOCKED"}</span></div>
-            <div className="empire-machine-art">🔥</div>
-            <h3>Iron Bar Smelter</h3>
+          <article className={"empire-machine-unit " + (!game.unlocked[1] ? "is-locked" : "")} data-name="Iron Bar Smelter">
+            <button
+              type="button"
+              className="empire-machine-body"
+              aria-label={game.unlocked[1] ? "Start Iron Bar Smelter" : "Iron Bar Smelter locked"}
+              onClick={() => {
+                if (game.unlocked[1]) startFactoryTwo();
+              }}
+              disabled={!game.unlocked[1] || game.factoryTwoPhase === "running" || game.factoryTwoPhase === "transferring" || !factoryTwoCanStart}
+            >
+              <span className="empire-machine-art" aria-hidden="true">🔥</span>
+              <span className="empire-machine-time">
+                {!game.unlocked[1] ? "LOCKED" : game.factoryTwoPhase === "running" ? clock(game.factoryTwoRemainingMs) : game.factoryTwoPhase === "transferring" ? "MOVING" : "03:00"}
+              </span>
+              <span className="empire-machine-state">
+                {!game.unlocked[1] ? "50 ORE TO UNLOCK" : game.factoryTwoPhase === "running" ? "RUNNING" : game.factoryTwoPhase === "transferring" ? "INPUT IN TRANSIT" : "READY"}
+              </span>
+            </button>
             {!game.unlocked[1] ? (
-              <>
-                <p>Unlock permanently by consuming 50 Iron Ore from the Ore Bank.</p>
-                <div className="empire-unlock-cost">50 M1 · IRON ORE</div>
-                <button onClick={() => unlockFactory(2)} disabled={oreBank < 50}>UNLOCK FACTORY 2</button>
-              </>
+              <button className="empire-machine-redeem" onClick={() => unlockFactory(2)} disabled={oreBank < 50}>UNLOCK · 50 ORE</button>
             ) : (
-              <>
-                <p>Consumes 360 Iron Ore and produces 1 Iron Bar per second.</p>
-                <div className="empire-timer">{game.factoryTwoPhase === "running" ? clock(game.factoryTwoRemainingMs) : game.factoryTwoPhase === "transferring" ? "MOVING ORE" : "03:00"}</div>
-                <small className="empire-card-caption">{game.factoryTwoPhase === "running" ? "TIME REMAINING" : game.factoryTwoPhase === "transferring" ? "WAITING FOR ALL 360 ORE" : "3-MINUTE CYCLE"}</small>
-                {game.factoryTwoPhase === "transferring" && <div className="empire-transfer-progress"><i style={{ width: ((360 - game.factoryTwoInputRemaining) / 360 * 100) + "%" }} /></div>}
-                <div className="empire-machine-count"><span>Iron Bars on output belt</span><b>{game.factoryTwoOutputPending.toLocaleString()}</b></div>
-                <button onClick={startFactoryTwo} disabled={!factoryTwoCanStart}>
-                  {game.factoryTwoPhase === "transferring" ? "TRANSFERRING…" : game.factoryTwoPhase === "running" ? "PRODUCING…" : "▶ START · 360 ORE"}
-                </button>
-                {game.factoryTwoPhase === "idle" && oreBank < 360 && <small className="empire-requirement-warning">Need { (360 - oreBank).toLocaleString() } more Ore in the bank.</small>}
-              </>
+              <small className="empire-machine-requirement">
+                {game.factoryTwoPhase === "idle" && oreBank < 360 ? "Needs 360 Ore · " + oreBank + " available" : game.factoryTwoPhase === "transferring" ? game.factoryTwoInputRemaining + " Ore still moving" : "Input: 360 Ore · Output: 180 Bars"}
+              </small>
             )}
           </article>
 
