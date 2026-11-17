@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase";
 import ProfileMenu from "@/components/profile-menu";
@@ -67,18 +67,73 @@ function clock(ms: number) {
 export default function MiningEmpirePage() {
   const [game, setGame] = useState<GameState>(initial);
   const [authReady, setAuthReady] = useState(false);
+  const [playerId, setPlayerId] = useState<string | null>(null);
+  const [cloudSaveReady, setCloudSaveReady] = useState(false);
   const [message, setMessage] = useState("Start Factory 1 to produce Iron Ore. Redeem it whenever you want to move it into the Ore Bank.");
+  const gameRef = useRef<GameState>(game);
+  gameRef.current = game;
 
   useEffect(() => {
     const sb = createClient();
-    void sb.auth.getUser().then(({ data: { user } }) => {
+    let active = true;
+    void (async () => {
+      const { data: { user } } = await sb.auth.getUser();
+      if (!active) return;
       if (!user) {
         window.location.href = "/GEMS/login/";
         return;
       }
+      setPlayerId(user.id);
+      const { data, error } = await sb
+        .from("mining_empire_saves")
+        .select("state")
+        .eq("user_id", user.id)
+        .maybeSingle();
+      if (!active) return;
+      if (error) {
+        setMessage("Cloud save is not ready yet. Apply migration 012_mining_empire_saves.sql in Supabase to save progress across devices.");
+      } else {
+        if (data?.state && typeof data.state === "object") {
+          const saved = data.state as Partial<GameState>;
+          const unlocked = Array.isArray(saved.unlocked) && saved.unlocked.length === 10
+            ? saved.unlocked.map((value, index) => index === 0 ? true : Boolean(value))
+            : initial.unlocked;
+          const restored: GameState = {
+            ...initial,
+            ...saved,
+            unlocked,
+            banks: saved.banks && typeof saved.banks === "object" ? saved.banks : {}
+          };
+          if (restored.unlocked[1] && restored.factoryTwoPhase === "locked") restored.factoryTwoPhase = "idle";
+          setGame(restored);
+          setMessage("Your Mining Empire progress has been loaded from your account.");
+        }
+        setCloudSaveReady(true);
+      }
       setAuthReady(true);
-    });
+    })();
+    return () => { active = false; };
   }, []);
+
+  useEffect(() => {
+    if (!cloudSaveReady || !playerId) return;
+    const sb = createClient();
+    const save = () => {
+      void sb.from("mining_empire_saves").upsert({
+        user_id: playerId,
+        state: gameRef.current,
+        updated_at: new Date().toISOString()
+      }, { onConflict: "user_id" }).then(({ error }) => {
+        if (error) console.error("Mining Empire cloud save failed:", error.message);
+      });
+    };
+    const timer = window.setInterval(save, 5000);
+    window.addEventListener("pagehide", save);
+    return () => {
+      window.clearInterval(timer);
+      window.removeEventListener("pagehide", save);
+    };
+  }, [cloudSaveReady, playerId]);
 
   useEffect(() => {
     if (!authReady) return;
