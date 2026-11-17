@@ -37,23 +37,40 @@
 }
 
 .header {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
   border-bottom: 1px solid rgba(171, 196, 235, .25);
   padding-bottom: 17px;
-  flex-wrap: wrap;
-  gap: 12px;
+  gap: 14px;
 }
-.siteNav { display: flex; align-items: center; flex-wrap: wrap; gap: 3px; }
+.siteNav {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 8px;
+}
 .siteNav a {
-  color: #a9b9d1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 42px;
+  box-sizing: border-box;
+  color: #d7e6fa;
   text-decoration: none;
-  padding: 8px 9px;
+  padding: 8px 5px;
+  border: 1px solid #3a5275;
   border-radius: 6px;
+  background: rgba(16, 31, 54, .88);
+  text-align: center;
+  white-space: nowrap;
   font-size: 11px;
   font-weight: 700;
 }
 .siteNav a:hover, .siteNav a[aria-current="page"] {
   color: #8bcfff;
-  background: rgba(80, 160, 230, .18);
+  border-color: #70bfff;
+  background: rgba(80, 160, 230, .24);
 }
 .brand { justify-content: flex-start; gap: 9px; font-size: 16px; font-weight: 800; letter-spacing: 2px; }
 .brandMark { color: #79caff; font-size: 22px; }
