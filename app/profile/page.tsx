@@ -87,7 +87,7 @@ export default function ProfilePage(){
   setStatus("Referral link copied. Share it with a new player.");
  }
  return <main className="shell">
-  <header className="topbar"><Link href="/" className="brand">💎 GEMS MINING</Link><nav className="row"><Link href="/dashboard/">Dashboard</Link><Link href="/mining/">Mining</Link><Link href="/referral/">Referral</Link><Link href="/market/">Market</Link><ProfileMenu /></nav></header>
+  <header className="topbar"><Link href="/" className="brand">💎 GEMS MINING</Link><nav className="row"><Link href="/dashboard/">Dashboard</Link><Link href="/mining/">Mining</Link><Link href="/tycoon/">Gems Tycoon</Link><Link href="/referral/">Referral</Link><Link href="/market/">Market</Link><ProfileMenu /></nav></header>
   <div><h1>My Profile</h1><p className="muted">Account details, wallet services and transaction records.</p></div>
   {status&&<div className="notice">{status}</div>}
   <div className="profile-tabs" role="tablist" aria-label="Profile sections">
