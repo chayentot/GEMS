@@ -38,19 +38,19 @@ export default function ReferralPage(){
     <div className={styles.blueZone + " " + styles.blue8} />
     <div className={styles.redZone + " " + styles.red1} />
     <div className={styles.redZone + " " + styles.red2} />
-    <div className={styles.grayZone + " " + styles.gray1} />
-    <div className={styles.grayZone + " " + styles.gray2} />
-    <div className={styles.grayZone + " " + styles.gray3} />
-    <div className={styles.grayZone + " " + styles.gray4} />
-    <div className={styles.grayZone + " " + styles.gray5} />
-    <div className={styles.grayZone + " " + styles.gray6} />
-    <div className={styles.grayZone + " " + styles.gray7} />
-    <div className={styles.grayZone + " " + styles.gray8} />
-    <div className={styles.grayZone + " " + styles.gray9} />
-    <div className={styles.grayZone + " " + styles.gray10} />
-    <div className={styles.grayZone + " " + styles.gray11} />
-    <div className={styles.grayZone + " " + styles.gray12} />
-    <div className={styles.grayZone + " " + styles.gray13} />
+    <div className={styles.grayZone + " " + styles.grayVertical + " " + styles.gray1} />
+    <div className={styles.grayZone + " " + styles.grayHorizontal + " " + styles.gray2} />
+    <div className={styles.grayZone + " " + styles.grayVertical + " " + styles.gray3} />
+    <div className={styles.grayZone + " " + styles.grayHorizontal + " " + styles.gray4} />
+    <div className={styles.grayZone + " " + styles.grayHorizontal + " " + styles.gray5} />
+    <div className={styles.grayZone + " " + styles.grayHorizontal + " " + styles.gray6} />
+    <div className={styles.grayZone + " " + styles.grayHorizontal + " " + styles.gray7} />
+    <div className={styles.grayZone + " " + styles.grayVertical + " " + styles.gray8} />
+    <div className={styles.grayZone + " " + styles.grayVertical + " " + styles.gray9} />
+    <div className={styles.grayZone + " " + styles.grayVertical + " " + styles.gray10} />
+    <div className={styles.grayZone + " " + styles.grayVertical + " " + styles.gray11} />
+    <div className={styles.grayZone + " " + styles.grayVertical + " " + styles.gray12} />
+    <div className={styles.grayZone + " " + styles.grayVertical + " " + styles.gray13} />
    </div>
   </section>
   
