@@ -90,7 +90,7 @@ export default function MiningEmpirePage() {
         if (next.mineRunning) {
           next.mineRemainingMs = Math.max(0, next.mineRemainingMs - TICK_MS);
           next.mineAccumulatorMs += TICK_MS;
-          while (next.mineAccumulatorMs >= 1000 && next.mineProducedTotal >= 0) {
+          while (next.mineAccumulatorMs >= 1000) {
             next.mineAccumulatorMs -= 1000;
             next.mineOutput += 1;
             next.mineProducedTotal += 1;
@@ -189,13 +189,17 @@ export default function MiningEmpirePage() {
     const materialId = factoryId - 1;
     const required = UNLOCK_COSTS[factoryId - 1];
     if (game.unlocked[factoryId - 1]) return;
+    if (factoryId > 1 && !game.unlocked[factoryId - 2]) {
+      setMessage("Unlock Factory " + (factoryId - 1) + " first. Factory progression is sequential.");
+      return;
+    }
     const availableNow = game.banks[materialId] || 0;
     if (availableNow < required) {
       setMessage("You need " + required.toLocaleString() + " " + FACTORY_NAMES[materialId] + " in its bank to unlock Factory " + factoryId + ".");
       return;
     }
     setGame((current) => {
-      if (current.unlocked[factoryId - 1] || (current.banks[materialId] || 0) < required) return current;
+      if (current.unlocked[factoryId - 1] || (factoryId > 1 && !current.unlocked[factoryId - 2]) || (current.banks[materialId] || 0) < required) return current;
       const unlocked = [...current.unlocked];
       unlocked[factoryId - 1] = true;
       const banks = { ...current.banks, [materialId]: (current.banks[materialId] || 0) - required };
@@ -376,7 +380,8 @@ export default function MiningEmpirePage() {
                 <strong>{name}</strong>
                 <small>Unlock cost: {required.toLocaleString()} {FACTORY_NAMES[materialId - 1]}</small>
                 <small>Bank balance: {available.toLocaleString()}</small>
-                {!unlocked && <button className="secondary" onClick={() => unlockFactory(factoryId)} disabled={available < required}>UNLOCK · CONSUME MATERIAL</button>}
+                {!unlocked && <button className="secondary" onClick={() => unlockFactory(factoryId)} disabled={available < required || !game.unlocked[factoryId - 2]}>UNLOCK · CONSUME MATERIAL</button>}
+                {!unlocked && !game.unlocked[factoryId - 2] && <small className="empire-pending-rules">Unlock Factory {factoryId - 1} first.</small>}
                 {unlocked && <small className="success">Permanently unlocked</small>}
                 {unlocked && <small className="empire-pending-rules">Production controls will be added after this factory's cycle is defined.</small>}
               </div>
