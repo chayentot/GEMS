@@ -51,7 +51,7 @@ function routeMaterial(state: GameState, materialId: number, amount: number, pro
       id: next.nextShipmentId++,
       materialId,
       amount: 1,
-      remainingMs: CONVEYOR_MATERIAL_TRAVEL_MS - 100,
+      remainingMs: CONVEYOR_MATERIAL_TRAVEL_MS,
       producerId,
       destinationFactoryId: null,
       routeDecided: false
