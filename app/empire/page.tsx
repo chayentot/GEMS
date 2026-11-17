@@ -7,25 +7,26 @@ import ProfileMenu from "@/components/profile-menu";
 
 type Recipe = { id: number; name: string; inputs: [number, number][]; value: number; unlock: number };
 type Shipment = { id: number; materialId: number; amount: number; remainingMs: number; producerId: number; destinationFactoryId: number | null; routeDecided: boolean };
-type GameState = { gold: number; unlocked: boolean[]; busy: boolean[]; stock: Record<number, number>; sold: number; produced: number; tick: number; shipments: Shipment[]; nextShipmentId: number };
+type GameState = { gold: number; unlocked: boolean[]; busy: boolean[]; stock: Record<number, number>; sold: number; produced: number; producedByMaterial: Record<number, number>; mineRemainingMs: number; productionRemainingMs: number[]; tick: number; shipments: Shipment[]; nextShipmentId: number };
 
 const recipes: Recipe[] = [
   { id: 1, name: "Iron Ore", inputs: [], value: 1, unlock: 0 },
   { id: 2, name: "Iron Bars", inputs: [[1, 2]], value: 2, unlock: 50 },
-  { id: 3, name: "Steel", inputs: [[2, 2]], value: 4, unlock: 120 },
-  { id: 4, name: "Industrial Gears", inputs: [[3, 2]], value: 6, unlock: 220 },
-  { id: 5, name: "Reinforced Frame", inputs: [[1, 1], [4, 1]], value: 8, unlock: 350 },
-  { id: 6, name: "Mechanical Assembly", inputs: [[2, 1], [5, 1]], value: 12, unlock: 500 },
-  { id: 7, name: "Power Generator", inputs: [[3, 1], [6, 1]], value: 18, unlock: 700 },
-  { id: 8, name: "Control System", inputs: [[4, 1], [6, 1]], value: 25, unlock: 950 },
-  { id: 9, name: "Heavy Mining Drill", inputs: [[5, 1], [7, 1]], value: 35, unlock: 1250 },
-  { id: 10, name: "Ultimate Mining Core", inputs: [[6, 1], [7, 1], [8, 1], [9, 1]], value: 60, unlock: 1600 }
+  { id: 3, name: "Steel", inputs: [[2, 2]], value: 8, unlock: 120 },
+  { id: 4, name: "Industrial Gears", inputs: [[3, 2]], value: 16, unlock: 220 },
+  { id: 5, name: "Reinforced Frame", inputs: [[1, 16], [4, 1]], value: 32, unlock: 350 },
+  { id: 6, name: "Mechanical Assembly", inputs: [[2, 16], [5, 1]], value: 64, unlock: 500 },
+  { id: 7, name: "Power Generator", inputs: [[3, 8], [6, 1]], value: 128, unlock: 700 },
+  { id: 8, name: "Control System", inputs: [[4, 8], [6, 2]], value: 256, unlock: 950 },
+  { id: 9, name: "Heavy Mining Drill", inputs: [[5, 4], [7, 1]], value: 256, unlock: 1250 },
+  { id: 10, name: "Ultimate Mining Core", inputs: [[6, 4], [7, 2], [8, 1], [9, 1]], value: 1024, unlock: 1600 }
 ];
 
 const materialIcons = ["🪨", "🧱", "🔩", "⚙️", "🛠️", "🏗️", "⚡", "🖥️", "⛏️", "💎"];
 
-// Factory production checks every 1.8 seconds; factories can process all available batches.
-const FACTORY_CYCLE_MS = 1800;
+// Every factory takes exactly one second to complete one recipe.
+const FACTORY_CYCLE_MS = 1000;
+const GAME_TICK_MS = 50;
 const CONVEYOR_BELT_LOOP_MS = 550;
 const CONVEYOR_MATERIAL_TRAVEL_MS = 3200;
 
@@ -36,6 +37,9 @@ const initial: GameState = {
   stock: {},
   sold: 0,
   produced: 0,
+  producedByMaterial: {},
+  mineRemainingMs: FACTORY_CYCLE_MS,
+  productionRemainingMs: recipes.map(() => 0),
   tick: 0,
   shipments: [],
   nextShipmentId: 1
@@ -60,33 +64,64 @@ function routeMaterial(state: GameState, materialId: number, amount: number, pro
   return next;
 }
 
-function advance(current: GameState): GameState {
-  let next = { ...current, unlocked: [...current.unlocked], stock: { ...current.stock }, tick: current.tick + 1 };
-  // The starter mine continuously produces Iron Ore.
-  next = routeMaterial(next, 1, 5, 1);
-  next.produced += 5;
+function advance(current: GameState, deltaMs = GAME_TICK_MS): GameState {
+  let next: GameState = {
+    ...current,
+    unlocked: [...current.unlocked],
+    busy: [...current.busy],
+    stock: { ...current.stock },
+    producedByMaterial: { ...current.producedByMaterial },
+    productionRemainingMs: [...current.productionRemainingMs],
+    shipments: [...current.shipments],
+    tick: current.tick + 1
+  };
 
-  // Each unlocked factory processes available batches at the cycle update.
-  // The UI busy flag is only a short processing window, not the full cycle.
-  const processedThisCycle = new Set<number>();
+  // Factory 1 produces exactly one Iron Ore every second.
+  next.mineRemainingMs -= deltaMs;
+  while (next.mineRemainingMs <= 0) {
+    next = routeMaterial(next, 1, 1, 1);
+    next.produced += 1;
+    next.producedByMaterial[1] = (next.producedByMaterial[1] || 0) + 1;
+    next.mineRemainingMs += FACTORY_CYCLE_MS;
+  }
+
+  // Factories 2–10 run independently. A recipe consumes its inputs only
+  // when its one-second production job completes.
   for (const factory of recipes.slice(1)) {
-    if (!next.unlocked[factory.id - 1]) continue;
-    let completedBatches = 0;
-    while (factory.inputs.every(([materialId, quantity]) =>
+    const index = factory.id - 1;
+    if (!next.unlocked[index]) {
+      next.productionRemainingMs[index] = 0;
+      next.busy[index] = false;
+      continue;
+    }
+
+    let remaining = next.productionRemainingMs[index];
+    if (remaining > 0) {
+      remaining -= deltaMs;
+      if (remaining <= 0) {
+        for (const [materialId, quantity] of factory.inputs) {
+          const key = factory.id * 100 + materialId;
+          next.stock[key] = Math.max(0, (next.stock[key] || 0) - quantity);
+        }
+        next.produced += 1;
+        next.producedByMaterial[factory.id] = (next.producedByMaterial[factory.id] || 0) + 1;
+        next = routeMaterial(next, factory.id, 1, factory.id);
+        remaining = 0;
+      }
+    }
+
+    // Start one new one-second job whenever all recipe inputs are available.
+    if (remaining === 0 && factory.inputs.every(([materialId, quantity]) =>
       (next.stock[factory.id * 100 + materialId] || 0) >= quantity
     )) {
-      for (const [materialId, quantity] of factory.inputs) {
-        const key = factory.id * 100 + materialId;
-        next.stock[key] = (next.stock[key] || 0) - quantity;
-      }
-      completedBatches += 1;
+      remaining = FACTORY_CYCLE_MS;
     }
-    if (completedBatches === 0) continue;
-    processedThisCycle.add(factory.id);
-    next.produced += completedBatches;
-    next = routeMaterial(next, factory.id, completedBatches, factory.id);
+
+    next.productionRemainingMs[index] = remaining;
+    next.busy[index] = remaining > 0;
   }
-  next.busy = recipes.map((factory) => processedThisCycle.has(factory.id));
+
+  next.busy[0] = false;
   return next;
 }
 
@@ -107,22 +142,9 @@ export default function MiningEmpirePage() {
 
   useEffect(() => {
     if (!running || !authReady) return;
-    const timer = window.setInterval(() => setGame((current) => advance(current)), FACTORY_CYCLE_MS);
+    const timer = window.setInterval(() => setGame((current) => advance(current, GAME_TICK_MS)), GAME_TICK_MS);
     return () => window.clearInterval(timer);
   }, [running, authReady]);
-
-  // "Busy" means the factory is actively processing, not the whole 1.8s
-  // production cycle. Keep the processing state brief, then accept new arrivals.
-  useEffect(() => {
-    if (!running || !game.busy.some(Boolean)) return;
-    const timer = window.setTimeout(() => {
-      setGame((current) => ({
-        ...current,
-        busy: current.busy.map(() => false)
-      }));
-    }, 600);
-    return () => window.clearTimeout(timer);
-  }, [game.busy, running]);
 
   // FIFO conveyor: exactly one material unit travels for 3.2 seconds.
   // The next unit starts only after the active unit reaches its factory or seller.
@@ -159,7 +181,7 @@ export default function MiningEmpirePage() {
         const goldEarned = active.amount * recipes[active.materialId - 1].value;
         return { ...current, shipments: waiting, gold: current.gold + goldEarned, sold: current.sold + active.amount };
       });
-    }, 100);
+    }, GAME_TICK_MS);
     return () => window.clearInterval(timer);
   }, [authReady, running]);
 
@@ -206,12 +228,14 @@ export default function MiningEmpirePage() {
           <div><small>Factories</small><strong>{factoryCount} / 2</strong></div>
           <div><small>Stored inputs</small><strong>{stockTotal} / {factoryCount * 100}</strong></div>
           <div><small>Materials sold</small><strong>{game.sold.toLocaleString()}</strong></div>
+          <div><small>Iron Ore produced</small><strong>{(game.producedByMaterial[1] || 0).toLocaleString()}</strong></div>
+          <div><small>Iron Bars produced</small><strong>{(game.producedByMaterial[2] || 0).toLocaleString()}</strong></div>
         </div>
         <div className="row empire-controls">
-          <span className="small">Factory cycle: {(FACTORY_CYCLE_MS / 1000).toFixed(1)}s · Belt loop: {(CONVEYOR_BELT_LOOP_MS / 1000).toFixed(2)}s · Single-unit travel: {(CONVEYOR_MATERIAL_TRAVEL_MS / 1000).toFixed(1)}s</span>
+          <span className="small">Factory production: {(FACTORY_CYCLE_MS / 1000).toFixed(1)}s · Belt loop: {(CONVEYOR_BELT_LOOP_MS / 1000).toFixed(2)}s · Single-unit travel: {(CONVEYOR_MATERIAL_TRAVEL_MS / 1000).toFixed(1)}s</span>
           <div className="row">
             <button className="secondary" onClick={() => setRunning((v) => !v)}>{running ? "Ⅱ Pause" : "▶ Resume"}</button>
-            <button className="secondary" onClick={() => { setGame(initial); setRunning(true); setMessage("Two-factory test reset. Factory 2 is locked and materials bypass it."); }}>↻ Reset preview</button>
+            <button className="secondary" onClick={() => { setGame(initial); setRunning(true); setMessage("Production test reset. Factory 2 is locked and materials bypass it."); }}>↻ Reset preview</button>
           </div>
         </div>
         <div className="notice empire-message">{message}</div>
@@ -242,7 +266,7 @@ export default function MiningEmpirePage() {
             </svg>
             <div className="empire-board-label board-label-mine">START · RAW ORE</div>
             <div className="empire-board-node board-node-mine">
-              <span className="board-node-icon">⛏️</span><strong>ORE MINE</strong><small>5 ORE / CYCLE</small>
+              <span className="board-node-icon">⛏️</span><strong>ORE MINE</strong><small>1 ORE / SEC</small>
             </div>
             <div className="empire-board-node board-node-smelter">
               <span className="board-node-icon">🏭</span><strong>IRON SMELTER</strong>
