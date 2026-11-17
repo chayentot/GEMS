@@ -1,3 +1,4 @@
+import Link from "next/link";
 import styles from "./page.module.css";
 
 const stones = [
@@ -19,7 +20,14 @@ export default function TycoonMenuPage() {
       <div className={styles.canvas}>
         <header className={styles.header}>
           <div className={styles.brand}><span className={styles.brandMark}>✦</span> GEMS TYCOON</div>
-          <div className={styles.version}>GAME PREVIEW · V1.0</div>
+          <nav className={styles.siteNav} aria-label="Main navigation">
+            <Link href="/dashboard/">Dashboard</Link>
+            <Link href="/mining/">Mining</Link>
+            <Link href="/tycoon/" aria-current="page">Gems Tycoon</Link>
+            <Link href="/referral/">Referral</Link>
+            <Link href="/market/">Market</Link>
+            <Link href="/profile/">Profile</Link>
+          </nav>
         </header>
 
         <section className={styles.hero}>
