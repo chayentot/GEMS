@@ -105,3 +105,15 @@
 .gray11 { left: 960px; top: 480px; width: 60px; height: 60px; }
 .gray12 { left: 480px; top: 660px; width: 60px; height: 60px; }
 .gray13 { left: 960px; top: 660px; width: 60px; height: 60px; }
+
+.conveyorSeparator {
+  position: absolute;
+  left: 0;
+  top: 598px;
+  width: 1020px;
+  height: 4px;
+  background: #f2f5fa;
+  box-shadow: 0 0 5px rgba(255, 255, 255, 0.55);
+  z-index: 5;
+  pointer-events: none;
+}
