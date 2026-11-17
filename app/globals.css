@@ -1258,3 +1258,77 @@ th { color:#aebbd0; font-size:12px; text-transform:uppercase; letter-spacing:.06
 @media(prefers-reduced-motion:reduce) {
   .mine-world-scene *, .mine-world-scene *::before, .mine-world-scene *::after { animation:none !important; transition:none !important; }
 }
+
+
+/* GEMS Frontier: top-down living mining world */
+.gem-world-page { max-width:1320px; }
+.gem-world-hero { padding:26px 28px 22px; border:1px solid #d7b66a38; border-radius:22px; background:radial-gradient(ellipse at 12% 0%,#315b5980,transparent 48%),linear-gradient(135deg,#172d38,#101b2b 68%,#20283a); box-shadow:0 18px 48px #0005; }
+.gem-world-title { display:flex; justify-content:space-between; align-items:flex-start; gap:20px; }
+.gem-world-eyebrow { margin:0 0 8px; color:#77d8bd; font-size:10px; font-weight:900; letter-spacing:.2em; }
+.gem-world-title h1 { margin:0; }
+.gem-world-title h1 span { color:#f2cc78; }
+.gem-world-title p:not(.gem-world-eyebrow) { color:#aab9c8; margin:8px 0 0; font-size:13px; }
+.gem-world-live { flex:0 0 auto; border:1px solid #58d6a855; color:#83e7b8; border-radius:30px; padding:9px 13px; font-size:10px; font-weight:900; letter-spacing:.08em; }
+.gem-world-live i,.legend-dot { display:inline-block; width:7px; height:7px; border-radius:50%; background:#61e3a8; box-shadow:0 0 12px #61e3a8; margin-right:6px; }
+.gem-world-stats { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; margin-top:23px; }
+.gem-world-stats>div { padding:13px 15px; border:1px solid #ffffff13; border-radius:13px; background:#08142178; }
+.gem-world-stats small,.gem-factory-heading>div>small { display:block; color:#90a5b4; font-size:9px; font-weight:850; letter-spacing:.13em; }
+.gem-world-stats strong { display:block; margin-top:6px; font-size:21px; color:#f5d78f; }
+.gem-world-stats em { color:#92a4b7; font-size:10px; font-style:normal; }
+.gem-world-layout { display:grid; grid-template-columns:minmax(0,1.65fr) minmax(280px,.75fr); gap:17px; margin-top:18px; align-items:stretch; }
+.gem-world-map-panel,.gem-factory-panel { border:1px solid #ffffff18; border-radius:19px; background:#111d2a; box-shadow:0 14px 38px #0004; overflow:hidden; }
+.gem-world-map-top { display:flex; justify-content:space-between; align-items:center; gap:12px; padding:16px 18px; background:#172737; border-bottom:1px solid #ffffff12; }
+.gem-world-map-top strong { display:block; font-size:12px; letter-spacing:.08em; }
+.gem-world-map-top span { display:block; color:#8fa4b4; font-size:10px; margin-top:4px; }
+.gem-world-map-top .gem-world-coords { color:#79d6b6; font-size:9px; font-weight:800; letter-spacing:.1em; white-space:nowrap; }
+.gem-world-map { min-height:610px; position:relative; overflow:hidden; isolation:isolate; background-color:#344c4a; background-image:linear-gradient(30deg,#ffffff08 12%,transparent 12.5%,transparent 87%,#ffffff08 87.5%),linear-gradient(150deg,#ffffff08 12%,transparent 12.5%,transparent 87%,#ffffff08 87.5%),linear-gradient(30deg,#ffffff08 12%,transparent 12.5%,transparent 87%,#ffffff08 87.5%),linear-gradient(150deg,#ffffff08 12%,transparent 12.5%,transparent 87%,#ffffff08 87.5%),linear-gradient(60deg,#0002 25%,transparent 25.5%,transparent 75%,#0002 75%); background-size:54px 94px; background-position:0 0,0 0,27px 47px,27px 47px,0 0; }
+.world-terrain { position:absolute; border-radius:48%; filter:blur(1px); opacity:.8; }
+.terrain-a { width:44%; height:38%; left:-9%; top:8%; background:#6a7650; transform:rotate(-22deg); }
+.terrain-b { width:43%; height:35%; right:-10%; bottom:5%; background:#65724d; transform:rotate(24deg); }
+.world-water { position:absolute; width:24%; height:32%; right:4%; top:4%; background:linear-gradient(145deg,#497c83,#28525e); border:8px solid #7b8562; border-radius:48% 38% 52% 34%; transform:rotate(-16deg); opacity:.9; }
+.world-road { position:absolute; z-index:1; background:#9a987c; border:3px solid #686c5b; box-shadow:inset 0 0 0 2px #c4b990; }
+.road-horizontal { left:-4%; right:-4%; top:48%; height:54px; }
+.road-vertical { top:-5%; bottom:-5%; left:48%; width:54px; }
+.world-rail { position:absolute; z-index:2; height:12px; border-top:3px solid #d3b66c; border-bottom:3px solid #d3b66c; background:repeating-linear-gradient(90deg,#343a3a 0 9px,#8d927e 9px 13px); box-shadow:0 2px 5px #0008; }
+.rail-one { left:0; right:0; top:32%; transform:rotate(0deg); }
+.rail-two { left:12%; right:12%; top:77%; }
+.world-decoration { position:absolute; z-index:2; opacity:.9; text-shadow:0 2px 5px #0008; pointer-events:none; }
+.deco-crystals { top:7%; left:8%; font-size:27px; }.deco-crystals-two { bottom:8%; right:8%; font-size:25px; }.deco-plants { bottom:7%; left:7%; font-size:24px; }.deco-rocks { top:38%; right:7%; font-size:22px; }
+.world-conveyor { position:absolute; z-index:3; height:31px; display:flex; align-items:center; justify-content:space-around; gap:8px; padding:0 9px; border:3px solid #535c59; border-radius:5px; background:repeating-linear-gradient(90deg,#292f32 0 12px,#68716b 12px 16px); box-shadow:0 4px 8px #0008; color:#fff; font-size:13px; }
+.world-conveyor span { animation:ore-belt 2.4s linear infinite; filter:drop-shadow(0 2px 2px #0008); }.world-conveyor span:nth-child(2){animation-delay:-.8s}.world-conveyor span:nth-child(3){animation-delay:-1.6s}
+.world-conveyor b { font-size:8px; letter-spacing:.08em; white-space:nowrap; color:#f4d78f; }
+.conveyor-one { left:5%; right:5%; top:39%; }.conveyor-two { left:7%; right:7%; top:68%; }
+@keyframes ore-belt { 0%,100%{transform:translateX(-3px)}50%{transform:translateX(5px)} }
+.world-facility { position:absolute; z-index:4; width:22%; min-width:112px; min-height:92px; padding:8px 6px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; border:3px solid #626d67; border-radius:8px; color:#f8f4df; background:linear-gradient(145deg,#536e68,#263b3b); box-shadow:0 6px 0 #202d2a,0 9px 14px #0008; text-align:center; }
+.world-facility:hover:not(:disabled) { transform:translateY(-2px); filter:brightness(1.13); }
+.world-facility.is-selected { border-color:#f5d37f; box-shadow:0 0 0 3px #f5d37f55,0 6px 0 #202d2a,0 10px 20px #0009; }
+.world-facility.is-locked { background:linear-gradient(145deg,#4b5151,#292f32); filter:saturate(.6); }
+.world-facility-icon { font-size:27px; line-height:1.1; filter:drop-shadow(0 2px 2px #0009); }
+.world-facility strong { font-size:9px; line-height:1.2; }.world-facility small { color:#c8d3c6; font-size:7px; font-weight:850; letter-spacing:.04em; }
+.world-facility-level { position:absolute; top:3px; right:5px; color:#ffe3a1; font-size:7px; font-weight:900; }
+.world-facility-fill { width:75%; height:4px; border-radius:5px; overflow:hidden; background:#121b1a; margin-top:2px; }.world-facility-fill i { display:block; height:100%; background:#72e0a8; }
+.world-node-1{left:5%;top:14%}.world-node-2{left:39%;top:8%}.world-node-3{right:5%;top:23%}.world-node-4{right:7%;top:53%}.world-node-5{right:8%;bottom:5%}.world-node-6{left:38%;bottom:5%}.world-node-7{left:5%;bottom:17%}.world-node-8{left:5%;top:53%}.world-node-9{left:39%;top:53%}.world-node-10{left:39%;top:26%}
+.world-gold-station { position:absolute; z-index:4; right:4%; top:4%; width:19%; min-width:90px; padding:7px 4px; display:flex; flex-direction:column; align-items:center; border:2px solid #d8b96c; border-radius:7px; background:#5c4c2b; color:#ffe5a0; box-shadow:0 5px 0 #30291b,0 7px 12px #0008; font-size:22px; }
+.world-gold-station strong { font-size:8px; }.world-gold-station small { font-size:7px; color:#ead7a9; }
+.world-map-label { position:absolute; z-index:2; left:50%; bottom:1.5%; transform:translateX(-50%); color:#f4e5b8; text-shadow:0 2px 4px #000; font-size:8px; font-weight:950; letter-spacing:.15em; white-space:nowrap; }
+.gem-world-map-footer { display:flex; flex-wrap:wrap; justify-content:space-between; gap:9px; padding:12px 16px; background:#172737; color:#9db0bf; font-size:9px; }
+.legend-dot { width:7px;height:7px }.legend-dot.locked{background:#9da5a3;box-shadow:none}.legend-dot.belt{background:#d8b96c;box-shadow:none}
+.gem-factory-panel { padding:18px; display:flex; flex-direction:column; gap:15px; }
+.gem-factory-heading { display:flex; align-items:center; justify-content:space-between; gap:8px; }
+.gem-factory-heading h2 { margin:5px 0 0; font-size:18px; }
+.factory-state { flex:0 0 auto; font-size:8px; font-weight:900; padding:7px 9px; border-radius:20px; }.factory-state.online{color:#7ce6b2;background:#174633}.factory-state.locked{color:#e2c985;background:#4a3b22}
+.gem-factory-art { min-height:125px; border:1px solid #ffffff13; border-radius:13px; background:radial-gradient(circle at 50% 50%,#498d8b55,transparent 55%),linear-gradient(135deg,#1c3542,#142231); display:flex; flex-direction:column; justify-content:center; align-items:center; position:relative; overflow:hidden; }
+.gem-factory-art span { font-size:54px; filter:drop-shadow(0 0 16px #78d8bf88); animation:gem-factory-float 3s ease-in-out infinite; }.gem-factory-art i { position:absolute; width:110px;height:35px;border:2px solid #6b9a8d;border-radius:50%;transform:rotate(-15deg); }.gem-factory-art b { position:absolute; bottom:8px; font-size:8px; letter-spacing:.18em; color:#9bb8b1; }
+@keyframes gem-factory-float{50%{transform:translateY(-7px) rotate(4deg)}}
+.gem-factory-level { display:flex;justify-content:space-between;color:#a9bac5;font-size:11px;padding-bottom:10px;border-bottom:1px solid #ffffff14 }.gem-factory-level strong{color:#f4d58c}
+.gem-factory-storage>div:first-child { display:flex;justify-content:space-between;font-size:9px;color:#a9bac5;font-weight:850;letter-spacing:.08em }.gem-factory-storage>div:first-child strong{color:#fff}
+.factory-storage-bar { height:7px;background:#263a45;border-radius:8px;overflow:hidden;margin:9px 0 12px }.factory-storage-bar i{display:block;height:100%;background:linear-gradient(90deg,#4cbf9a,#b6db7b);transition:width .3s}
+.factory-input-row { display:flex;justify-content:space-between;gap:8px;padding:8px 0;border-top:1px solid #ffffff10;font-size:10px;color:#d3dfdf }.factory-input-row strong{white-space:nowrap}.factory-input-row small{color:#91a6b2;font-weight:500}.factory-help{color:#91a6b2;font-size:11px;line-height:1.6}
+.gem-factory-recipe { border:1px solid #ffffff13;border-radius:12px;padding:12px;background:#0c1924 }.gem-factory-recipe>small{font-size:8px;color:#8fa9b2;font-weight:900;letter-spacing:.12em}.factory-recipe-flow{display:flex;justify-content:center;align-items:center;gap:20px;padding:10px;font-size:24px}.factory-recipe-flow b{color:#e9c875}.gem-factory-recipe>strong{display:block;text-align:center;font-size:9px;color:#c1d0d0}
+.factory-upgrade-box { margin-top:auto;padding:12px;border:1px solid #d6b66b33;border-radius:12px;background:#302d254d;display:flex;align-items:center;justify-content:space-between;gap:10px }.factory-upgrade-box strong,.factory-upgrade-box small{display:block}.factory-upgrade-box strong{font-size:11px}.factory-upgrade-box small{font-size:9px;color:#9eabb2;margin-top:4px}.factory-upgrade-box button{padding:9px 10px;font-size:8px;white-space:nowrap}
+.factory-panel-note,.gem-world-disclaimer{font-size:9px;color:#7f94a2;line-height:1.6}.gem-world-bottom{margin-top:22px;padding:19px;border:1px solid #ffffff15;border-radius:18px;background:#111d2a}.gem-world-bottom-heading{display:flex;justify-content:space-between;align-items:center;gap:14px}.gem-world-bottom-heading h2{margin:0 0 4px}.gem-world-bottom-heading p{margin:0;color:#91a5b4;font-size:11px}.gem-world-controls{display:flex;gap:8px}.gem-world-controls button{padding:9px 12px;font-size:10px}
+.gem-production-list{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;margin-top:16px}.gem-production-item{display:flex;align-items:center;gap:8px;padding:10px;text-align:left;background:#1a2b38;border:1px solid #ffffff12;color:#e6eeee;box-shadow:none;min-width:0}.gem-production-item>span{font-size:22px}.gem-production-item div{min-width:0;flex:1}.gem-production-item strong,.gem-production-item small{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.gem-production-item strong{font-size:9px}.gem-production-item small{font-size:7px;color:#91a5b4;margin-top:3px}.gem-production-item>b{font-size:7px;color:#8e9ca2;white-space:nowrap}.gem-production-item.active>b{color:#72dfaa}.gem-production-item.active{border-color:#5bc49a55}
+.gem-world-disclaimer{margin-top:13px}
+@media(max-width:900px){.gem-world-layout{grid-template-columns:1fr}.gem-world-map{min-height:570px}.gem-production-list{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:560px){.gem-world-hero{padding:18px}.gem-world-title{flex-direction:column}.gem-world-stats{grid-template-columns:repeat(2,minmax(0,1fr))}.gem-world-stats strong{font-size:18px}.gem-world-map{min-height:530px}.world-facility{min-width:0;width:25%;min-height:75px;padding:5px 3px}.world-facility-icon{font-size:22px}.world-facility strong{font-size:7px}.world-facility small{font-size:6px}.world-node-1{left:2%;top:14%}.world-node-2{left:37%;top:8%}.world-node-3{right:2%;top:23%}.world-node-4{right:2%;top:53%}.world-node-5{right:3%;bottom:5%}.world-node-6{left:37%;bottom:5%}.world-node-7{left:2%;bottom:17%}.world-node-8{left:2%;top:53%}.world-node-9{left:37%;top:53%}.world-node-10{left:37%;top:26%}.world-gold-station{right:2%;top:3%;min-width:72px;width:21%}.world-gold-station strong{font-size:6px}.world-gold-station small{font-size:6px}.gem-world-map-top{align-items:flex-start}.gem-world-map-top .gem-world-coords{font-size:7px}.gem-world-bottom-heading{align-items:flex-start;flex-direction:column}.gem-world-controls{width:100%;flex-wrap:wrap}.gem-world-controls button{flex:1}.gem-production-list{grid-template-columns:1fr}.gem-world-map-footer{justify-content:flex-start}}
+@media(prefers-reduced-motion:reduce){.world-conveyor span,.gem-factory-art span{animation:none!important}}
