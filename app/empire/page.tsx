@@ -6,7 +6,7 @@ import { createClient } from "@/lib/supabase";
 import ProfileMenu from "@/components/profile-menu";
 
 type Recipe = { id: number; name: string; inputs: [number, number][]; value: number; unlock: number };
-type Shipment = { id: number; materialId: number; amount: number; remainingMs: number };
+type Shipment = { id: number; materialId: number; amount: number; remainingMs: number; destinationFactoryId: number | null };
 type GameState = { gold: number; unlocked: boolean[]; busy: boolean[]; stock: Record<number, number>; sold: number; produced: number; tick: number; shipments: Shipment[]; nextShipmentId: number };
 
 const recipes: Recipe[] = [
@@ -43,18 +43,20 @@ const initial: GameState = {
 
 function routeMaterial(state: GameState, materialId: number, amount: number, producerId: number): GameState {
   let next = { ...state, stock: { ...state.stock }, shipments: [...state.shipments] };
-  // Route each physical unit separately so the conveyor never overlaps materials.
+  // Each physical unit joins one FIFO line. Its first downstream factory is the
+  // only possible factory destination; otherwise it is routed to the Gold Seller.
   const target = recipes.find((r) => r.id > producerId && r.inputs.some(([id]) => id === materialId));
   for (let unit = 0; unit < amount; unit += 1) {
     const stored = target?.inputs.reduce((sum, [id]) => sum + (next.stock[target.id * 100 + id] || 0), 0) ?? 0;
-    const canAccept = Boolean(target && next.unlocked[target.id - 1] && !next.busy[target.id - 1] && stored + 1 <= 100);
-    if (target && canAccept) {
-      const key = target.id * 100 + materialId;
-      next.stock[key] = (next.stock[key] || 0) + 1;
-    } else {
-      // Only one shipment moves at a time; later units wait in this FIFO queue.
-      next.shipments.push({ id: next.nextShipmentId++, materialId, amount: 1, remainingMs: CONVEYOR_MATERIAL_TRAVEL_MS });
-    }
+    const reserved = target ? next.shipments.filter((shipment) => shipment.destinationFactoryId === target.id).length : 0;
+    const canAccept = Boolean(target && next.unlocked[target.id - 1] && !next.busy[target.id - 1] && stored + reserved + 1 <= 100);
+    next.shipments.push({
+      id: next.nextShipmentId++,
+      materialId,
+      amount: 1,
+      remainingMs: CONVEYOR_MATERIAL_TRAVEL_MS,
+      destinationFactoryId: canAccept && target ? target.id : null
+    });
   }
   return next;
 }
@@ -123,13 +125,16 @@ export default function MiningEmpirePage() {
         if (remainingMs > 0) {
           return { ...current, shipments: [{ ...active, remainingMs }, ...waiting] };
         }
+        const destinationId = active.destinationFactoryId;
+        const destination = destinationId ? recipes[destinationId - 1] : null;
+        const stored = destination?.inputs.reduce((sum, [materialId]) => sum + (current.stock[destinationId! * 100 + materialId] || 0), 0) ?? 0;
+        const canEnterFactory = Boolean(destination && current.unlocked[destinationId! - 1] && !current.busy[destinationId! - 1] && stored + 1 <= 100);
+        if (destination && canEnterFactory) {
+          const key = destination.id * 100 + active.materialId;
+          return { ...current, shipments: waiting, stock: { ...current.stock, [key]: (current.stock[key] || 0) + 1 } };
+        }
         const goldEarned = active.amount * recipes[active.materialId - 1].value;
-        return {
-          ...current,
-          shipments: waiting,
-          gold: current.gold + goldEarned,
-          sold: current.sold + active.amount
-        };
+        return { ...current, shipments: waiting, gold: current.gold + goldEarned, sold: current.sold + active.amount };
       });
     }, 100);
     return () => window.clearInterval(timer);
@@ -139,6 +144,7 @@ export default function MiningEmpirePage() {
   const stockTotal = useMemo(() => Object.values(game.stock).reduce((sum, n) => sum + n, 0), [game.stock]);
   const selectedFactory = selectedFactoryId ? recipes[selectedFactoryId - 1] : null;
   const selectedFactoryStored = selectedFactory ? selectedFactory.inputs.reduce((sum, [materialId]) => sum + (game.stock[selectedFactory.id * 100 + materialId] || 0), 0) : 0;
+  const activeShipment = game.shipments[0] ?? null;
 
   function unlock(factory: Recipe) {
     if (game.unlocked[factory.id - 1]) return;
@@ -208,7 +214,7 @@ export default function MiningEmpirePage() {
               {game.shipments.length > 0 && <circle className="empire-moving-material" r="17">
                 <animateMotion dur="3.2s" repeatCount="indefinite" rotate="auto"><mpath href="#empire-material-path" /></animateMotion>
               </circle>}
-              <path id="empire-material-path" d="M105 665 H690 V500 H110 V335 H690 V170 H400 V95" fill="none" />
+              <path id="empire-to-seller" d="M105 665 H690 V500 H110 V335 H690 V170 H400 V95" fill="none" />\n              <path id="empire-to-factory" d="M105 665 H690 V500" fill="none" />
             </svg>
             <div className="empire-board-label board-label-mine">START · RAW ORE</div>
             <div className="empire-board-node board-node-mine">
@@ -216,14 +222,14 @@ export default function MiningEmpirePage() {
             </div>
             <div className="empire-board-node board-node-smelter">
               <span className="board-node-icon">🏭</span><strong>IRON SMELTER</strong>
-              <small>{!game.unlocked[1] ? "LOCKED · BYPASS" : game.busy[1] ? "PROCESSING" : "READY · AUTO"}</small>
+              <small>{!game.unlocked[1] ? "LOCKED · SELLER BYPASS" : game.busy[1] ? "BUSY · SELLER BYPASS" : "READY · ACCEPTING"}</small>
               {game.unlocked[1] && <small className="board-node-stock">{game.stock[201] || 0} / 100 ORE</small>}
               {!game.unlocked[1] && <button className="board-unlock" onClick={() => unlock(recipes[1])}>UNLOCK · {recipes[1].unlock} GOLD</button>}
             </div>
             <div className="empire-board-node board-node-seller">
               <span className="board-node-icon">🏪</span><strong>GOLD SELLER</strong><small>ARRIVAL = SOLD</small><b>🪙 {game.gold.toLocaleString()}</b>
             </div>
-            <div className="empire-board-label board-label-queue">ONE AT A TIME · NO OVERTAKING</div>
+            <div className="empire-board-label board-label-queue">{activeShipment ? (activeShipment.destinationFactoryId ? "IN TRANSIT → FIRST FACTORY" : "IN TRANSIT → GOLD SELLER") : "ONE AT A TIME · NO OVERTAKING"}</div>
             <div className="empire-board-legend">
               <span><i className="legend-belt" /> Continuous conveyor</span>
               <span><i className="legend-unit" /> Single moving material</span>
