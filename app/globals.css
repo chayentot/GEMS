@@ -1335,3 +1335,95 @@ th { color:#aebbd0; font-size:12px; text-transform:uppercase; letter-spacing:.06
 @media(prefers-reduced-motion:reduce) {
   .empire-moving-material { filter:none; }
 }
+
+
+/* Mining Empire: compact material inventory, banks, and short factory conveyors */
+.empire-inventory {
+  margin-top:24px; padding:11px 12px; border:1px solid #ffffff18; border-radius:13px;
+  background:#07111f99; overflow:hidden;
+}
+.empire-inventory-heading { display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:9px; }
+.empire-inventory-heading strong { color:#f4cb70; font-size:10px; letter-spacing:.13em; }
+.empire-inventory-heading small { color:#9aa9bf; font-size:10px; }
+.empire-inventory-track { display:flex; gap:6px; overflow-x:auto; padding:1px 1px 5px; scrollbar-width:thin; scrollbar-color:#53677f transparent; }
+.empire-inventory-item {
+  flex:1 0 57px; min-width:57px; display:flex; flex-direction:column; align-items:center; gap:3px;
+  padding:7px 5px; border:1px solid #ffffff13; border-radius:8px; background:#17253a;
+}
+.empire-inventory-item b { color:#aebbd0; font-size:9px; }
+.empire-inventory-item strong { color:#f5d88f; font-size:13px; font-variant-numeric:tabular-nums; }
+.empire-stats-two { grid-template-columns:repeat(4,minmax(0,1fr)); margin-top:14px; }
+.empire-production-line {
+  display:flex; align-items:stretch; gap:9px; overflow-x:auto; padding:8px 2px 16px;
+  scrollbar-width:thin; scrollbar-color:#53677f #101827;
+}
+.empire-machine-card,.empire-bank-card {
+  flex:0 0 190px; min-width:190px; display:flex; flex-direction:column; align-items:stretch;
+  padding:14px; border:1px solid #ffffff1b; border-radius:15px;
+  background:linear-gradient(155deg,#1a2b40,#101a2a); box-shadow:0 9px 22px #0004;
+}
+.empire-machine-card.is-open { border-color:#56ddb055; }
+.empire-machine-card.is-locked { border-color:#7d8ba044; background:linear-gradient(155deg,#202a38,#111925); }
+.empire-machine-top { display:flex; justify-content:space-between; align-items:center; gap:6px; color:#aebbd0; font-size:9px; font-weight:950; letter-spacing:.1em; }
+.factory-pill { padding:4px 6px; border-radius:99px; background:#29364a; color:#c5d0df; font-size:8px; }
+.factory-pill.is-running { color:#8af0bd; background:#164532; }
+.empire-machine-art { display:grid; place-items:center; height:65px; margin:9px 0 5px; border:1px solid #f4cb7030; border-radius:12px; background:linear-gradient(145deg,#3a3428,#192238); font-size:37px; }
+.empire-machine-card h3 { margin:4px 0 5px; font-size:15px; }
+.empire-machine-card p { min-height:48px; margin:0; color:#aebbd0; font-size:11px; line-height:1.5; }
+.empire-timer { margin-top:10px; color:#f4cb70; font-size:28px; font-weight:950; font-variant-numeric:tabular-nums; text-align:center; }
+.empire-card-caption { display:block; margin:0 0 10px; color:#8fa1b8; font-size:8px; font-weight:900; letter-spacing:.1em; text-align:center; }
+.empire-machine-count { display:flex; justify-content:space-between; gap:7px; margin:8px 0; padding:8px; border-radius:8px; background:#091321; color:#aebbd0; font-size:10px; }
+.empire-machine-count b { color:#ffe09a; font-variant-numeric:tabular-nums; }
+.empire-machine-card button { width:100%; margin-top:7px; padding:9px 7px; font-size:9px; }
+.empire-machine-card button.secondary { background:#26364f; }
+.empire-bank-card { align-items:center; justify-content:center; text-align:center; border-color:#d9a83f55; background:linear-gradient(155deg,#2b2c2a,#151d2b); }
+.empire-bank-icon { margin-bottom:9px; font-size:35px; }
+.empire-bank-card > span { color:#e7c777; font-size:9px; font-weight:950; letter-spacing:.08em; }
+.empire-bank-quantity { margin:7px 0 1px; color:#fff0bd; font-size:30px; font-variant-numeric:tabular-nums; }
+.empire-bank-card > small { color:#aebbd0; font-size:10px; }
+.empire-bank-note { margin-top:16px; padding:7px 8px; border:1px solid #ffffff16; border-radius:8px; color:#e9d39a; font-size:9px; }
+.empire-conveyor-block {
+  flex:0 0 105px; width:105px; display:flex; flex-direction:column; justify-content:center; align-items:center; gap:9px;
+  color:#aebbd0; text-align:center;
+}
+.empire-conveyor-label { color:#9aa9bf; font-size:8px; font-weight:950; letter-spacing:.08em; }
+.empire-short-belt {
+  position:relative; display:flex; align-items:center; justify-content:space-around; width:100%; height:29px;
+  overflow:hidden; border:3px solid #8497a8; border-radius:7px;
+  background:repeating-linear-gradient(90deg,#273b4b 0 10px,#718697 10px 14px);
+  background-size:28px 100%; box-shadow:0 5px 8px #0006,inset 0 2px 4px #0008;
+}
+.empire-short-belt i { width:3px; height:12px; border-radius:3px; background:#c5d0d3; }
+.empire-short-belt span { position:absolute; z-index:2; left:0; top:-2px; font-size:20px; filter:drop-shadow(0 2px 2px #0009); }
+.empire-short-belt.is-moving { animation:empire-belt-motion .35s linear infinite; }
+.empire-short-belt.is-moving span { animation:empire-item-travel .7s linear infinite; }
+.empire-conveyor-block small { max-width:110px; color:#9aa9bf; font-size:9px; line-height:1.35; }
+.empire-unlock-cost { margin:12px 0 4px; color:#f4cb70; font-size:12px; font-weight:900; text-align:center; }
+.empire-transfer-progress { height:7px; margin:3px 0 8px; overflow:hidden; border-radius:99px; background:#29384c; }
+.empire-transfer-progress i { display:block; height:100%; border-radius:99px; background:linear-gradient(90deg,#47c99a,#f4cb70); transition:width .1s linear; }
+.empire-requirement-warning { margin-top:7px; color:#ffc978; font-size:9px; text-align:center; }
+.empire-unlock-panel { padding:20px; }
+.empire-unlock-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; }
+.empire-unlock-item { display:flex; flex-direction:column; gap:6px; min-width:0; padding:12px; border:1px solid #ffffff16; border-radius:12px; background:#0b1422; }
+.empire-unlock-item.is-unlocked { border-color:#56ddb055; }
+.empire-unlock-item-head { display:flex; justify-content:space-between; gap:6px; color:#9eafc3; font-size:9px; font-weight:950; }
+.empire-unlock-item-head span { color:#f2c96e; }
+.empire-unlock-item-art { display:grid; place-items:center; height:42px; font-size:27px; }
+.empire-unlock-item > strong { min-height:34px; font-size:12px; }
+.empire-unlock-item > small { color:#9aa9bf; font-size:9px; line-height:1.4; }
+.empire-unlock-item button { margin-top:5px; padding:8px 5px; font-size:8px; }
+.empire-pending-rules { color:#e9c978 !important; }
+.empire-next-factory { margin:14px 0 0; }
+@keyframes empire-belt-motion { to { background-position:28px 0; } }
+@keyframes empire-item-travel { from { transform:translateX(0); } to { transform:translateX(82px); } }
+@media(max-width:760px) {
+  .empire-stats-two { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .empire-unlock-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .empire-production-line { padding-bottom:12px; }
+}
+@media(max-width:420px) {
+  .empire-inventory-heading { align-items:flex-start; flex-direction:column; gap:3px; }
+  .empire-inventory-item { flex-basis:54px; min-width:54px; }
+  .empire-unlock-grid { grid-template-columns:1fr; }
+  .empire-unlock-item { padding:11px; }
+}
