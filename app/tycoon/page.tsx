@@ -36,6 +36,18 @@ export default function ReferralPage(){
     <div className={styles.blueZone + " " + styles.blue6} />
     <div className={styles.blueZone + " " + styles.blue7} />
     <div className={styles.blueZone + " " + styles.blue8} />
+    <div className={styles.redZone + " " + styles.red1} />
+    <div className={styles.redZone + " " + styles.red2} />
+    <div className={styles.grayZone + " " + styles.gray1} />
+    <div className={styles.grayZone + " " + styles.gray2} />
+    <div className={styles.grayZone + " " + styles.gray3} />
+    <div className={styles.grayZone + " " + styles.gray4} />
+    <div className={styles.grayZone + " " + styles.gray5} />
+    <div className={styles.grayZone + " " + styles.gray6} />
+    <div className={styles.grayZone + " " + styles.gray7} />
+    <div className={styles.grayZone + " " + styles.gray8} />
+    <div className={styles.grayZone + " " + styles.gray9} />
+    <div className={styles.grayZone + " " + styles.gray10} />
    </div>
   </section>
   
