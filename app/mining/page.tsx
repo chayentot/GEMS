@@ -43,7 +43,7 @@ export default function MiningPage(){
  const owned=new Map(inventory.map(x=>[x.gemstone_id,x]));
  const active=new Map(sessions.map(x=>[x.player_gemstone_id,x]));
  return <main className="shell">
-  <header className="topbar"><Link href="/" className="brand">💎 GEMS</Link><nav className="row"><Link href="/dashboard/">Dashboard</Link><Link href="/mining/" aria-current="page">Mining</Link><Link href="/referral/">Referral</Link><Link href="/market/">Market</Link><ProfileMenu /></nav></header>
+  <header className="topbar"><Link href="/" className="brand">💎 GEMS</Link><nav className="row"><Link href="/dashboard/">Dashboard</Link><Link href="/mining/" aria-current="page">Mining</Link><Link href="/tycoon/">Gems Tycoon</Link><Link href="/referral/">Referral</Link><Link href="/market/">Market</Link><ProfileMenu /></nav></header>
   <div className="mining-tabs" role="tablist" aria-label="Mining modes">
    <Link href="/mining/" className="mining-tab active" role="tab" aria-selected="true">💎 Gemstone Mining</Link>
    <Link href="/empire/" className="mining-tab" role="tab" aria-selected="false">🏭 Mining Empire</Link>
