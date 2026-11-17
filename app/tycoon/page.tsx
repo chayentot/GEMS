@@ -51,6 +51,7 @@ export default function ReferralPage(){
     <div className={styles.grayZone + " " + styles.grayVertical + " " + styles.gray11} />
     <div className={styles.grayZone + " " + styles.grayVertical + " " + styles.gray12} />
     <div className={styles.grayZone + " " + styles.grayVertical + " " + styles.gray13} />
+    <div className={styles.conveyorSeparator} aria-label="Solid separator between conveyor rows 10 and 11" />
    </div>
   </section>
   
