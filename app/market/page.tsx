@@ -76,7 +76,7 @@ export default function MarketPage() {
  }
 
  return <main className="shell">
-  <header className="topbar"><Link href="/" className="brand">💎 GEMS MINING</Link><nav className="row"><Link href="/dashboard/">Dashboard</Link><Link href="/mining/">Mining</Link><Link href="/referral/">Referral</Link><Link href="/market/" aria-current="page">Market</Link><ProfileMenu /></nav></header>
+  <header className="topbar"><Link href="/" className="brand">💎 GEMS MINING</Link><nav className="row"><Link href="/dashboard/">Dashboard</Link><Link href="/mining/">Mining</Link><Link href="/tycoon/">Gems Tycoon</Link><Link href="/referral/">Referral</Link><Link href="/market/" aria-current="page">Market</Link><ProfileMenu /></nav></header>
   <div><h1>GEMS Market</h1><p className="muted">Buy and sell gemstone units, or review the current platform exchange rates.</p></div>
   <section className="panel section row"><div><div className="muted">Available GEMS</div><div className="stat">{fmt(wallet?.gems_balance??0)} GEMS</div></div><div className="small">A 5% market fee applies to both buying and selling.</div></section>
   {status&&<div className="notice section">{status}</div>}
