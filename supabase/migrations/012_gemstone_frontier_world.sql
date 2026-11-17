@@ -22,11 +22,11 @@ values
   (2,'Ore Washer','💧','WASHING',50,2,'[[1,2]]'),
   (3,'Crystal Sorter','🔮','SORTING',120,4,'[[2,2]]'),
   (4,'Gem Cutter','💎','CUTTING',220,6,'[[3,2]]'),
-  (5,'Polishing Mill','⚙️','POLISHING',350,8,'[[1,1],[4,1]]'),
-  (6,'Crystal Press','🏗️','PROCESSING',500,12,'[[2,1],[5,1]]'),
-  (7,'Gem Lab','🧪','REFINING',700,18,'[[3,1],[6,1]]'),
-  (8,'Vault Workshop','🏦','STORAGE',950,25,'[[4,1],[6,1]]'),
-  (9,'Deep Core Drill','🚜','DEEP MINING',1250,35,'[[5,1],[7,1]]'),
+  (5,'Polishing Mill','⚙️','POLISHING',350,8,'[[4,2]]'),
+  (6,'Crystal Press','🏗️','PROCESSING',500,12,'[[5,2]]'),
+  (7,'Gem Lab','🧪','REFINING',700,18,'[[6,2]]'),
+  (8,'Vault Workshop','🏦','STORAGE',950,25,'[[7,2]]'),
+  (9,'Deep Core Drill','🚜','DEEP MINING',1250,35,'[[8,2]]'),
   (10,'Legendary Crystal Forge','✨','MASTER FORGE',1600,60,'[[6,1],[7,1],[8,1],[9,1]]')
 on conflict (id) do update set
   name=excluded.name, icon=excluded.icon, kind=excluded.kind,
