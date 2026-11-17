@@ -48,6 +48,9 @@ export default function ReferralPage(){
     <div className={styles.grayZone + " " + styles.gray8} />
     <div className={styles.grayZone + " " + styles.gray9} />
     <div className={styles.grayZone + " " + styles.gray10} />
+    <div className={styles.grayZone + " " + styles.gray11} />
+    <div className={styles.grayZone + " " + styles.gray12} />
+    <div className={styles.grayZone + " " + styles.gray13} />
    </div>
   </section>
   
