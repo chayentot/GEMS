@@ -1258,3 +1258,80 @@ th { color:#aebbd0; font-size:12px; text-transform:uppercase; letter-spacing:.06
 @media(prefers-reduced-motion:reduce) {
   .mine-world-scene *, .mine-world-scene *::before, .mine-world-scene *::after { animation:none !important; transition:none !important; }
 }
+
+
+/* Mining Empire 80x80 compact board and serialized single-material conveyor */
+.empire-board {
+  position:relative;
+  width:min(100%,800px);
+  aspect-ratio:1 / 1;
+  margin:16px auto 20px;
+  overflow:hidden;
+  isolation:isolate;
+  border:1px solid #9bb2c94a;
+  border-radius:18px;
+  background:radial-gradient(ellipse at 50% 42%,#1c3850 0%,#102238 55%,#0b1525 100%);
+  box-shadow:inset 0 0 55px #0008,0 18px 45px #0006;
+}
+.empire-board-grid {
+  position:absolute; inset:0; z-index:-1;
+  background-image:linear-gradient(#a6bfd012 1px,transparent 1px),linear-gradient(90deg,#a6bfd012 1px,transparent 1px);
+  background-size:1.25% 1.25%;
+}
+.empire-board-topline {
+  position:absolute; z-index:5; top:2.2%; left:3%; right:3%;
+  display:flex; justify-content:space-between; gap:8px; flex-wrap:wrap;
+  color:#b9c9d9; font-size:clamp(7px,1.25vw,10px); font-weight:900; letter-spacing:.1em;
+}
+.empire-zigzag-track { position:absolute; inset:0; width:100%; height:100%; z-index:1; overflow:visible; }
+.empire-track-shadow { fill:none; stroke:#050b13; stroke-width:42; stroke-linecap:round; stroke-linejoin:round; opacity:.8; }
+.empire-track-line { fill:none; stroke:url(#beltGlow); stroke-width:31; stroke-linecap:round; stroke-linejoin:round; }
+.empire-track-center { fill:none; stroke:#172b3d; stroke-width:3; stroke-dasharray:9 12; stroke-linecap:round; }
+.empire-moving-material { fill:#f2c96e; stroke:#fff0bb; stroke-width:5; filter:drop-shadow(0 0 12px #ffd66b); }
+.empire-board-node {
+  position:absolute; z-index:3; display:flex; flex-direction:column; align-items:center; justify-content:center;
+  gap:3px; width:24%; min-height:15%; padding:7px;
+  border:1px solid #9db4c86b; border-radius:13px;
+  background:linear-gradient(150deg,#263d51f5,#111e30f5);
+  box-shadow:0 9px 24px #0008,inset 0 1px #ffffff18;
+  text-align:center;
+}
+.empire-board-node strong { font-size:clamp(8px,1.55vw,13px); letter-spacing:.05em; }
+.empire-board-node small { color:#b5c5d7; font-size:clamp(6px,1.15vw,9px); font-weight:800; }
+.board-node-icon { font-size:clamp(22px,4vw,36px); line-height:1.1; }
+.board-node-mine { left:3%; top:75%; transform:translateY(-50%); border-color:#65cda577; }
+.board-node-smelter { right:2.5%; top:62.5%; transform:translateY(-50%); border-color:#d9a83f88; }
+.board-node-seller { left:37%; top:2%; width:27%; min-height:14%; border-color:#e9c36c99; background:linear-gradient(150deg,#4b3b20f5,#172033f5); }
+.board-node-seller b { color:#ffdf83; font-size:clamp(9px,1.6vw,14px); }
+.board-node-stock { color:#8de2b8 !important; }
+.board-unlock { padding:6px 8px; margin-top:3px; font-size:clamp(7px,1vw,9px); border-radius:7px; }
+.empire-board-label {
+  position:absolute; z-index:3; color:#d4e2ef; font-size:clamp(7px,1.15vw,9px);
+  font-weight:900; letter-spacing:.12em; text-shadow:0 2px 5px #000;
+}
+.board-label-mine { left:4%; top:68%; }
+.board-label-queue { left:28%; top:85%; color:#f2d58d; }
+.empire-board-legend {
+  position:absolute; z-index:4; left:3%; right:3%; bottom:2.5%;
+  display:flex; justify-content:center; flex-wrap:wrap; gap:7px 16px;
+  padding:8px 10px; border:1px solid #ffffff1a; border-radius:10px;
+  background:#081321d9; color:#b9c9d9; font-size:clamp(6px,1.1vw,9px); font-weight:750;
+}
+.empire-board-legend span { display:inline-flex; align-items:center; gap:5px; }
+.legend-belt,.legend-unit,.legend-bypass { display:inline-block; width:13px; height:5px; border-radius:5px; }
+.legend-belt { background:#8498a9; }
+.legend-unit { width:8px; height:8px; border-radius:50%; background:#f2c96e; box-shadow:0 0 8px #f2c96e; }
+.legend-bypass { background:#d7a24d; }
+@media(max-width:520px) {
+  .empire-world-wrap { padding:9px; }
+  .empire-board { border-radius:12px; }
+  .empire-board-node { width:27%; padding:4px; border-radius:9px; }
+  .board-node-mine { left:1.5%; }
+  .board-node-smelter { right:1.5%; }
+  .board-node-seller { left:36.5%; width:28%; }
+  .board-unlock { padding:4px 5px; }
+  .empire-board-legend { gap:4px 8px; padding:5px; }
+}
+@media(prefers-reduced-motion:reduce) {
+  .empire-moving-material { filter:none; }
+}

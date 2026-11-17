@@ -6,7 +6,7 @@ import { createClient } from "@/lib/supabase";
 import ProfileMenu from "@/components/profile-menu";
 
 type Recipe = { id: number; name: string; inputs: [number, number][]; value: number; unlock: number };
-type Shipment = { id: number; materialId: number; amount: number; remainingMs: number };
+type Shipment = { id: number; materialId: number; amount: number; remainingMs: number; destinationFactoryId: number | null };
 type GameState = { gold: number; unlocked: boolean[]; busy: boolean[]; stock: Record<number, number>; sold: number; produced: number; tick: number; shipments: Shipment[]; nextShipmentId: number };
 
 const recipes: Recipe[] = [
@@ -42,18 +42,21 @@ const initial: GameState = {
 };
 
 function routeMaterial(state: GameState, materialId: number, amount: number, producerId: number): GameState {
-  let next = { ...state, stock: { ...state.stock } };
-  // A material may enter only its FIRST downstream factory. If that factory is locked,
-  // processing, or full, this batch bypasses the factory line and is sold directly.
+  let next = { ...state, stock: { ...state.stock }, shipments: [...state.shipments] };
+  // Each physical unit joins one FIFO line. Its first downstream factory is the
+  // only possible factory destination; otherwise it is routed to the Gold Seller.
   const target = recipes.find((r) => r.id > producerId && r.inputs.some(([id]) => id === materialId));
-  const stored = target?.inputs.reduce((sum, [id]) => sum + (next.stock[target.id * 100 + id] || 0), 0) ?? 0;
-  const canAccept = Boolean(target && next.unlocked[target.id - 1] && !next.busy[target.id - 1] && stored + amount <= 100);
-  if (target && canAccept) {
-    const key = target.id * 100 + materialId;
-    next.stock[key] = (next.stock[key] || 0) + amount;
-  } else {
-    // Locked, busy, or full first downstream factory: bypass directly to Gold Seller.
-    next.shipments.push({ id: next.nextShipmentId++, materialId, amount, remainingMs: CONVEYOR_MATERIAL_TRAVEL_MS });
+  for (let unit = 0; unit < amount; unit += 1) {
+    const stored = target?.inputs.reduce((sum, [id]) => sum + (next.stock[target.id * 100 + id] || 0), 0) ?? 0;
+    const reserved = target ? next.shipments.filter((shipment) => shipment.destinationFactoryId === target.id).length : 0;
+    const canAccept = Boolean(target && next.unlocked[target.id - 1] && !next.busy[target.id - 1] && stored + reserved + 1 <= 100);
+    next.shipments.push({
+      id: next.nextShipmentId++,
+      materialId,
+      amount: 1,
+      remainingMs: CONVEYOR_MATERIAL_TRAVEL_MS,
+      destinationFactoryId: canAccept && target ? target.id : null
+    });
   }
   return next;
 }
@@ -110,31 +113,40 @@ export default function MiningEmpirePage() {
     return () => window.clearInterval(timer);
   }, [running, authReady]);
 
-  // Material only becomes Gold after completing the full 3.2-second conveyor journey.
+  // FIFO conveyor: exactly one material unit travels for 3.2 seconds.
+  // The next unit starts only after the active unit reaches its factory or seller.
   useEffect(() => {
-    if (!authReady) return;
+    if (!authReady || !running) return;
     const timer = window.setInterval(() => {
       setGame((current) => {
         if (current.shipments.length === 0) return current;
-        const shipments = current.shipments.map((shipment) => ({
-          ...shipment,
-          remainingMs: shipment.remainingMs - 100
-        }));
-        const arrived = shipments.filter((shipment) => shipment.remainingMs <= 0);
-        const travelling = shipments.filter((shipment) => shipment.remainingMs > 0);
-        if (arrived.length === 0) return { ...current, shipments: travelling };
-        const goldEarned = arrived.reduce((sum, shipment) => sum + shipment.amount * recipes[shipment.materialId - 1].value, 0);
-        const soldAmount = arrived.reduce((sum, shipment) => sum + shipment.amount, 0);
-        return { ...current, shipments: travelling, gold: current.gold + goldEarned, sold: current.sold + soldAmount };
+        const [active, ...waiting] = current.shipments;
+        const remainingMs = active.remainingMs - 100;
+        if (remainingMs > 0) {
+          return { ...current, shipments: [{ ...active, remainingMs }, ...waiting] };
+        }
+        const destinationId = active.destinationFactoryId;
+        const destination = destinationId ? recipes[destinationId - 1] : null;
+        const stored = destination
+          ? destination.inputs.reduce((sum, [materialId]) => sum + (current.stock[destination.id * 100 + materialId] || 0), 0)
+          : 0;
+        const canEnterFactory = Boolean(destination && current.unlocked[destination.id - 1] && !current.busy[destination.id - 1] && stored + 1 <= 100);
+        if (destination && canEnterFactory) {
+          const key = destination.id * 100 + active.materialId;
+          return { ...current, shipments: waiting, stock: { ...current.stock, [key]: (current.stock[key] || 0) + 1 } };
+        }
+        const goldEarned = active.amount * recipes[active.materialId - 1].value;
+        return { ...current, shipments: waiting, gold: current.gold + goldEarned, sold: current.sold + active.amount };
       });
     }, 100);
     return () => window.clearInterval(timer);
-  }, [authReady]);
+  }, [authReady, running]);
 
   const factoryCount = game.unlocked.slice(0, 2).filter(Boolean).length;
   const stockTotal = useMemo(() => Object.values(game.stock).reduce((sum, n) => sum + n, 0), [game.stock]);
   const selectedFactory = selectedFactoryId ? recipes[selectedFactoryId - 1] : null;
   const selectedFactoryStored = selectedFactory ? selectedFactory.inputs.reduce((sum, [materialId]) => sum + (game.stock[selectedFactory.id * 100 + materialId] || 0), 0) : 0;
+  const activeShipment = game.shipments[0] ?? null;
 
   function unlock(factory: Recipe) {
     if (game.unlocked[factory.id - 1]) return;
@@ -175,7 +187,7 @@ export default function MiningEmpirePage() {
           <div><small>Materials sold</small><strong>{game.sold.toLocaleString()}</strong></div>
         </div>
         <div className="row empire-controls">
-          <span className="small">Factory cycle: {(FACTORY_CYCLE_MS / 1000).toFixed(1)}s · Belt loop: {(CONVEYOR_BELT_LOOP_MS / 1000).toFixed(2)}s · Factory-to-seller travel: {(CONVEYOR_MATERIAL_TRAVEL_MS / 1000).toFixed(1)}s</span>
+          <span className="small">Factory cycle: {(FACTORY_CYCLE_MS / 1000).toFixed(1)}s · Belt loop: {(CONVEYOR_BELT_LOOP_MS / 1000).toFixed(2)}s · Single-unit travel: {(CONVEYOR_MATERIAL_TRAVEL_MS / 1000).toFixed(1)}s</span>
           <div className="row">
             <button className="secondary" onClick={() => setRunning((v) => !v)}>{running ? "Ⅱ Pause" : "▶ Resume"}</button>
             <button className="secondary" onClick={() => { setGame(initial); setRunning(true); setMessage("Two-factory test reset. Factory 2 is locked and materials bypass it."); }}>↻ Reset preview</button>
@@ -185,66 +197,48 @@ export default function MiningEmpirePage() {
       </section>
 
       <section className="section">
-        <div className="row empire-section-heading"><div><h2>Conveyor & factory line</h2><p className="small">Factory 1 produces Iron Ore. The first downstream factory accepts it only when unlocked, ready, and below capacity. Otherwise, the material bypasses directly to the Gold Seller.</p></div></div>
+        <div className="row empire-section-heading"><div><h2>Conveyor & factory line</h2><p className="small">An 80 × 80 compact world with a continuous zigzag route. Only the first material moves; the next waits until the active unit reaches its destination.</p></div></div>
         <div className="empire-world-wrap">
-          <div className="empire-world-caption"><span>VERTICAL MINING WORLD</span><span className="live-indicator"><i /> FACTORY LINE RUNNING</span></div>
-          <div className="mine-world-scene">
-          <div className="mine-world-hud">
-            <span><i className="mine-live-dot" /> LIVE PRODUCTION WORLD</span>
-            <span>🚚 {game.shipments.length} shipment{game.shipments.length === 1 ? "" : "s"} on the belt</span>
+          <div className="empire-world-caption"><span>80 × 80 COMPACT MINING WORLD</span><span className="live-indicator"><i /> FACTORY LINE RUNNING</span></div>
+          <div className="empire-board" aria-label="80 by 80 Mining Empire game world">
+            <div className="empire-board-grid" />
+            <div className="empire-board-topline">
+              <span><i className="mine-live-dot" /> 80 × 80 COMPACT WORLD</span>
+              <span>{game.shipments.length ? `FIFO QUEUE · ${game.shipments.length} MATERIALS` : "CONVEYOR CLEAR"}</span>
+            </div>
+            <svg className="empire-zigzag-track" viewBox="0 0 800 800" role="img" aria-label="Continuous zigzag conveyor route from mine to gold seller">
+              <defs>
+                <linearGradient id="beltGlow" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stopColor="#8fa5b8" /><stop offset="50%" stopColor="#42566d" /><stop offset="100%" stopColor="#9db0bd" /></linearGradient>
+              </defs>
+              <path className="empire-track-shadow" d="M105 665 H690 V500 H110 V335 H690 V170 H400 V95" />
+              <path className="empire-track-line" d="M105 665 H690 V500 H110 V335 H690 V170 H400 V95" />
+              <path className="empire-track-center" d="M105 665 H690 V500 H110 V335 H690 V170 H400 V95" />
+              {activeShipment && running && <circle key={activeShipment.id} className="empire-moving-material" r="17">
+                <animateMotion dur="3.2s" repeatCount="indefinite" rotate="auto"><mpath href={activeShipment.destinationFactoryId ? "#empire-to-factory" : "#empire-to-seller"} /></animateMotion>
+              </circle>}
+              <path id="empire-to-seller" d="M105 665 H690 V500 H110 V335 H690 V170 H400 V95" fill="none" />
+              <path id="empire-to-factory" d="M105 665 H690 V500" fill="none" />
+            </svg>
+            <div className="empire-board-label board-label-mine">START · RAW ORE</div>
+            <div className="empire-board-node board-node-mine">
+              <span className="board-node-icon">⛏️</span><strong>ORE MINE</strong><small>5 ORE / CYCLE</small>
+            </div>
+            <div className="empire-board-node board-node-smelter">
+              <span className="board-node-icon">🏭</span><strong>IRON SMELTER</strong>
+              <small>{!game.unlocked[1] ? "LOCKED · SELLER BYPASS" : game.busy[1] ? "BUSY · SELLER BYPASS" : "READY · ACCEPTING"}</small>
+              {game.unlocked[1] && <small className="board-node-stock">{game.stock[201] || 0} / 100 ORE</small>}
+              {!game.unlocked[1] && <button className="board-unlock" onClick={() => unlock(recipes[1])}>UNLOCK · {recipes[1].unlock} GOLD</button>}
+            </div>
+            <div className="empire-board-node board-node-seller">
+              <span className="board-node-icon">🏪</span><strong>GOLD SELLER</strong><small>ARRIVAL = SOLD</small><b>🪙 {game.gold.toLocaleString()}</b>
+            </div>
+            <div className="empire-board-label board-label-queue">{activeShipment ? (activeShipment.destinationFactoryId ? "IN TRANSIT → FIRST FACTORY" : "IN TRANSIT → GOLD SELLER") : "ONE AT A TIME · NO OVERTAKING"}</div>
+            <div className="empire-board-legend">
+              <span><i className="legend-belt" /> Continuous conveyor</span>
+              <span><i className="legend-unit" /> Single moving material</span>
+              <span><i className="legend-bypass" /> Locked / busy / full → seller</span>
+            </div>
           </div>
-          <div className="mine-landscape">
-            <div className="mine-sky-glow" />
-            <div className="mine-cloud mine-cloud-one" />
-            <div className="mine-cloud mine-cloud-two" />
-            <div className="mine-mountain mountain-back" />
-            <div className="mine-mountain mountain-front" />
-            <div className="mine-sun">☀</div>
-            <div className="mine-ground">
-              <div className="mine-ground-line" />
-              <div className="mine-rock rock-one">◆</div><div className="mine-rock rock-two">◆</div>
-              <div className="mine-grass grass-one">♣</div><div className="mine-grass grass-two">♣</div>
-            </div>
-            <div className="mine-production-route">
-              {recipes.slice(0, 2).map((factory, index) => {
-                const unlocked = game.unlocked[index];
-                const factoryStored = factory.inputs.reduce((sum, [materialId]) => sum + (game.stock[factory.id * 100 + materialId] || 0), 0);
-                const isFull = factory.inputs.length > 0 && factoryStored >= 100;
-                return (
-                  <div className={`mine-building-wrap mine-building-${index + 1}`} key={factory.id}>
-                    <button type="button" className={`mine-building ${unlocked ? "building-running" : "building-locked"} ${selectedFactoryId === factory.id ? "building-selected" : ""}`} aria-label={`Inspect ${factory.name}`} onClick={() => setSelectedFactoryId(factory.id)}>
-                      <span className="mine-building-sign"> {index === 0 ? "ORE MINE" : "SMELTER"} · LV 1</span>
-                      <span className="mine-building-art">
-                        {index === 0 ? <><span className="mine-mine-shaft">⛏️</span><span className="mine-worker">👷</span><span className="mine-machine-wheel">⚙️</span></> : <><span className="mine-smelter-flame">🔥</span><span className="mine-smelter-stack">🏭</span><span className="mine-smoke-puff" /></>}
-                      </span>
-                      <strong>{factory.name}</strong>
-                      <small>{!unlocked ? "LOCKED · ORE BYPASSES TO GOLD" : index === 0 ? "EXTRACTING IRON ORE" : isFull ? "FULL · ORE BYPASSES TO GOLD" : game.busy[factory.id - 1] ? "PROCESSING · ORE BYPASSES TO GOLD" : "READY · AUTO-SMELTING"}</small>
-                      <span className="mine-building-meter"><i style={{ width: unlocked ? "78%" : "0%" }} /></span>
-                      <span className="mine-building-stock">{factory.inputs.length === 0 ? "RAW OUTPUT · 5 ORE / CYCLE" : `INPUT · ${factoryStored} / 100 ORE`}</span>
-                    </button>
-                    {index === 1 && !unlocked && <button className="mine-unlock-flag" onClick={() => unlock(factory)}>UNLOCK · 🪙 {factory.unlock}</button>}
-                    {index === 1 && unlocked && <span className="mine-unlock-flag active">● RUNNING</span>}
-                    <button className="mine-inspect-hint" onClick={() => setSelectedFactoryId(factory.id)}>↗ Inspect building</button>
-                  </div>
-                );
-              })}
-            </div>
-            <div className="mine-conveyor-route" aria-label="Animated conveyor belt">
-              <div className="mine-belt-rail"><i /><i /><i /><i /><i /><i /><i /><i /><i /><i /></div>
-              <span className="mine-ore ore-one">🪨</span><span className="mine-ore ore-two">🪨</span><span className="mine-ore ore-three">🧱</span>
-              <span className="mine-belt-direction">MATERIAL FLOW →</span>
-            </div>
-            <div className="mine-seller">
-              <div className="mine-seller-awning">GOLD EXCHANGE</div>
-              <div className="mine-seller-art">🏪<span>🪙</span></div>
-              <strong>GOLD SELLER</strong>
-              <small>+ Gold when shipment arrives</small>
-              <b>🪙 {game.gold.toLocaleString()}</b>
-              <span className="mine-seller-glow" />
-            </div>
-            <div className="mine-scene-footer"><span>⛏️ Mine</span><span>⚙️ Process</span><span>🪙 Sell</span><span>⏱ {running ? "WORLD RUNNING" : "WORLD PAUSED"}</span></div>
-          </div>
-        </div>
           {selectedFactory && <div className="panel empire-factory-inspector">
             <div className="row"><div><strong>🏭 Factory {selectedFactory.id}: {selectedFactory.name}</strong><p className="small">Storage inspection · click another factory to view its limits</p></div><button className="secondary" onClick={() => setSelectedFactoryId(null)}>Close</button></div>
             <div className="empire-inspector-grid">
