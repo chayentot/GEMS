@@ -14,7 +14,7 @@
   position: relative;
   flex: 0 0 1020px;
   width: 1020px;
-  height: 2400px;
+  height: 2460px;
   box-sizing: border-box;
   border: 1px solid #8aa0bd;
   background-color: #101a2b;
@@ -59,3 +59,19 @@
 .blue6 { left: 600px; top: 1680px; }
 .blue7 { left: 120px; top: 2040px; }
 .blue8 { left: 600px; top: 2040px; }
+
+.redZone { position: absolute; height: 60px; background: rgba(235, 45, 55, 0.82); box-shadow: inset 0 0 0 2px #ff858b; pointer-events: none; }
+.red1 { left: 120px; top: 420px; width: 300px; }
+.red2 { left: 600px; top: 420px; width: 300px; }
+
+.grayZone { position: absolute; background: rgba(145, 153, 165, 0.82); box-shadow: inset 0 0 0 1px #c4cbd4; pointer-events: none; }
+.gray1 { left: 480px; top: 240px; width: 60px; height: 60px; }
+.gray2 { left: 480px; top: 300px; width: 540px; height: 60px; }
+.gray3 { left: 960px; top: 360px; width: 60px; height: 120px; }
+.gray4 { left: 0; top: 540px; width: 1020px; height: 60px; }
+.gray5 { left: 540px; top: 660px; width: 420px; height: 60px; }
+.gray6 { left: 60px; top: 1500px; width: 420px; height: 120px; }
+.gray7 { left: 540px; top: 2400px; width: 420px; height: 60px; }
+.gray8 { left: 0; top: 600px; width: 60px; height: 1860px; }
+.gray9 { left: 480px; top: 720px; width: 60px; height: 1740px; }
+.gray10 { left: 960px; top: 720px; width: 60px; height: 1740px; }
