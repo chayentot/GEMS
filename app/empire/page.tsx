@@ -7,7 +7,7 @@ import ProfileMenu from "@/components/profile-menu";
 
 type Recipe = { id:number; name:string; inputs:[number,number][]; value:number; unlock:number; icon:string; kind:string };
 type Shipment = { id:string; materialId:number; amount:number; remainingMs:number };
-type GameState = { gold:number; unlocked:boolean[]; stock:Record<number,number>; sold:number; produced:number; shipments:Shipment[] };
+type GameState = { gold:number; unlocked:boolean[]; levels:number[]; stock:Record<number,number>; sold:number; produced:number; shipments:Shipment[] };
 type WorldPayload = {
   gold_balance:number|string; total_produced:number|string; total_shipped:number|string;
   offline_minutes_processed?:number;
@@ -32,18 +32,19 @@ const fmt=(n:number)=>Math.floor(Number(n||0)).toLocaleString();
 
 function mapWorld(payload:WorldPayload):GameState {
  const unlocked=Array(10).fill(false) as boolean[];
- payload.facilities?.forEach((f)=>{unlocked[f.facility_id-1]=f.is_unlocked;});
+ const levels=Array(10).fill(1) as number[];
+ payload.facilities?.forEach((f)=>{unlocked[f.facility_id-1]=f.is_unlocked;levels[f.facility_id-1]=f.level;});
  const stock:Record<number,number>={};
  payload.inventory?.forEach((i)=>{stock[i.facility_id*100+i.material_id]=Number(i.amount);});
  return {
-  gold:Number(payload.gold_balance||0),unlocked,stock,
+  gold:Number(payload.gold_balance||0),unlocked,levels,stock,
   sold:Number(payload.total_shipped||0),produced:Number(payload.total_produced||0),
   shipments:(payload.shipments||[]).map((s)=>({id:s.id,materialId:s.material_id,amount:Number(s.amount),remainingMs:Math.max(0,new Date(s.arrive_at).getTime()-Date.now())}))
  };
 }
 
 export default function MiningEmpirePage(){
- const [game,setGame]=useState<GameState>({gold:0,unlocked:[true,false,false,false,false,false,false,false,false,false],stock:{},sold:0,produced:0,shipments:[]});
+ const [game,setGame]=useState<GameState>({gold:0,unlocked:[true,false,false,false,false,false,false,false,false,false],levels:Array(10).fill(1),stock:{},sold:0,produced:0,shipments:[]});
  const [authReady,setAuthReady]=useState(false);
  const [selected,setSelected]=useState(1);
  const [message,setMessage]=useState("Connecting to your secure Gemstone Frontier world…");
@@ -90,6 +91,17 @@ export default function MiningEmpirePage(){
  }));
  const activeStored=inputRows.reduce((sum,x)=>sum+x.amount,0);
  const isUnlocked=game.unlocked[selected-1];
+
+ async function upgrade(factory:Recipe){
+  const currentLevel=game.levels[factory.id-1]||1;
+  const cost=Math.max(100,factory.unlock)*currentLevel;
+  if(currentLevel>=10){setMessage("This facility is already at maximum level.");return;}
+  if(game.gold<cost){setMessage("You need "+fmt(cost)+" Gold to upgrade this facility.");return;}
+  setBusy(true);setMessage("");
+  try{const sb=createClient();const {data,error}=await sb.rpc("gem_world_upgrade",{p_facility_id:factory.id});if(error)throw error;setGame(mapWorld(data as WorldPayload));setMessage(factory.name+" upgraded to level "+(currentLevel+1)+". Production capacity has increased.");}
+  catch(e){setMessage(e instanceof Error?e.message:"Facility upgrade failed.");}
+  finally{setBusy(false);}
+ }
 
  async function unlock(factory:Recipe){
   if(isUnlocked&&factory.id===selected)return;
@@ -141,7 +153,7 @@ export default function MiningEmpirePage(){
       const positions=["world-node-1","world-node-2","world-node-3","world-node-4","world-node-5","world-node-6","world-node-7","world-node-8","world-node-9","world-node-10"];
       return <button type="button" key={factory.id} className={"world-facility "+positions[index]+(unlocked?" is-unlocked":" is-locked")+(active?" is-selected":"")} onClick={()=>setSelected(factory.id)}>
        <span className="world-facility-icon">{factory.icon}</span><strong>{factory.name}</strong><small>{unlocked?(factory.id===1?"EXTRACTING":"PROCESSING"):"🔒 "+factory.unlock+" GOLD"}</small>
-       {unlocked&&<span className="world-facility-level">LV. 1</span>}
+       {unlocked&&<span className="world-facility-level">LV. {game.levels[index]||1}</span>}
        {unlocked&&<span className="world-facility-fill"><i style={{width:Math.min(100,inputTotal)+"%"}} /></span>}
       </button>;
      })}
@@ -153,14 +165,14 @@ export default function MiningEmpirePage(){
    <aside className="gem-factory-panel">
     <div className="gem-factory-heading"><div><small>FACILITY CONTROL</small><h2>{activeFactory.icon} {activeFactory.name}</h2></div><span className={isUnlocked?"factory-state online":"factory-state locked"}>{isUnlocked?"● ONLINE":"🔒 LOCKED"}</span></div>
     <div className="gem-factory-art"><span>{activeFactory.icon}</span><i /><b>{activeFactory.kind}</b></div>
-    <div className="gem-factory-level"><span>Facility level</span><strong>LEVEL 1</strong></div>
+    <div className="gem-factory-level"><span>Facility level</span><strong>LEVEL {game.levels[selected-1]||1} / 10</strong></div>
     <div className="gem-factory-storage">
      <div><span>INPUT STORAGE</span><strong>{activeFactory.inputs.length?activeStored+" / 100":"RAW MINE"}</strong></div>
      <div className="factory-storage-bar"><i style={{width:(activeFactory.inputs.length?Math.min(100,activeStored):100)+"%"}} /></div>
      {inputRows.length?inputRows.map((row)=><div className="factory-input-row" key={row.name}><span>{row.icon} {row.name}</span><strong>{row.amount} <small>/ batch {row.required}</small></strong></div>):<p className="factory-help">This mine extracts raw Garnet Ore and feeds the conveyor network.</p>}
     </div>
     <div className="gem-factory-recipe"><small>PRODUCTION RECIPE</small><div className="factory-recipe-flow"><span>{activeFactory.inputs.length?activeFactory.inputs.map(([id])=>recipes[id-1].icon).join(" + "):"⛏️"}</span><b>→</b><span>{activeFactory.icon}</span></div><strong>{activeFactory.inputs.length?activeFactory.inputs.map(([id,qty])=>qty+" × "+recipes[id-1].name).join(" + "):"5 raw ore / minute"}</strong></div>
-    {isUnlocked?<div className="factory-upgrade-box"><div><strong>⚙️ Facility level</strong><small>Production upgrades will be added in the next backend phase.</small></div><button disabled>LEVEL 1</button></div>:<div className="factory-upgrade-box"><div><strong>Unlock this facility</strong><small>Uses separate in-game Gold only.</small></div><button onClick={()=>unlock(activeFactory)} disabled={busy||loading||game.gold<activeFactory.unlock}>🪙 {fmt(activeFactory.unlock)} GOLD</button></div>}
+    {isUnlocked?<div className="factory-upgrade-box"><div><strong>⚙️ Upgrade facility</strong><small>Cost: {fmt(Math.max(100,activeFactory.unlock)*(game.levels[selected-1]||1))} Gold · increases production throughput.</small></div><button onClick={()=>upgrade(activeFactory)} disabled={busy||loading||(game.levels[selected-1]||1)>=10||game.gold<Math.max(100,activeFactory.unlock)*(game.levels[selected-1]||1)}>UPGRADE</button></div>:<div className="factory-upgrade-box"><div><strong>Unlock this facility</strong><small>Uses separate in-game Gold only.</small></div><button onClick={()=>unlock(activeFactory)} disabled={busy||loading||game.gold<activeFactory.unlock}>🪙 {fmt(activeFactory.unlock)} GOLD</button></div>}
     <div className="factory-panel-note">Progress, Gold, facilities and inventory are stored in Supabase. Offline production is capped at 24 hours per visit.</div>
    </aside>
   </section>
