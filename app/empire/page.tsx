@@ -147,7 +147,8 @@ export default function MiningEmpirePage() {
           const key = destination.id * 100 + active.materialId;
           return { ...current, shipments: waiting, stock: { ...current.stock, [key]: (current.stock[key] || 0) + 1 } };
         }
-        // Credit the sale at the exact arrival event, not when the shipment is queued.\n        const goldEarned = active.amount * recipes[active.materialId - 1].value;
+        // Credit the sale at the exact arrival event, not when the shipment is queued.
+        const goldEarned = active.amount * recipes[active.materialId - 1].value;
         return { ...current, shipments: waiting, gold: current.gold + goldEarned, sold: current.sold + active.amount };
       });
     }, 100);
