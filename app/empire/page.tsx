@@ -67,9 +67,8 @@ function advance(current: GameState): GameState {
   next = routeMaterial(next, 1, 5, 1);
   next.produced += 5;
 
-  // Each unlocked factory processes repeatedly during this cycle until it
-  // runs out of any required input. The previous cycle's busy state controls
-  // incoming material; newly processed factories become busy for the next cycle.
+  // Each unlocked factory processes available batches at the cycle update.
+  // The UI busy flag is only a short processing window, not the full cycle.
   const processedThisCycle = new Set<number>();
   for (const factory of recipes.slice(1)) {
     if (!next.unlocked[factory.id - 1]) continue;
@@ -113,6 +112,19 @@ export default function MiningEmpirePage() {
     return () => window.clearInterval(timer);
   }, [running, authReady]);
 
+  // "Busy" means the factory is actively processing, not the whole 1.8s
+  // production cycle. Keep the processing state brief, then accept new arrivals.
+  useEffect(() => {
+    if (!running || !game.busy.some(Boolean)) return;
+    const timer = window.setTimeout(() => {
+      setGame((current) => ({
+        ...current,
+        busy: current.busy.map(() => false)
+      }));
+    }, 600);
+    return () => window.clearTimeout(timer);
+  }, [game.busy, running]);
+
   // FIFO conveyor: exactly one material unit travels for 3.2 seconds.
   // The next unit starts only after the active unit reaches its factory or seller.
   useEffect(() => {
@@ -135,7 +147,7 @@ export default function MiningEmpirePage() {
           const key = destination.id * 100 + active.materialId;
           return { ...current, shipments: waiting, stock: { ...current.stock, [key]: (current.stock[key] || 0) + 1 } };
         }
-        const goldEarned = active.amount * recipes[active.materialId - 1].value;
+        // Credit the sale at the exact arrival event, not when the shipment is queued.\n        const goldEarned = active.amount * recipes[active.materialId - 1].value;
         return { ...current, shipments: waiting, gold: current.gold + goldEarned, sold: current.sold + active.amount };
       });
     }, 100);
