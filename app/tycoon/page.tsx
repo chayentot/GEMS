@@ -22,7 +22,7 @@ export default function ReferralPage(){
  async function copy(){if(!link)return;await navigator.clipboard.writeText(link);setStatus("Referral link copied. Share it with new players.");}
  return <main className="shell">
   <header className="topbar"><Link href="/" className="brand">💎 GEMS MINING</Link><nav className="row"><Link href="/dashboard/">Dashboard</Link><Link href="/mining/">Mining</Link><Link href="/tycoon/">Gems Tycoon</Link><Link href="/referral/" aria-current="page">Referral</Link><Link href="/market/">Market</Link><ProfileMenu /></nav></header>
-  <div><h1>Referral Program</h1><p className="muted">Invite players and earn GEMS when your referral network unlocks or upgrades gemstones in Mining.</p></div>
+  <div><h1>Gems Tycoon</h1><p className="muted">Invite players and earn GEMS when your referral network unlocks or upgrades gemstones in Mining.</p></div>
   {status&&<div className="notice">{status}</div>}
   <section className="panel section"><div className="row"><div><h2>Your referral link</h2><p className="small">New players can register using this link. Market purchases, deposits and recharges do not earn referral commissions.</p></div><span className="status-active">3 levels</span></div>
    <div className="item"><div className="small">Your referral code</div><strong>{summary?.referral_code??"Loading…"}</strong><div className="row"><input readOnly value={link}/><button disabled={!link} onClick={()=>void copy()}>Copy link</button></div></div>
