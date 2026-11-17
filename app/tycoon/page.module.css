@@ -163,3 +163,20 @@
 
 .movingStarStone { position: absolute; width: 50px; height: 50px; margin-left: 0; margin-top: 0; z-index: 8; pointer-events: none; filter: drop-shadow(0 2px 4px rgba(0,0,0,.65)); }
 .movingStarStone svg { display: block; }
+
+.factoryTwoInfo { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:7px; color:#f3f7ff; text-align:center; text-shadow:0 1px 3px #07142b; pointer-events:none; }
+.factoryTwoInfo strong { font-size:19px; letter-spacing:1px; font-weight:900; }
+.factoryTwoInfo span { font-size:12px; line-height:1.2; font-weight:800; }
+.factoryClawGrab,.factoryClawRelease { position:absolute; z-index:10; height:34px; pointer-events:none; display:flex; align-items:center; }
+.factoryClawGrab { left:8px; top:888px; width:116px; justify-content:flex-end; animation:clawGrab .7s ease-in-out both; transform-origin:right center; }
+.factoryClawRelease { left:398px; top:888px; width:94px; justify-content:flex-end; animation:clawRelease .85s ease-in-out both; transform-origin:left center; }
+.clawArm { height:10px; flex:1; border:2px solid #dce6f2; border-radius:5px; background:linear-gradient(180deg,#b9c8da,#53677f); box-shadow:0 2px 5px #07101f; }
+.clawHand { width:20px; height:24px; margin-left:-2px; position:relative; border:3px solid #e8f0fa; border-top:0; border-radius:0 0 8px 8px; filter:drop-shadow(0 2px 2px #07101f); }
+.clawHand:before,.clawHand:after { content:""; position:absolute; bottom:-5px; width:7px; height:12px; border:3px solid #e8f0fa; border-top:0; border-radius:0 0 5px 5px; }
+.clawHand:before { left:-5px; transform:rotate(18deg); }
+.clawHand:after { right:-5px; transform:rotate(-18deg); }
+@keyframes clawGrab { 0% {transform:scaleX(.08);opacity:.2} 35%,75% {transform:scaleX(1);opacity:1} 100% {transform:scaleX(.08);opacity:0} }
+@keyframes clawRelease { 0% {transform:scaleX(.08);opacity:.2} 35%,75% {transform:scaleX(1);opacity:1} 100% {transform:scaleX(.08);opacity:0} }
+.movingNebulite { position:absolute; width:50px; height:50px; z-index:9; pointer-events:none; filter:drop-shadow(0 2px 5px rgba(0,0,0,.7)); }
+.movingNebulite svg { display:block; }
+@media (prefers-reduced-motion: reduce) { .factoryClawGrab,.factoryClawRelease { animation:none; } }
