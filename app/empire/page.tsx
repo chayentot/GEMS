@@ -7,7 +7,7 @@ import ProfileMenu from "@/components/profile-menu";
 
 type Recipe = { id: number; name: string; inputs: [number, number][]; value: number; unlock: number };
 type Shipment = { id: number; materialId: number; amount: number; remainingMs: number };
-type GameState = { gold: number; unlocked: boolean[]; stock: Record<number, number>; sold: number; produced: number; tick: number; shipments: Shipment[]; nextShipmentId: number };
+type GameState = { gold: number; unlocked: boolean[]; busy: boolean[]; stock: Record<number, number>; sold: number; produced: number; tick: number; shipments: Shipment[]; nextShipmentId: number };
 
 const recipes: Recipe[] = [
   { id: 1, name: "Iron Ore", inputs: [], value: 1, unlock: 0 },
@@ -32,6 +32,7 @@ const CONVEYOR_MATERIAL_TRAVEL_MS = 3200;
 const initial: GameState = {
   gold: 0,
   unlocked: recipes.map((r) => r.id === 1),
+  busy: recipes.map(() => false),
   stock: {},
   sold: 0,
   produced: 0,
@@ -42,16 +43,16 @@ const initial: GameState = {
 
 function routeMaterial(state: GameState, materialId: number, amount: number, producerId: number): GameState {
   let next = { ...state, stock: { ...state.stock } };
-  const consumers = recipes.filter((r) => r.id > producerId && next.unlocked[r.id - 1] && r.inputs.some(([id]) => id === materialId));
-  const target = consumers.find((r) => {
-    const stored = r.inputs.reduce((sum, [id]) => sum + (next.stock[r.id * 100 + id] || 0), 0);
-    return stored + amount <= 100;
-  });
-  if (target) {
+  // A material may enter only its FIRST downstream factory. If that factory is locked,
+  // processing, or full, this batch bypasses the factory line and is sold directly.
+  const target = recipes.find((r) => r.id > producerId && r.inputs.some(([id]) => id === materialId));
+  const stored = target?.inputs.reduce((sum, [id]) => sum + (next.stock[target.id * 100 + id] || 0), 0) ?? 0;
+  const canAccept = Boolean(target && next.unlocked[target.id - 1] && !next.busy[target.id - 1] && stored + amount <= 100);
+  if (target && canAccept) {
     const key = target.id * 100 + materialId;
     next.stock[key] = (next.stock[key] || 0) + amount;
   } else {
-    // No unlocked downstream factory can accept this material: send it to the Gold Seller.
+    // Locked, busy, or full first downstream factory: bypass directly to Gold Seller.
     next.shipments.push({ id: next.nextShipmentId++, materialId, amount, remainingMs: CONVEYOR_MATERIAL_TRAVEL_MS });
   }
   return next;
@@ -64,7 +65,9 @@ function advance(current: GameState): GameState {
   next.produced += 5;
 
   // Each unlocked factory processes repeatedly during this cycle until it
-  // runs out of any required input. Every completed batch consumes its recipe.
+  // runs out of any required input. The previous cycle's busy state controls
+  // incoming material; newly processed factories become busy for the next cycle.
+  const processedThisCycle = new Set<number>();
   for (const factory of recipes.slice(1)) {
     if (!next.unlocked[factory.id - 1]) continue;
     let completedBatches = 0;
@@ -78,9 +81,11 @@ function advance(current: GameState): GameState {
       completedBatches += 1;
     }
     if (completedBatches === 0) continue;
+    processedThisCycle.add(factory.id);
     next.produced += completedBatches;
     next = routeMaterial(next, factory.id, completedBatches, factory.id);
   }
+  next.busy = recipes.map((factory) => processedThisCycle.has(factory.id));
   return next;
 }
 
@@ -89,7 +94,7 @@ export default function MiningEmpirePage() {
   const [authReady, setAuthReady] = useState(false);
   const [running, setRunning] = useState(true);
   const [selectedFactoryId, setSelectedFactoryId] = useState<number | null>(null);
-  const [message, setMessage] = useState("Two-factory test running. Factory 2 is locked, so Iron Ore bypasses it and travels to the Gold Seller.");
+  const [message, setMessage] = useState("Factory 2 is locked. Iron Ore bypasses it and travels directly to the Gold Seller.");
 
   useEffect(() => {
     const sb = createClient();
@@ -180,7 +185,7 @@ export default function MiningEmpirePage() {
       </section>
 
       <section className="section">
-        <div className="row empire-section-heading"><div><h2>Conveyor & factory line</h2><p className="small">Two-factory timing test: Factory 1 produces Iron Ore. Factory 2 bypasses while locked and processes Iron Ore when unlocked. Materials take 3.2 seconds to reach the Gold Seller.</p></div></div>
+        <div className="row empire-section-heading"><div><h2>Conveyor & factory line</h2><p className="small">Factory 1 produces Iron Ore. The first downstream factory accepts it only when unlocked, ready, and below capacity. Otherwise, the material bypasses directly to the Gold Seller.</p></div></div>
         <div className="empire-world-wrap">
           <div className="empire-world-caption"><span>VERTICAL MINING WORLD</span><span className="live-indicator"><i /> FACTORY LINE RUNNING</span></div>
           <div className="mine-world-scene">
@@ -213,7 +218,7 @@ export default function MiningEmpirePage() {
                         {index === 0 ? <><span className="mine-mine-shaft">⛏️</span><span className="mine-worker">👷</span><span className="mine-machine-wheel">⚙️</span></> : <><span className="mine-smelter-flame">🔥</span><span className="mine-smelter-stack">🏭</span><span className="mine-smoke-puff" /></>}
                       </span>
                       <strong>{factory.name}</strong>
-                      <small>{!unlocked ? "LOCKED · ORE BYPASSES" : index === 0 ? "EXTRACTING IRON ORE" : isFull ? "INPUT STORAGE FULL" : "AUTO-SMELTING"}</small>
+                      <small>{!unlocked ? "LOCKED · ORE BYPASSES TO GOLD" : index === 0 ? "EXTRACTING IRON ORE" : isFull ? "FULL · ORE BYPASSES TO GOLD" : game.busy[factory.id - 1] ? "PROCESSING · ORE BYPASSES TO GOLD" : "READY · AUTO-SMELTING"}</small>
                       <span className="mine-building-meter"><i style={{ width: unlocked ? "78%" : "0%" }} /></span>
                       <span className="mine-building-stock">{factory.inputs.length === 0 ? "RAW OUTPUT · 5 ORE / CYCLE" : `INPUT · ${factoryStored} / 100 ORE`}</span>
                     </button>
@@ -243,13 +248,13 @@ export default function MiningEmpirePage() {
           {selectedFactory && <div className="panel empire-factory-inspector">
             <div className="row"><div><strong>🏭 Factory {selectedFactory.id}: {selectedFactory.name}</strong><p className="small">Storage inspection · click another factory to view its limits</p></div><button className="secondary" onClick={() => setSelectedFactoryId(null)}>Close</button></div>
             <div className="empire-inspector-grid">
-              <div><small>Factory status</small><strong>{game.unlocked[selectedFactory.id - 1] ? "Unlocked · operating" : "Locked · bypassing"}</strong></div>
+              <div><small>Factory status</small><strong>{!game.unlocked[selectedFactory.id - 1] ? "Locked · incoming material goes to Gold Seller" : game.busy[selectedFactory.id - 1] ? "Processing · incoming material goes to Gold Seller" : "Ready · accepting material"}</strong></div>
               <div><small>Input storage limit</small><strong>{selectedFactory.inputs.length ? "100 units" : "Not applicable · producer"}</strong></div>
               <div><small>Stored inputs</small><strong>{selectedFactory.inputs.length ? `${selectedFactoryStored} / 100 units` : "No input materials"}</strong></div>
             </div>
             {selectedFactory.inputs.length > 0 ? <div className="empire-inspector-inputs">{selectedFactory.inputs.map(([materialId, quantity]) => <div key={materialId}><span>{materialIcons[materialId - 1]} {recipes[materialId - 1].name}</span><strong>{game.stock[selectedFactory.id * 100 + materialId] || 0} units <small>· recipe needs {quantity}</small></strong></div>)}</div> : <p className="small">This factory creates raw Iron Ore and has no incoming material storage.</p>}
           </div>}
-          <p className="world-scroll-hint">TEST LINE: Factory 1 → Factory 2 (bypass when locked / process when unlocked) → Gold Seller</p>
+          <p className="world-scroll-hint">MATERIAL RULE: First factory accepts only when ready · locked / processing / full = direct Gold Seller bypass · no duplicate processing or sale</p>
         </div>
       </section>
 
