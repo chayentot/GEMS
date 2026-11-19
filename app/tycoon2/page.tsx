@@ -275,7 +275,7 @@ export default function GemsTycoonCopyPage() {
         .gem-on-tile { transform: translateY(0); }
         @keyframes gem-one-tile {
           from { transform: translateY(0); }
-          to { transform: translateY(calc(100% + 1px)); }
+          to { transform: translateY(calc(300% + 1px)); }
         }
         .conveyor-cell {
           position: relative;
