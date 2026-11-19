@@ -73,10 +73,10 @@ export default function GemsTycoon3Page() {
                 <div
                   className={cellClassName}
                   key={index}
-                  aria-label={`Column ${column}, Row ${row}${structure ? `, ${structure.name}` : isConveyor ? ", conveyor moving left" : ""}`}
+                  aria-label={`Column ${column}, Row ${row}${structure ? `, ${structure.name}` : isConveyor ? ", conveyor moving right" : ""}`}
                 >
                   {isStructureCenter && <span className="tycoon3-structure-label">{structure.name}</span>}
-                  {isConveyor && <span className="tycoon3-conveyor-arrow">←</span>}
+                  {isConveyor && <span className="tycoon3-conveyor-arrow">→</span>}
                 </div>
               );
             })}
@@ -185,15 +185,26 @@ export default function GemsTycoon3Page() {
           pointer-events: none;
         }
         .tycoon3-conveyor {
-          background: repeating-linear-gradient(
+          background-color: #334155;
+          background-image: repeating-linear-gradient(
             90deg,
             #475569 0,
             #64748b 5px,
             #334155 10px,
             #475569 15px
           );
+          background-size: 30px 100%;
+          animation: tycoon3-belt-move 0.65s linear infinite;
           box-shadow: inset 0 1px 2px #fff5, inset 0 -2px 3px #0009;
           position: relative;
+          overflow: hidden;
+        }
+        @keyframes tycoon3-belt-move {
+          from { background-position: 0 0; }
+          to { background-position: 30px 0; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .tycoon3-conveyor { animation: none; }
         }
         .tycoon3-conveyor-arrow {
           display: flex;
