@@ -38,8 +38,8 @@ export default function GemsTycoon3Page() {
           padding-bottom: 24px;
         }
         .tycoon3-map-space {
-          flex: 1;
-          min-height: 55vh;
+          flex: 1 1 auto;
+          min-height: 0;
           display: flex;
           justify-content: center;
           align-items: stretch;
@@ -47,7 +47,8 @@ export default function GemsTycoon3Page() {
         }
         .tycoon3-map-section {
           width: 60%;
-          min-height: 55vh;
+          min-height: 0;
+          flex: 1 1 auto;
           border: 1px solid #334155;
           border-radius: 14px;
           background: rgba(17, 28, 46, 0.45);
