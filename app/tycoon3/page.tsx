@@ -240,7 +240,7 @@ export default function GemsTycoon3Page() {
           next.materials.push({
             id: ++next.nextMaterialId,
             kind: outputKind,
-            step: 0,
+            step: -inputPath.length,
             path: outputPath,
           });
           const remaining = Math.max(0, run.remaining - 1);
@@ -377,7 +377,7 @@ export default function GemsTycoon3Page() {
             <div className="tycoon3-time-display" style={{ gridColumn: "18 / span 3", gridRow: 14 }}>
               {formattedTime}
             </div>
-            {game.materials.map((material) => {
+            {game.materials.filter((material) => material.step >= 0).map((material) => {
               const position = material.path[Math.min(material.step, material.path.length - 1)];
               const symbol = material.kind === "star-input" ? "✦" : material.kind === "nebulite-input" ? "◆" : material.kind === "nebulite" ? "◆" : "✧";
               return (
