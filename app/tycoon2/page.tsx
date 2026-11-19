@@ -154,7 +154,7 @@ export default function GemsTycoonCopyPage() {
         <div className="factory-status">
           <strong>FACTORY 2 · AQUARION</strong>
           <span className="amount">{production.factory2Rubellite.toLocaleString()} Rubellite</span>
-          <small>{production.factory2Aquarion.toLocaleString()} Aquarion stored · 2 Rubellite → 1 Aquarion</small>
+          <small>{production.factory2Aquarion.toLocaleString()} Aquarion produced · 2 Rubellite → 1 Aquarion</small>
         </div>
         <div className="factory-status">
           <strong>FACTORY 3 · VERDIUM</strong>
