@@ -371,14 +371,16 @@ export default function GemsTycoon3Page() {
               const amount = gem.amountKey === "bank1" ? game.bank1 : gem.amountKey === "bank2" ? game.bank2 : gem.amountKey === "bank3" ? game.bank3 : 0;
               const quantityColumn = gem.centerColumn + 2;
               return (
-                <div key={gem.name} className={`tycoon3-gem-logo tycoon3-gem-${gem.tone}`} style={{ gridColumn: `${gem.centerColumn - 1} / span 3`, gridRow: `${gem.centerRow - 1} / span 3` }} aria-label={gem.name + " logo"}>
-                  <span className="tycoon3-gem-symbol">{gem.symbol}</span>
-                  <small>{gem.name}</small>
-                  <div className="tycoon3-gem-quantity" style={{ gridColumn: quantityColumn, gridRow: `${gem.centerRow - 1} / span 3` }} aria-label={amount + " " + gem.name + " available in bank"}>
+                <>
+                  <div key={gem.name + "-logo"} className={`tycoon3-gem-logo tycoon3-gem-${gem.tone}`} style={{ gridColumn: `${gem.centerColumn - 1} / span 3`, gridRow: `${gem.centerRow - 1} / span 3` }} aria-label={gem.name + " logo"}>
+                    <span className="tycoon3-gem-symbol">{gem.symbol}</span>
+                    <small>{gem.name}</small>
+                  </div>
+                  <div key={gem.name + "-quantity"} className="tycoon3-gem-quantity" style={{ gridColumn: `${quantityColumn} / span 3`, gridRow: `${gem.centerRow - 1} / span 3` }} aria-label={amount + " " + gem.name + " available in bank"}>
                     <small>IN BANK</small>
                     <strong>{amount.toLocaleString()}</strong>
                   </div>
-                </div>
+                </>
               );
             })}
             <button
