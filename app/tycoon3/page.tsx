@@ -139,7 +139,7 @@ export default function GemsTycoon3Page() {
                   {isStructureCenter && (
                     <span className="tycoon3-structure-label">
                       {structure.name}
-                      {structure.name === "BANK" && <small className="tycoon3-bank-count">STAR CRYSTALS: {bankedStarCrystals}</small>}
+                      {structure.name === "BANK" && <small className="tycoon3-bank-count">✦ {bankedStarCrystals} STORED</small>}
                     </span>
                   )}
                 </div>
@@ -268,9 +268,13 @@ export default function GemsTycoon3Page() {
         }
         .tycoon3-bank-count {
           display: block;
-          margin-top: 2px;
-          font-size: clamp(5px, 0.48vw, 8px);
+          margin-top: 3px;
+          color: #bae6fd;
+          font-size: clamp(7px, 0.68vw, 10px);
           line-height: 1.1;
+          font-weight: 900;
+          white-space: nowrap;
+          text-shadow: 0 0 4px #0284c7, 0 1px 2px #000;
         }
         .tycoon3-play-button {
           box-sizing: border-box;
