@@ -215,9 +215,10 @@ export default function GemsTycoonCopyPage() {
             >
               {factoryLabel && <span className="factory-marker">{factoryLabel}</span>}
               {token && tokenCount > 0 && (
-                <span className="moving-gem" aria-label={token.label}>
-                  {token.symbol}
-                </span>
+                <span
+                  className={`moving-gem ${key === "8-5" || key === "8-6" ? "gem-rubellite" : "gem-aquarion"}`}
+                  aria-label={token.label}
+                />
               )}
             </div>
           );
@@ -253,12 +254,31 @@ export default function GemsTycoonCopyPage() {
           text-shadow: 0 1px rgba(255,255,255,.35);
         }
         .moving-gem {
-          font-size: clamp(8px, 1.25vw, 16px);
-          line-height: 1;
-          filter: drop-shadow(0 1px 2px rgba(0,0,0,.7));
-          animation: gem-bob .7s ease-in-out infinite alternate;
+          position: absolute;
+          z-index: 2;
+          display: block;
+          width: 33%;
+          height: 33%;
+          min-width: 5px;
+          min-height: 5px;
+          aspect-ratio: 1 / 1;
+          clip-path: polygon(50% 0%, 92% 27%, 78% 83%, 50% 100%, 22% 83%, 8% 27%);
+          filter: drop-shadow(0 2px 3px rgba(0,0,0,.75));
+          animation: gem-travel-down 1.4s ease-in-out infinite;
         }
-        @keyframes gem-bob { from { transform: translateY(-2px); } to { transform: translateY(2px); } }
+        .gem-rubellite {
+          background: linear-gradient(135deg, #ffd1d1 0%, #ff5252 32%, #a80018 70%, #61000c 100%);
+          box-shadow: inset 0 0 5px rgba(255,255,255,.8);
+        }
+        .gem-aquarion {
+          background: linear-gradient(135deg, #d8fbff 0%, #35d8ff 32%, #0876c9 70%, #06356f 100%);
+          box-shadow: inset 0 0 5px rgba(255,255,255,.8);
+        }
+        @keyframes gem-travel-down {
+          0% { transform: translateY(-24%); }
+          50% { transform: translateY(0%); }
+          100% { transform: translateY(24%); }
+        }
         .conveyor-cell {
           position: relative;
           overflow: hidden;
@@ -271,7 +291,7 @@ export default function GemsTycoonCopyPage() {
             linear-gradient(90deg, #aeb8c4 0 8%, #596575 8% 12%, transparent 12% 88%, #596575 88% 92%, #aeb8c4 92% 100%),
             repeating-linear-gradient(180deg, #aeb8c4 0 2px, #566272 2px 4px, #202a36 4px 7px, #657181 7px 9px);
           background-size: 100% 100%, 100% 18px;
-          animation: belt-down .48s linear infinite;
+          animation: belt-down 1.4s linear infinite;
         }
         .conveyor-left, .conveyor-right {
           background-image:
@@ -279,8 +299,8 @@ export default function GemsTycoonCopyPage() {
             repeating-linear-gradient(90deg, #aeb8c4 0 2px, #566272 2px 4px, #202a36 4px 7px, #657181 7px 9px);
           background-size: 100% 100%, 18px 100%;
         }
-        .conveyor-right { animation: belt-right .48s linear infinite; }
-        .conveyor-left { animation: belt-left .48s linear infinite; }
+        .conveyor-right { animation: belt-right 1.4s linear infinite; }
+        .conveyor-left { animation: belt-left 1.4s linear infinite; }
         @keyframes belt-down { from { background-position: 0 0, 0 0; } to { background-position: 0 0, 0 18px; } }
         @keyframes belt-right { from { background-position: 0 0, 0 0; } to { background-position: 0 0, 18px 0; } }
         @keyframes belt-left { from { background-position: 0 0, 0 0; } to { background-position: 0 0, -18px 0; } }
