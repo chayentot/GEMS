@@ -300,7 +300,7 @@ export default function MiningEmpirePage() {
       <header className="topbar">
         <Link href="/dashboard/" className="brand">💎 GEMS MINING</Link>
         <nav className="row">
-          <Link href="/dashboard/">Dashboard</Link><Link href="/mining/">Mining</Link>
+          <Link href="/dashboard/">Dashboard</Link><Link href="/mining/">Mining</Link><Link href="/tycoon/">Gems Tycoon</Link><Link href="/tycoon2/">Gems Tycoon</Link>
           <Link href="/referral/">Referral</Link><Link href="/market/">Market</Link><ProfileMenu />
         </nav>
       </header>
