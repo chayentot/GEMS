@@ -131,8 +131,8 @@ export default function GemsTycoonCopyPage() {
           const green = isInRanges(column, row, GREEN_RANGES);
           const blue = isBlueCell(column, row);
           const yellow = isYellowCell(column, row);
-          const direction = blue ? "down" : red ? "right" : green ? "left" : null;
-          const arrow = direction === "down" ? "↓" : direction === "right" ? "→" : direction === "left" ? "←" : "";
+          // All conveyor lanes share one metallic belt appearance; only travel direction differs.
+          const direction = blue ? "down" : red ? "left" : green ? "right" : null;
 
           return (
             <div
@@ -145,85 +145,60 @@ export default function GemsTycoonCopyPage() {
                 aspectRatio: "1 / 1",
                 borderRight: "1px solid #52627a",
                 borderBottom: "1px solid #52627a",
-                background: direction
-                  ? direction === "down" ? "#1746A2" : direction === "right" ? "#991B1B" : "#166534"
-                  : yellow ? "#FFD700" : "#172238",
+                background: direction ? undefined : yellow ? "#FFD700" : "#172238",
               }}
-            >
-              {direction && <span className="conveyor-arrow" aria-hidden="true">{arrow}</span>}
-            </div>
+            />
           );
         })}
       </section>
 
       <style jsx global>{`
+        /* Metallic conveyor belts: side rails and moving transverse tread plates. */
         .conveyor-cell {
           position: relative;
-          display: flex;
-          align-items: center;
-          justify-content: center;
           overflow: hidden;
-          background-size: 100% 20px, auto;
+          background-color: #303b49;
+          background-repeat: repeat;
+          box-shadow: inset 0 0 0 1px rgba(10, 16, 25, .85);
         }
         .conveyor-down {
-          background-image: repeating-linear-gradient(
-            0deg,
-            rgba(255,255,255,.22) 0px,
-            rgba(255,255,255,.22) 3px,
-            transparent 3px,
-            transparent 10px
-          );
-          animation: conveyor-flow-down .55s linear infinite;
+          background-image:
+            linear-gradient(90deg,
+              #aeb8c4 0 8%, #596575 8% 12%,
+              transparent 12% 88%, #596575 88% 92%, #aeb8c4 92% 100%),
+            repeating-linear-gradient(180deg,
+              #aeb8c4 0 2px, #566272 2px 4px,
+              #202a36 4px 7px, #657181 7px 9px);
+          background-size: 100% 100%, 100% 18px;
+          animation: belt-down .48s linear infinite;
         }
+        .conveyor-left,
         .conveyor-right {
-          background-image: repeating-linear-gradient(
-            90deg,
-            rgba(255,255,255,.22) 0px,
-            rgba(255,255,255,.22) 3px,
-            transparent 3px,
-            transparent 10px
-          );
-          animation: conveyor-flow-right .55s linear infinite;
+          background-image:
+            linear-gradient(180deg,
+              #aeb8c4 0 8%, #596575 8% 12%,
+              transparent 12% 88%, #596575 88% 92%, #aeb8c4 92% 100%),
+            repeating-linear-gradient(90deg,
+              #aeb8c4 0 2px, #566272 2px 4px,
+              #202a36 4px 7px, #657181 7px 9px);
+          background-size: 100% 100%, 18px 100%;
         }
-        .conveyor-left {
-          background-image: repeating-linear-gradient(
-            90deg,
-            rgba(255,255,255,.22) 0px,
-            rgba(255,255,255,.22) 3px,
-            transparent 3px,
-            transparent 10px
-          );
-          animation: conveyor-flow-left .55s linear infinite;
+        .conveyor-right { animation: belt-right .48s linear infinite; }
+        .conveyor-left { animation: belt-left .48s linear infinite; }
+        @keyframes belt-down {
+          from { background-position: 0 0, 0 0; }
+          to { background-position: 0 0, 0 18px; }
         }
-        .conveyor-arrow {
-          position: relative;
-          z-index: 1;
-          color: white;
-          font-size: clamp(10px, 1.6vw, 20px);
-          line-height: 1;
-          font-weight: 900;
-          text-shadow: 0 1px 3px rgba(0,0,0,.8);
-          animation: conveyor-arrow-pulse .55s ease-in-out infinite alternate;
-          pointer-events: none;
+        @keyframes belt-right {
+          from { background-position: 0 0, 0 0; }
+          to { background-position: 0 0, 18px 0; }
         }
-        @keyframes conveyor-flow-down {
-          from { background-position: 0 0; }
-          to { background-position: 0 20px; }
-        }
-        @keyframes conveyor-flow-right {
-          from { background-position: 0 0; }
-          to { background-position: 20px 0; }
-        }
-        @keyframes conveyor-flow-left {
-          from { background-position: 20px 0; }
-          to { background-position: 0 0; }
-        }
-        @keyframes conveyor-arrow-pulse {
-          from { opacity: .65; }
-          to { opacity: 1; }
+        @keyframes belt-left {
+          from { background-position: 0 0, 0 0; }
+          to { background-position: 0 0, -18px 0; }
         }
         @media (prefers-reduced-motion: reduce) {
-          .conveyor-cell, .conveyor-arrow { animation: none !important; }
+          .conveyor-cell { animation: none !important; }
         }
       `}</style>
     </main>
