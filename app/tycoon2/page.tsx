@@ -6,6 +6,34 @@ import ProfileMenu from "@/components/profile-menu";
 const COLUMNS = 15;
 const ROWS = 51;
 
+// Each coordinate is the center of a 3x3 yellow area.
+const YELLOW_CENTERS: Array<[number, number]> = [
+  [8, 3],
+  [8, 8],
+  [8, 13],
+  [4, 21],
+  [12, 21],
+  [2, 29],
+  [6, 29],
+  [10, 29],
+  [14, 29],
+  [2, 34],
+  [6, 34],
+  [10, 34],
+  [14, 34],
+  [4, 42],
+  [12, 42],
+  [8, 50],
+];
+
+function isYellowCell(column: number, row: number) {
+  return YELLOW_CENTERS.some(
+    ([centerColumn, centerRow]) =>
+      Math.abs(column - centerColumn) <= 1 &&
+      Math.abs(row - centerRow) <= 1
+  );
+}
+
 export default function GemsTycoonCopyPage() {
   return (
     <main style={{ width: "90vw", maxWidth: "none", margin: "0 auto", padding: "18px 0 40px" }}>
@@ -34,20 +62,26 @@ export default function GemsTycoonCopyPage() {
           background: "#101827",
         }}
       >
-        {Array.from({ length: COLUMNS * ROWS }, (_, index) => (
-          <div
-            key={index}
-            data-column={(index % COLUMNS) + 1}
-            data-row={Math.floor(index / COLUMNS) + 1}
-            style={{
-              minWidth: 0,
-              aspectRatio: "1 / 1",
-              borderRight: "1px solid #52627a",
-              borderBottom: "1px solid #52627a",
-              background: "#172238",
-            }}
-          />
-        ))}
+        {Array.from({ length: COLUMNS * ROWS }, (_, index) => {
+          const column = (index % COLUMNS) + 1;
+          const row = Math.floor(index / COLUMNS) + 1;
+          const yellow = isYellowCell(column, row);
+
+          return (
+            <div
+              key={index}
+              data-column={column}
+              data-row={row}
+              style={{
+                minWidth: 0,
+                aspectRatio: "1 / 1",
+                borderRight: "1px solid #52627a",
+                borderBottom: "1px solid #52627a",
+                background: yellow ? "#FFD700" : "#172238",
+              }}
+            />
+          );
+        })}
       </section>
     </main>
   );
