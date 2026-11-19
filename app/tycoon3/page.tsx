@@ -56,7 +56,7 @@ const STAR_CRYSTAL_PATH = [
 
 const PROCESSING_FACTORIES = STRUCTURES.filter((item) => /^FACTORY ([2-9])$/.test(item.name));
 const ADVANCED_FACTORIES = STRUCTURES.filter((item) => {
-  const match = item.name.match(/^FACTORY (\\d+)$/);
+  const match = item.name.match(/^FACTORY (\d+)$/);
   return !!match && Number(match[1]) >= 10;
 });
 
@@ -81,7 +81,7 @@ const ADVANCED_RECIPES: AdvancedRecipe[] = [
   { factoryStart: 34, factoryEnd: 35, interval: 9, duration: 72, outputBank: "bank10", outputKind: "genesis", requirements: { bank9: 2, bank7: 2, bank3: 2 }, productName: "Genesis Core" },
 ];
 const getAdvancedRecipe = (factoryName: string) => {
-  const number = Number(factoryName.match(/^FACTORY (\\d+)$/)?.[1]);
+  const number = Number(factoryName.match(/^FACTORY (\d+)$/)?.[1]);
   return ADVANCED_RECIPES.find((recipe) => number >= recipe.factoryStart && number <= recipe.factoryEnd);
 };
 const BANK_DISPLAY: Record<string, { key: BankKey; label: string; symbol: string }> = {
@@ -145,7 +145,7 @@ function verticalPath(column: number, fromRow: number, toRow: number): MapPoint[
 
 function inputPathForAdvancedFactory(factoryName: string): MapPoint[] {
   const factory = STRUCTURES.find((item) => item.name === factoryName)!;
-  const number = Number(factoryName.match(/^FACTORY (\\d+)$/)?.[1]);
+  const number = Number(factoryName.match(/^FACTORY (\d+)$/)?.[1]);
   const section = EXTENDED_GEM_SECTIONS.find((item) => number >= item.factoryStart && number < item.factoryStart + item.factoryCount)!;
   const inputTrunk = section.start + 2;
   const path: MapPoint[] = [];
@@ -157,7 +157,7 @@ function inputPathForAdvancedFactory(factoryName: string): MapPoint[] {
 
 function outputPathForAdvancedFactory(factoryName: string): MapPoint[] {
   const factory = STRUCTURES.find((item) => item.name === factoryName)!;
-  const number = Number(factoryName.match(/^FACTORY (\\d+)$/)?.[1]);
+  const number = Number(factoryName.match(/^FACTORY (\d+)$/)?.[1]);
   const section = EXTENDED_GEM_SECTIONS.find((item) => number >= item.factoryStart && number < item.factoryStart + item.factoryCount)!;
   const outputTrunk = section.start + 12;
   const path: MapPoint[] = [];
@@ -638,7 +638,7 @@ export default function GemsTycoon3Page() {
                   aria-label={run?.active ? `${factory.name}, ${run.remaining} seconds remaining` : canStart ? `Start ${factory.name} for ${recipe?.duration} seconds` : `${factory.name} locked: insufficient resources`}
                   title={run?.active ? `${run.remaining}s remaining` : canStart ? `Start ${factory.name}` : `Requires ${required} in the input banks`}
                 >
-                  {run?.active ? `${run.remaining}s` : canStart ? "PLAY" : "NEED RESOURCES"}
+                  {run?.active ? `${run.remaining}s` : canStart ? "PLAY" : "NEED"}
                 </button>
               );
             })}
@@ -650,7 +650,21 @@ export default function GemsTycoon3Page() {
             </div>
             {game.materials.filter((material) => material.step >= 0).map((material) => {
               const position = material.path[Math.min(material.step, material.path.length - 1)];
-              const symbol = material.kind === "star-input" ? "✦" : material.kind === "nebulite-input" ? "◆" : material.kind === "nebulite" ? "◆" : "✧";
+              const symbolByKind: Record<MovingMaterial["kind"], string> = {
+                "star-input": "✦",
+                "nebulite-input": "◆",
+                "nebulite": "◆",
+                "sol": "✧",
+                "advanced-input": "✦",
+                "meteorite": "✹",
+                "eternyx": "❖",
+                "lunarium": "☾",
+                "voidstone": "⬟",
+                "prismora": "✺",
+                "divinestone": "✥",
+                "genesis": "✧",
+              };
+              const symbol = symbolByKind[material.kind];
               return (
                 <div
                   key={material.id}
@@ -901,6 +915,14 @@ export default function GemsTycoon3Page() {
         .tycoon3-material-nebulite-input,
         .tycoon3-material-nebulite { color: #c4b5fd; }
         .tycoon3-material-sol { color: #fde68a; }
+        .tycoon3-material-advanced-input { color: #e2e8f0; }
+        .tycoon3-material-meteorite { color: #fb923c; }
+        .tycoon3-material-eternyx { color: #f0abfc; }
+        .tycoon3-material-lunarium { color: #e0e7ff; }
+        .tycoon3-material-voidstone { color: #a78bfa; }
+        .tycoon3-material-prismora { color: #67e8f9; }
+        .tycoon3-material-divinestone { color: #fef3c7; }
+        .tycoon3-material-genesis { color: #86efac; }
         .tycoon3-star-crystal {
           z-index: 5;
           display: flex;
