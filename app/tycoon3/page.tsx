@@ -35,6 +35,55 @@ const STAR_CRYSTAL_PATH = [
   { column: 25, row: 13 },
 ];
 
+const PROCESSING_FACTORIES = STRUCTURES.filter((item) => item.name.startsWith("FACTORY ") && item.name !== "FACTORY 1");
+
+type MapPoint = { column: number; row: number };
+type MovingMaterial = { id: number; kind: "star-input" | "nebulite" | "nebulite-input" | "sol"; step: number; path: MapPoint[] };
+type FactoryRun = { remaining: number; active: boolean };
+type TycoonGameState = {
+  bank1: number;
+  bank2: number;
+  bank3: number;
+  runs: Record<string, FactoryRun>;
+  materials: MovingMaterial[];
+  nextMaterialId: number;
+};
+
+function verticalPath(column: number, fromRow: number, toRow: number): MapPoint[] {
+  const direction = toRow >= fromRow ? 1 : -1;
+  return Array.from({ length: Math.abs(toRow - fromRow) + 1 }, (_, index) => ({
+    column,
+    row: fromRow + index * direction,
+  }));
+}
+
+function inputPathForFactory(factoryName: string): MapPoint[] {
+  const factory = PROCESSING_FACTORIES.find((item) => item.name === factoryName)!;
+  const row = factory.centerRow;
+  const isNebuliteInput = factory.centerColumn === 38;
+  const trunkColumn = isNebuliteInput ? 33 : 53;
+  const branchStart = isNebuliteInput ? 34 : 54;
+  const path: MapPoint[] = [];
+  for (let column = isNebuliteInput ? 29 : 49; column <= trunkColumn; column++) path.push({ column, row: 13 });
+  path.push(...verticalPath(trunkColumn, 13, row).slice(1));
+  for (let column = branchStart; column <= branchStart + 2; column++) path.push({ column, row });
+  return path;
+}
+
+function outputPathForFactory(factoryName: string): MapPoint[] {
+  const factory = PROCESSING_FACTORIES.find((item) => item.name === factoryName)!;
+  const row = factory.centerRow;
+  const isNebuliteOutput = factory.centerColumn === 38;
+  const branchStart = isNebuliteOutput ? 40 : 60;
+  const trunkColumn = isNebuliteOutput ? 43 : 63;
+  const bankApproach = isNebuliteOutput ? 44 : 64;
+  const path: MapPoint[] = [];
+  for (let column = branchStart; column <= trunkColumn; column++) path.push({ column, row });
+  path.push(...verticalPath(trunkColumn, row, 13).slice(1));
+  path.push({ column: bankApproach, row: 13 }, { column: bankApproach + 1, row: 13 });
+  return path;
+}
+
 const CONVEYOR_CELLS = new Set([
   // Factory 1 route toward Bank 1
   "29,13", "30,13",
@@ -94,8 +143,15 @@ export default function GemsTycoon3Page() {
   const [isFactoryRunning, setIsFactoryRunning] = useState(false);
   const [remainingSeconds, setRemainingSeconds] = useState(60);
   const [starCrystals, setStarCrystals] = useState<{ id: number; step: number }[]>([]);
-  const [bankedStarCrystals, setBankedStarCrystals] = useState(0);
   const nextCrystalId = useRef(0);
+  const [game, setGame] = useState<TycoonGameState>({
+    bank1: 0,
+    bank2: 0,
+    bank3: 0,
+    runs: {},
+    materials: [],
+    nextMaterialId: 0,
+  });
 
   useEffect(() => {
     if (!isFactoryRunning) return;
@@ -128,7 +184,7 @@ export default function GemsTycoon3Page() {
   useEffect(() => {
     const delivered = starCrystals.filter((crystal) => crystal.step >= STAR_CRYSTAL_PATH.length);
     if (delivered.length === 0) return;
-    setBankedStarCrystals((count) => count + delivered.length);
+    setGame((current) => ({ ...current, bank1: current.bank1 + delivered.length }));
     setStarCrystals((current) =>
       current.filter((crystal) => crystal.step < STAR_CRYSTAL_PATH.length)
     );
@@ -138,6 +194,92 @@ export default function GemsTycoon3Page() {
     if (remainingSeconds === 0) setRemainingSeconds(60);
     setIsFactoryRunning(true);
   };
+
+  const startProcessingFactory = (factoryName: string) => {
+    const factory = PROCESSING_FACTORIES.find((item) => item.name === factoryName);
+    if (!factory) return;
+    setGame((current) => {
+      const requiredStock = factory.centerColumn === 38 ? current.bank1 : current.bank2;
+      if (requiredStock < 2 || current.runs[factoryName]?.active) return current;
+      return {
+        ...current,
+        runs: { ...current.runs, [factoryName]: { remaining: 60, active: true } },
+      };
+    });
+  };
+
+  const anyProcessingFactoryRunning = Object.values(game.runs).some((run) => run.active);
+
+  useEffect(() => {
+    if (!anyProcessingFactoryRunning) return;
+    const timer = window.setInterval(() => {
+      setGame((current) => {
+        const next = { ...current, runs: { ...current.runs }, materials: [...current.materials] };
+        for (const factory of PROCESSING_FACTORIES) {
+          const run = next.runs[factory.name];
+          if (!run?.active) continue;
+          const isNebuliteFactory = factory.centerColumn === 38;
+          const bankKey = isNebuliteFactory ? "bank1" : "bank2";
+          if (next[bankKey] < 2) {
+            next.runs[factory.name] = { ...run, active: false };
+            continue;
+          }
+          next[bankKey] -= 2;
+          const inputPath = inputPathForFactory(factory.name);
+          const outputPath = outputPathForFactory(factory.name);
+          const inputKind = isNebuliteFactory ? "star-input" : "nebulite-input";
+          const outputKind = isNebuliteFactory ? "nebulite" : "sol";
+          for (let index = 0; index < 2; index++) {
+            next.materials.push({
+              id: ++next.nextMaterialId,
+              kind: inputKind,
+              step: 0,
+              path: inputPath,
+            });
+          }
+          next.materials.push({
+            id: ++next.nextMaterialId,
+            kind: outputKind,
+            step: 0,
+            path: outputPath,
+          });
+          const remaining = Math.max(0, run.remaining - 1);
+          next.runs[factory.name] = { remaining, active: remaining > 0 };
+        }
+        return next;
+      });
+    }, 1000);
+    return () => window.clearInterval(timer);
+  }, [anyProcessingFactoryRunning]);
+
+  const hasMovingMaterials = game.materials.length > 0;
+  useEffect(() => {
+    if (!hasMovingMaterials) return;
+    const conveyor = window.setInterval(() => {
+      setGame((current) => {
+        let bank2Delivered = 0;
+        let bank3Delivered = 0;
+        const moving = current.materials
+          .map((material) => ({ ...material, step: material.step + 1 }))
+          .filter((material) => {
+            if (material.step < material.path.length) return true;
+            if (material.kind === "nebulite") bank2Delivered++;
+            if (material.kind === "sol") bank3Delivered++;
+            return false;
+          });
+        if (moving.length === current.materials.length && bank2Delivered === 0 && bank3Delivered === 0) {
+          return { ...current, materials: moving };
+        }
+        return {
+          ...current,
+          materials: moving,
+          bank2: current.bank2 + bank2Delivered,
+          bank3: current.bank3 + bank3Delivered,
+        };
+      });
+    }, 300);
+    return () => window.clearInterval(conveyor);
+  }, [hasMovingMaterials]);
 
   const formattedTime = `00:${String(Math.floor(remainingSeconds / 60)).padStart(2, "0")}:${String(remainingSeconds % 60).padStart(2, "0")}`;
 
@@ -191,7 +333,9 @@ export default function GemsTycoon3Page() {
                   {isStructureCenter && (
                     <span className="tycoon3-structure-label">
                       {structure.name}
-                      {structure.name === "BANK" && <small className="tycoon3-bank-count">✦ {bankedStarCrystals} STORED</small>}
+                      {structure.name === "BANK" && <small className="tycoon3-bank-count">✦ {game.bank1} STAR</small>}
+                      {structure.name === "BANK 2" && <small className="tycoon3-bank-count">◆ {game.bank2} NEBULITE</small>}
+                      {structure.name === "BANK 3" && <small className="tycoon3-bank-count">✧ {game.bank3} SOL</small>}
                     </span>
                   )}
                 </div>
@@ -208,12 +352,45 @@ export default function GemsTycoon3Page() {
             >
               PLAY
             </button>
+            {PROCESSING_FACTORIES.map((factory) => {
+              const run = game.runs[factory.name];
+              const buttonRow = factory.name === "FACTORY 8" ? 12 : factory.centerRow - 2;
+              const buttonColumn = factory.centerColumn;
+              return (
+                <button
+                  key={factory.name}
+                  type="button"
+                  className="tycoon3-play-button tycoon3-processing-button"
+                  style={{ gridColumn: buttonColumn, gridRow: buttonRow }}
+                  onClick={() => startProcessingFactory(factory.name)}
+                  disabled={!!run?.active || (factory.centerColumn === 38 ? game.bank1 < 2 : game.bank2 < 2)}
+                  aria-label={`Start ${factory.name} for 60 seconds`}
+                  title={run?.active ? `${run.remaining}s remaining` : `Start ${factory.name}`}
+                >
+                  {run?.active ? `${run.remaining}s` : "PLAY"}
+                </button>
+              );
+            })}
             <div className="tycoon3-level-label" style={{ gridColumn: "16 / span 2", gridRow: 12 }}>
               LVL 1
             </div>
             <div className="tycoon3-time-display" style={{ gridColumn: "18 / span 3", gridRow: 14 }}>
               {formattedTime}
             </div>
+            {game.materials.map((material) => {
+              const position = material.path[Math.min(material.step, material.path.length - 1)];
+              const symbol = material.kind === "star-input" ? "✦" : material.kind === "nebulite-input" ? "◆" : material.kind === "nebulite" ? "◆" : "✧";
+              return (
+                <div
+                  key={material.id}
+                  className={`tycoon3-moving-material tycoon3-material-${material.kind}`}
+                  style={{ gridColumn: position.column, gridRow: position.row }}
+                  aria-label={`${material.kind} moving on conveyor`}
+                >
+                  {symbol}
+                </div>
+              );
+            })}
             {starCrystals.map((crystal) => {
               const position = STAR_CRYSTAL_PATH[Math.min(crystal.step, STAR_CRYSTAL_PATH.length - 1)];
               return (
@@ -351,6 +528,7 @@ export default function GemsTycoon3Page() {
         }
         .tycoon3-play-button:hover { filter: brightness(1.12); }
         .tycoon3-play-button:disabled { opacity: .55; cursor: default; }
+        .tycoon3-processing-button { z-index: 8; }
         .tycoon3-level-label,
         .tycoon3-time-display {
           z-index: 4;
@@ -376,6 +554,21 @@ export default function GemsTycoon3Page() {
           font-variant-numeric: tabular-nums;
           letter-spacing: .04em;
         }
+        .tycoon3-moving-material {
+          z-index: 6;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: clamp(12px, 1.2vw, 19px);
+          font-weight: 900;
+          pointer-events: none;
+          text-shadow: 0 0 5px #fff, 0 0 9px currentColor;
+          animation: tycoon3-crystal-pulse .6s ease-in-out infinite alternate;
+        }
+        .tycoon3-material-star-input { color: #bae6fd; }
+        .tycoon3-material-nebulite-input,
+        .tycoon3-material-nebulite { color: #c4b5fd; }
+        .tycoon3-material-sol { color: #fde68a; }
         .tycoon3-star-crystal {
           z-index: 5;
           display: flex;
