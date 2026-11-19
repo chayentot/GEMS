@@ -273,8 +273,16 @@ export default function GemsTycoon3Page() {
           line-height: 1.1;
         }
         .tycoon3-play-button {
+          box-sizing: border-box;
+          width: calc(100% - 6px);
+          height: calc(100% - 6px);
           min-width: 0;
           min-height: 0;
+          max-width: 100%;
+          max-height: 100%;
+          align-self: stretch;
+          justify-self: stretch;
+          padding: 0;
           margin: 3px;
           border: 2px solid #86efac;
           border-radius: 6px;
