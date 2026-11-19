@@ -38,7 +38,7 @@ export default function Dashboard(){
   return ()=>{active=false;if(channel)void sb.removeChannel(channel);};
  },[]);
  return <main className="shell">
-  <header className="topbar"><Link href="/" className="brand">💎 GEMS MINING</Link><nav className="row"><Link href="/dashboard/" aria-current="page">Dashboard</Link><Link href="/mining/">Mining</Link><Link href="/tycoon/">Gems Tycoon</Link><Link href="/referral/">Referral</Link><Link href="/market/">Market</Link><ProfileMenu /></nav></header>
+  <header className="topbar"><Link href="/" className="brand">💎 GEMS MINING</Link><nav className="row"><Link href="/dashboard/" aria-current="page">Dashboard</Link><Link href="/mining/">Mining</Link><Link href="/tycoon/">Gems Tycoon</Link><Link href="/tycoon2/">Gems Tycoon</Link><Link href="/referral/">Referral</Link><Link href="/market/">Market</Link><ProfileMenu /></nav></header>
   <div className="row"><div><h1>My Dashboard</h1><p className="muted">Your wallet and gemstone collection at a glance.</p></div><Link href="/mining/"><button>Go to Mining</button></Link></div>
   {status&&<div className="notice">{status}</div>}
   <section className="grid section">
