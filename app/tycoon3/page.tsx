@@ -4,7 +4,9 @@ import Link from "next/link";
 import ProfileMenu from "@/components/profile-menu";
 
 const MAP_ROWS = 24;
-const START_COLUMNS = 24;
+const FIRST_SECTION_COLUMNS = 15;
+const SECOND_SECTION_COLUMNS = 20;
+const TOTAL_COLUMNS = FIRST_SECTION_COLUMNS + SECOND_SECTION_COLUMNS;
 
 export default function GemsTycoon3Page() {
   return (
@@ -26,14 +28,17 @@ export default function GemsTycoon3Page() {
       <div className="tycoon3-map-space">
         <section className="tycoon3-map-section" aria-label="3rd Map grid">
           <div className="tycoon3-grid">
-            {Array.from({ length: START_COLUMNS }, (_, colIndex) =>
-              Array.from({ length: MAP_ROWS }, (_, rowIndex) => (
-                <div className="tycoon3-cell" key={`${colIndex + 1}-${rowIndex + 1}`} title={`Column ${colIndex + 1}, Row ${rowIndex + 1}`}>
-                  <span>C{colIndex + 1}</span>
-                  <span>R{rowIndex + 1}</span>
-                </div>
-              ))
-            )}
+            {Array.from({ length: TOTAL_COLUMNS * MAP_ROWS }, (_, index) => {
+              const column = Math.floor(index / MAP_ROWS);
+              const isSectionDivider = column === FIRST_SECTION_COLUMNS - 1;
+              return (
+                <div
+                  className={isSectionDivider ? "tycoon3-cell tycoon3-section-divider" : "tycoon3-cell"}
+                  key={index}
+                  aria-label={`Column ${column + 1}, Row ${(index % MAP_ROWS) + 1}`}
+                />
+              );
+            })}
           </div>
         </section>
       </div>
@@ -94,21 +99,16 @@ export default function GemsTycoon3Page() {
         .tycoon3-cell {
           min-width: 0;
           min-height: 0;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-          gap: 1px;
           border-right: 1px solid #64748b88;
           border-bottom: 1px solid #64748b88;
           background: #15223855;
-          color: #9fb0c8;
-          font-size: clamp(7px, .65vw, 10px);
-          line-height: 1.1;
           user-select: none;
         }
         .tycoon3-cell:nth-child(24n + 1) {
           border-top: 1px solid #64748b88;
+        }
+        .tycoon3-section-divider {
+          border-right: 4px solid #facc15;
         }
         .tycoon-map-footer {
           position: fixed;
@@ -151,7 +151,6 @@ export default function GemsTycoon3Page() {
           }
           .tycoon3-topbar { top: 8px; width: calc(100% - 20px); }
           .tycoon3-grid { grid-auto-columns: calc((100dvh - 272px) / 24); }
-          .tycoon3-cell { font-size: 7px; }
           .tycoon-map-footer {
             bottom: 8px;
             width: calc(100% - 20px);
