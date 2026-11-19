@@ -32,7 +32,13 @@ export default function GemsTycoon3Page() {
           <div className="tycoon3-grid">
             {Array.from({ length: TOTAL_COLUMNS * MAP_ROWS }, (_, index) => {
               const column = Math.floor(index / MAP_ROWS);
-              const isSectionDivider = column === FIRST_SECTION_COLUMNS - 1;
+              const isYellowDivider = column === FIRST_SECTION_COLUMNS - 1;
+
+              const isRedDivider =
+  column === FIRST_SECTION_COLUMNS + SECOND_SECTION_COLUMNS - 1;
+
+const isGreenDivider =
+  column === FIRST_SECTION_COLUMNS + SECOND_SECTION_COLUMNS + THIRD_SECTION_COLUMNS - 1;
               return (
                 <div
                   className={isSectionDivider ? "tycoon3-cell tycoon3-section-divider" : "tycoon3-cell"}
