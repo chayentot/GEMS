@@ -195,12 +195,18 @@ export default function GemsTycoon3Page() {
     setIsFactoryRunning(true);
   };
 
-  const startProcessingFactory = (factoryName: string) => {
+  const canStartProcessingFactory = (factoryName: string, state: TycoonGameState = game) => {
     const factory = PROCESSING_FACTORIES.find((item) => item.name === factoryName);
-    if (!factory) return;
+    if (!factory || state.runs[factoryName]?.active) return false;
+    const availableResources = factory.centerColumn === 38 ? state.bank1 : state.bank2;
+    return availableResources >= 2;
+  };
+
+  const startProcessingFactory = (factoryName: string) => {
+    // Re-check the bank balance inside the state update so a stale button
+    // render or another running factory cannot start production without inputs.
     setGame((current) => {
-      const requiredStock = factory.centerColumn === 38 ? current.bank1 : current.bank2;
-      if (requiredStock < 2 || current.runs[factoryName]?.active) return current;
+      if (!canStartProcessingFactory(factoryName, current)) return current;
       return {
         ...current,
         runs: { ...current.runs, [factoryName]: { remaining: 60, active: true } },
@@ -354,20 +360,22 @@ export default function GemsTycoon3Page() {
             </button>
             {PROCESSING_FACTORIES.map((factory) => {
               const run = game.runs[factory.name];
+              const canStart = canStartProcessingFactory(factory.name);
               const buttonRow = factory.name === "FACTORY 8" ? 12 : factory.centerRow - 2;
               const buttonColumn = factory.centerColumn;
               return (
                 <button
                   key={factory.name}
                   type="button"
-                  className="tycoon3-play-button tycoon3-processing-button"
+                  className={`tycoon3-play-button tycoon3-processing-button ${!canStart && !run?.active ? "tycoon3-play-locked" : ""}`}
                   style={{ gridColumn: buttonColumn, gridRow: buttonRow }}
                   onClick={() => startProcessingFactory(factory.name)}
-                  disabled={!!run?.active || (factory.centerColumn === 38 ? game.bank1 < 2 : game.bank2 < 2)}
-                  aria-label={`Start ${factory.name} for 60 seconds`}
-                  title={run?.active ? `${run.remaining}s remaining` : `Start ${factory.name}`}
+                  disabled={!canStart}
+                  aria-disabled={!canStart}
+                  aria-label={run?.active ? `${factory.name}, ${run.remaining} seconds remaining` : canStart ? `Start ${factory.name} for 60 seconds` : `${factory.name} locked: requires 2 resources in its input bank`}
+                  title={run?.active ? `${run.remaining}s remaining` : canStart ? `Start ${factory.name}` : `Requires 2 ${factory.centerColumn === 38 ? "Star Crystals in Bank 1" : "Nebulite Stones in Bank 2"}`}
                 >
-                  {run?.active ? `${run.remaining}s` : "PLAY"}
+                  {run?.active ? `${run.remaining}s` : canStart ? "PLAY" : "NEED 2"}
                 </button>
               );
             })}
@@ -527,8 +535,14 @@ export default function GemsTycoon3Page() {
           cursor: pointer;
         }
         .tycoon3-play-button:hover { filter: brightness(1.12); }
-        .tycoon3-play-button:disabled { opacity: .55; cursor: default; }
+        .tycoon3-play-button:disabled { opacity: .55; cursor: not-allowed; }
         .tycoon3-processing-button { z-index: 8; }
+        .tycoon3-processing-button.tycoon3-play-locked {
+          color: #cbd5e1;
+          border-color: #64748b;
+          background: linear-gradient(145deg, #475569, #1e293b);
+          box-shadow: inset 0 1px 2px #fff2;
+        }
         .tycoon3-level-label,
         .tycoon3-time-display {
           z-index: 4;
