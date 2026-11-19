@@ -102,7 +102,7 @@ export default function GemsTycoonCopyPage() {
         return {
           factory1Rubellite: Math.max(0, previous.factory1Rubellite - (previous.factory1Rubellite > 0 ? 1 : 0)),
           factory2Rubellite: factory2RubelliteAfterProcess,
-          factory2Aquarion,
+          factory2Aquarion: factory2Aquarion + (factory2CanProcess ? 1 : 0),
           factory3Aquarion: factory3CanProcess ? factory3Aquarion - 2 : factory3Aquarion,
           factory3Verdium: previous.factory3Verdium + (factory3CanProcess ? 1 : 0),
           rubelliteRow5: previous.factory1Rubellite > 0 ? 1 : 0,
