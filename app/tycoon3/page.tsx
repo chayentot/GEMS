@@ -52,26 +52,26 @@ export default function GemsTycoon3Page() {
         ...current,
         { id: ++nextCrystalId.current, step: 0 },
       ]);
-      setRemainingSeconds((current) => {
-        if (current <= 1) {
-          setIsFactoryRunning(false);
-          return 0;
-        }
-        return current - 1;
-      });
+      setRemainingSeconds((current) => Math.max(0, current - 1));
     }, 1000);
     return () => window.clearInterval(timer);
   }, [isFactoryRunning]);
 
   useEffect(() => {
-    if (starCrystals.length === 0) return;
+    if (remainingSeconds === 0) setIsFactoryRunning(false);
+  }, [remainingSeconds]);
+
+  const hasCrystalsOnConveyor = starCrystals.length > 0;
+
+  useEffect(() => {
+    if (!hasCrystalsOnConveyor) return;
     const conveyor = window.setInterval(() => {
       setStarCrystals((current) =>
         current.map((crystal) => ({ ...crystal, step: crystal.step + 1 }))
       );
     }, 300);
     return () => window.clearInterval(conveyor);
-  }, [starCrystals.length > 0]);
+  }, [hasCrystalsOnConveyor]);
 
   useEffect(() => {
     const delivered = starCrystals.filter((crystal) => crystal.step >= STAR_CRYSTAL_PATH.length);
