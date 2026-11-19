@@ -133,7 +133,7 @@ export default function GemsTycoonCopyPage() {
           <Link href="/dashboard/">Dashboard</Link>
           <Link href="/mining/">Mining</Link>
           <Link href="/tycoon/">Gems Tycoon</Link>
-          <Link href="/tycoon2/" aria-current="page">Gems Tycoon</Link>
+          <Link href="/tycoon2/" aria-current="page">Gems Tycoon 2</Link><Link href="/tycoon3/">Gems Tycoon 3</Link>
           <Link href="/referral/">Referral</Link>
           <Link href="/market/">Market</Link>
           <ProfileMenu />
