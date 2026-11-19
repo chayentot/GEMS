@@ -55,27 +55,81 @@ const STAR_CRYSTAL_PATH = [
 ];
 
 const PROCESSING_FACTORIES = STRUCTURES.filter((item) => /^FACTORY ([2-9])$/.test(item.name));
+const ADVANCED_FACTORIES = STRUCTURES.filter((item) => {
+  const match = item.name.match(/^FACTORY (\\d+)$/);
+  return !!match && Number(match[1]) >= 10;
+});
+
+type BankKey = "bank1" | "bank2" | "bank3" | "bank4" | "bank5" | "bank6" | "bank7" | "bank8" | "bank9" | "bank10";
+type AdvancedRecipe = {
+  factoryStart: number;
+  factoryEnd: number;
+  interval: number;
+  duration: number;
+  outputBank: BankKey;
+  outputKind: "meteorite" | "eternyx" | "lunarium" | "voidstone" | "prismora" | "divinestone" | "genesis";
+  requirements: Partial<Record<BankKey, number>>;
+  productName: string;
+};
+const ADVANCED_RECIPES: AdvancedRecipe[] = [
+  { factoryStart: 10, factoryEnd: 13, interval: 3, duration: 60, outputBank: "bank4", outputKind: "meteorite", requirements: { bank1: 2, bank3: 2 }, productName: "Meteorite Gem" },
+  { factoryStart: 14, factoryEnd: 17, interval: 4, duration: 60, outputBank: "bank5", outputKind: "eternyx", requirements: { bank2: 2, bank4: 2 }, productName: "Eternyx" },
+  { factoryStart: 18, factoryEnd: 21, interval: 5, duration: 60, outputBank: "bank6", outputKind: "lunarium", requirements: { bank3: 2, bank5: 2 }, productName: "Lunarium" },
+  { factoryStart: 22, factoryEnd: 25, interval: 6, duration: 60, outputBank: "bank7", outputKind: "voidstone", requirements: { bank4: 2, bank6: 2 }, productName: "Voidstone" },
+  { factoryStart: 26, factoryEnd: 29, interval: 7, duration: 56, outputBank: "bank8", outputKind: "prismora", requirements: { bank5: 2, bank7: 2 }, productName: "Prismora" },
+  { factoryStart: 30, factoryEnd: 33, interval: 8, duration: 64, outputBank: "bank9", outputKind: "divinestone", requirements: { bank6: 2, bank8: 2 }, productName: "Divinestone" },
+  { factoryStart: 34, factoryEnd: 35, interval: 9, duration: 72, outputBank: "bank10", outputKind: "genesis", requirements: { bank9: 2, bank7: 2, bank3: 2 }, productName: "Genesis Core" },
+];
+const getAdvancedRecipe = (factoryName: string) => {
+  const number = Number(factoryName.match(/^FACTORY (\\d+)$/)?.[1]);
+  return ADVANCED_RECIPES.find((recipe) => number >= recipe.factoryStart && number <= recipe.factoryEnd);
+};
+const BANK_DISPLAY: Record<string, { key: BankKey; label: string; symbol: string }> = {
+  BANK: { key: "bank1", label: "STAR", symbol: "✦" },
+  "BANK 2": { key: "bank2", label: "NEBULITE", symbol: "◆" },
+  "BANK 3": { key: "bank3", label: "SOL", symbol: "✧" },
+  "BANK 4": { key: "bank4", label: "METEORITE", symbol: "✹" },
+  "BANK 5": { key: "bank5", label: "ETERNYX", symbol: "❖" },
+  "BANK 6": { key: "bank6", label: "LUNARIUM", symbol: "☾" },
+  "BANK 7": { key: "bank7", label: "VOIDSTONE", symbol: "⬟" },
+  "BANK 8": { key: "bank8", label: "PRISMORA", symbol: "✺" },
+  "BANK 9": { key: "bank9", label: "DIVINE", symbol: "✥" },
+  "BANK 10": { key: "bank10", label: "GENESIS", symbol: "✧" },
+};
 
 const GEMSTONE_LOGOS = [
   { name: "Star Crystal", symbol: "✦", centerColumn: 3, centerRow: 7, tone: "star", amountKey: "bank1" },
   { name: "Nebulite", symbol: "◆", centerColumn: 11, centerRow: 7, tone: "nebulite", amountKey: "bank2" },
   { name: "Sol Crystal", symbol: "✧", centerColumn: 3, centerRow: 11, tone: "sol", amountKey: "bank3" },
-  { name: "Meteorite Gem", symbol: "✹", centerColumn: 11, centerRow: 11, tone: "meteorite", amountKey: "none" },
-  { name: "Eternyx", symbol: "❖", centerColumn: 3, centerRow: 15, tone: "eternyx", amountKey: "none" },
-  { name: "Lunarium", symbol: "☾", centerColumn: 11, centerRow: 15, tone: "lunarium", amountKey: "none" },
-  { name: "Voidstone", symbol: "⬟", centerColumn: 3, centerRow: 19, tone: "voidstone", amountKey: "none" },
-  { name: "Prismora", symbol: "✺", centerColumn: 11, centerRow: 19, tone: "prismora", amountKey: "none" },
-  { name: "Divinestone", symbol: "✥", centerColumn: 3, centerRow: 23, tone: "divinestone", amountKey: "none" },
-  { name: "Genesis Core", symbol: "✧", centerColumn: 11, centerRow: 23, tone: "genesis", amountKey: "none" },
+  { name: "Meteorite Gem", symbol: "✹", centerColumn: 11, centerRow: 11, tone: "meteorite", amountKey: "bank4" },
+  { name: "Eternyx", symbol: "❖", centerColumn: 3, centerRow: 15, tone: "eternyx", amountKey: "bank5" },
+  { name: "Lunarium", symbol: "☾", centerColumn: 11, centerRow: 15, tone: "lunarium", amountKey: "bank6" },
+  { name: "Voidstone", symbol: "⬟", centerColumn: 3, centerRow: 19, tone: "voidstone", amountKey: "bank7" },
+  { name: "Prismora", symbol: "✺", centerColumn: 11, centerRow: 19, tone: "prismora", amountKey: "bank8" },
+  { name: "Divinestone", symbol: "✥", centerColumn: 3, centerRow: 23, tone: "divinestone", amountKey: "bank9" },
+  { name: "Genesis Core", symbol: "✧", centerColumn: 11, centerRow: 23, tone: "genesis", amountKey: "bank10" },
 ];
 
 type MapPoint = { column: number; row: number };
-type MovingMaterial = { id: number; kind: "star-input" | "nebulite" | "nebulite-input" | "sol"; step: number; path: MapPoint[] };
-type FactoryRun = { remaining: number; active: boolean };
+type MovingMaterial = {
+  id: number;
+  kind: "star-input" | "nebulite" | "nebulite-input" | "sol" | "advanced-input" | "meteorite" | "eternyx" | "lunarium" | "voidstone" | "prismora" | "divinestone" | "genesis";
+  step: number;
+  path: MapPoint[];
+  targetBank?: BankKey;
+};
+type FactoryRun = { remaining: number; active: boolean; elapsed?: number };
 type TycoonGameState = {
   bank1: number;
   bank2: number;
   bank3: number;
+  bank4: number;
+  bank5: number;
+  bank6: number;
+  bank7: number;
+  bank8: number;
+  bank9: number;
+  bank10: number;
   runs: Record<string, FactoryRun>;
   materials: MovingMaterial[];
   nextMaterialId: number;
@@ -87,6 +141,30 @@ function verticalPath(column: number, fromRow: number, toRow: number): MapPoint[
     column,
     row: fromRow + index * direction,
   }));
+}
+
+function inputPathForAdvancedFactory(factoryName: string): MapPoint[] {
+  const factory = STRUCTURES.find((item) => item.name === factoryName)!;
+  const number = Number(factoryName.match(/^FACTORY (\\d+)$/)?.[1]);
+  const section = EXTENDED_GEM_SECTIONS.find((item) => number >= item.factoryStart && number < item.factoryStart + item.factoryCount)!;
+  const inputTrunk = section.start + 2;
+  const path: MapPoint[] = [];
+  for (let column = section.start - 4; column <= inputTrunk; column++) path.push({ column, row: 13 });
+  path.push(...verticalPath(inputTrunk, 13, factory.centerRow).slice(1));
+  for (let column = section.start + 3; column <= section.start + 6; column++) path.push({ column, row: factory.centerRow });
+  return path;
+}
+
+function outputPathForAdvancedFactory(factoryName: string): MapPoint[] {
+  const factory = STRUCTURES.find((item) => item.name === factoryName)!;
+  const number = Number(factoryName.match(/^FACTORY (\\d+)$/)?.[1]);
+  const section = EXTENDED_GEM_SECTIONS.find((item) => number >= item.factoryStart && number < item.factoryStart + item.factoryCount)!;
+  const outputTrunk = section.start + 12;
+  const path: MapPoint[] = [];
+  for (let column = section.start + 9; column <= outputTrunk; column++) path.push({ column, row: factory.centerRow });
+  path.push(...verticalPath(outputTrunk, factory.centerRow, 13).slice(1));
+  for (let column = section.start + 13; column <= section.start + 15; column++) path.push({ column, row: 13 });
+  return path;
 }
 
 function inputPathForFactory(factoryName: string): MapPoint[] {
@@ -206,6 +284,13 @@ export default function GemsTycoon3Page() {
     bank1: 0,
     bank2: 0,
     bank3: 0,
+    bank4: 0,
+    bank5: 0,
+    bank6: 0,
+    bank7: 0,
+    bank8: 0,
+    bank9: 0,
+    bank10: 0,
     runs: {},
     materials: [],
     nextMaterialId: 0,
@@ -253,6 +338,32 @@ export default function GemsTycoon3Page() {
     setIsFactoryRunning(true);
   };
 
+  const canStartAdvancedFactory = (factoryName: string, state: TycoonGameState = game) => {
+    const recipe = getAdvancedRecipe(factoryName);
+    if (!recipe || state.runs[factoryName]?.active) return false;
+    const outputsPerRun = recipe.duration / recipe.interval;
+    return Object.entries(recipe.requirements).every(([bank, perOutput]) =>
+      state[bank as BankKey] >= (perOutput ?? 0) * outputsPerRun
+    );
+  };
+
+  const startAdvancedFactory = (factoryName: string) => {
+    setGame((current) => {
+      const recipe = getAdvancedRecipe(factoryName);
+      if (!recipe || !canStartAdvancedFactory(factoryName, current)) return current;
+      const outputsPerRun = recipe.duration / recipe.interval;
+      const updatedBanks = { ...current };
+      for (const [bank, perOutput] of Object.entries(recipe.requirements)) {
+        const key = bank as BankKey;
+        updatedBanks[key] = current[key] - (perOutput ?? 0) * outputsPerRun;
+      }
+      return {
+        ...updatedBanks,
+        runs: { ...current.runs, [factoryName]: { remaining: recipe.duration, elapsed: 0, active: true } },
+      };
+    });
+  };
+
   const canStartProcessingFactory = (factoryName: string, state: TycoonGameState = game) => {
     const factory = PROCESSING_FACTORIES.find((item) => item.name === factoryName);
     if (!factory || state.runs[factoryName]?.active) return false;
@@ -276,7 +387,8 @@ export default function GemsTycoon3Page() {
     });
   };
 
-  const anyProcessingFactoryRunning = Object.values(game.runs).some((run) => run.active);
+  const anyProcessingFactoryRunning = PROCESSING_FACTORIES.some((factory) => game.runs[factory.name]?.active);
+  const anyAdvancedFactoryRunning = ADVANCED_FACTORIES.some((factory) => game.runs[factory.name]?.active);
 
   useEffect(() => {
     if (!anyProcessingFactoryRunning) return;
@@ -314,6 +426,45 @@ export default function GemsTycoon3Page() {
     return () => window.clearInterval(timer);
   }, [anyProcessingFactoryRunning]);
 
+  useEffect(() => {
+    if (!anyAdvancedFactoryRunning) return;
+    const timer = window.setInterval(() => {
+      setGame((current) => {
+        const next = { ...current, runs: { ...current.runs }, materials: [...current.materials] };
+        for (const factory of ADVANCED_FACTORIES) {
+          const run = next.runs[factory.name];
+          const recipe = getAdvancedRecipe(factory.name);
+          if (!run?.active || !recipe) continue;
+          const elapsed = (run.elapsed ?? 0) + 1;
+          const remaining = Math.max(0, recipe.duration - elapsed);
+          if (elapsed % recipe.interval === 0) {
+            const inputPath = inputPathForAdvancedFactory(factory.name);
+            const outputPath = outputPathForAdvancedFactory(factory.name);
+            const inputCount = Object.values(recipe.requirements).reduce((sum, amount) => sum + (amount ?? 0), 0);
+            for (let index = 0; index < inputCount; index++) {
+              next.materials.push({
+                id: ++next.nextMaterialId,
+                kind: "advanced-input",
+                step: 0,
+                path: inputPath,
+              });
+            }
+            next.materials.push({
+              id: ++next.nextMaterialId,
+              kind: recipe.outputKind,
+              step: -inputPath.length,
+              path: outputPath,
+              targetBank: recipe.outputBank,
+            });
+          }
+          next.runs[factory.name] = { remaining, elapsed, active: remaining > 0 };
+        }
+        return next;
+      });
+    }, 1000);
+    return () => window.clearInterval(timer);
+  }, [anyAdvancedFactoryRunning]);
+
   const hasMovingMaterials = game.materials.length > 0;
   useEffect(() => {
     if (!hasMovingMaterials) return;
@@ -321,19 +472,27 @@ export default function GemsTycoon3Page() {
       setGame((current) => {
         let bank2Delivered = 0;
         let bank3Delivered = 0;
+        const advancedDelivered: Partial<Record<BankKey, number>> = {};
         const moving = current.materials
           .map((material) => ({ ...material, step: material.step + 1 }))
           .filter((material) => {
             if (material.step < material.path.length) return true;
             if (material.kind === "nebulite") bank2Delivered++;
             if (material.kind === "sol") bank3Delivered++;
+            if (material.targetBank) advancedDelivered[material.targetBank] = (advancedDelivered[material.targetBank] ?? 0) + 1;
             return false;
           });
-        if (moving.length === current.materials.length && bank2Delivered === 0 && bank3Delivered === 0) {
+        if (moving.length === current.materials.length && bank2Delivered === 0 && bank3Delivered === 0 && Object.keys(advancedDelivered).length === 0) {
           return { ...current, materials: moving };
+        }
+        const bankUpdates: Partial<Record<BankKey, number>> = {};
+        for (const [bank, count] of Object.entries(advancedDelivered)) {
+          const key = bank as BankKey;
+          bankUpdates[key] = current[key] + (count ?? 0);
         }
         return {
           ...current,
+          ...bankUpdates,
           materials: moving,
           bank2: current.bank2 + bank2Delivered,
           bank3: current.bank3 + bank3Delivered,
@@ -393,9 +552,11 @@ export default function GemsTycoon3Page() {
                   {isStructureCenter && (
                     <span className="tycoon3-structure-label">
                       {structure.name}
-                      {structure.name === "BANK" && <small className="tycoon3-bank-count">✦ {game.bank1} STAR</small>}
-                      {structure.name === "BANK 2" && <small className="tycoon3-bank-count">◆ {game.bank2} NEBULITE</small>}
-                      {structure.name === "BANK 3" && <small className="tycoon3-bank-count">✧ {game.bank3} SOL</small>}
+                      {BANK_DISPLAY[structure.name] && (
+                        <small className="tycoon3-bank-count">
+                          {BANK_DISPLAY[structure.name].symbol} {game[BANK_DISPLAY[structure.name].key]} {BANK_DISPLAY[structure.name].label}
+                        </small>
+                      )}
                     </span>
                   )}
                 </div>
@@ -411,7 +572,7 @@ export default function GemsTycoon3Page() {
               <small>PROFILE</small>
             </div>
             {GEMSTONE_LOGOS.map((gem) => {
-              const amount = gem.amountKey === "bank1" ? game.bank1 : gem.amountKey === "bank2" ? game.bank2 : gem.amountKey === "bank3" ? game.bank3 : 0;
+              const amount = game[gem.amountKey as BankKey];
               const quantityColumn = gem.centerColumn + 2;
               return (
                 <>
@@ -455,6 +616,29 @@ export default function GemsTycoon3Page() {
                   title={run?.active ? `${run.remaining}s remaining` : canStart ? `Start ${factory.name}` : `Requires 120 ${factory.centerColumn === 38 ? "Star Crystals in Bank 1" : "Nebulite Stones in Bank 2"}`}
                 >
                   {run?.active ? `${run.remaining}s` : canStart ? "PLAY" : "NEED 120"}
+                </button>
+              );
+            })}
+            {ADVANCED_FACTORIES.map((factory) => {
+              const run = game.runs[factory.name];
+              const recipe = getAdvancedRecipe(factory.name);
+              const canStart = canStartAdvancedFactory(factory.name);
+              const required = recipe
+                ? Object.entries(recipe.requirements).map(([bank, amount]) => `${(amount ?? 0) * (recipe.duration / recipe.interval)} ${BANK_DISPLAY[Object.keys(BANK_DISPLAY).find((name) => BANK_DISPLAY[name].key === bank) ?? "BANK"].label}`).join(" + ")
+                : "required resources";
+              return (
+                <button
+                  key={factory.name}
+                  type="button"
+                  className={`tycoon3-play-button tycoon3-processing-button ${!canStart && !run?.active ? "tycoon3-play-locked" : ""}`}
+                  style={{ gridColumn: factory.centerColumn, gridRow: factory.centerRow - 2 }}
+                  onClick={() => startAdvancedFactory(factory.name)}
+                  disabled={!canStart}
+                  aria-disabled={!canStart}
+                  aria-label={run?.active ? `${factory.name}, ${run.remaining} seconds remaining` : canStart ? `Start ${factory.name} for ${recipe?.duration} seconds` : `${factory.name} locked: insufficient resources`}
+                  title={run?.active ? `${run.remaining}s remaining` : canStart ? `Start ${factory.name}` : `Requires ${required} in the input banks`}
+                >
+                  {run?.active ? `${run.remaining}s` : canStart ? "PLAY" : "NEED RESOURCES"}
                 </button>
               );
             })}
