@@ -131,23 +131,101 @@ export default function GemsTycoonCopyPage() {
           const green = isInRanges(column, row, GREEN_RANGES);
           const blue = isBlueCell(column, row);
           const yellow = isYellowCell(column, row);
+          const direction = blue ? "down" : red ? "right" : green ? "left" : null;
+          const arrow = direction === "down" ? "↓" : direction === "right" ? "→" : direction === "left" ? "←" : "";
 
           return (
             <div
               key={index}
               data-column={column}
               data-row={row}
+              className={direction ? `conveyor-cell conveyor-${direction}` : undefined}
               style={{
                 minWidth: 0,
                 aspectRatio: "1 / 1",
                 borderRight: "1px solid #52627a",
                 borderBottom: "1px solid #52627a",
-                background: red ? "#EF4444" : green ? "#22C55E" : blue ? "#2563EB" : yellow ? "#FFD700" : "#172238",
+                background: direction
+                  ? direction === "down" ? "#1746A2" : direction === "right" ? "#991B1B" : "#166534"
+                  : yellow ? "#FFD700" : "#172238",
               }}
-            />
+            >
+              {direction && <span className="conveyor-arrow" aria-hidden="true">{arrow}</span>}
+            </div>
           );
         })}
       </section>
+
+      <style jsx global>{`
+        .conveyor-cell {
+          position: relative;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          overflow: hidden;
+          background-size: 100% 20px, auto;
+        }
+        .conveyor-down {
+          background-image: repeating-linear-gradient(
+            0deg,
+            rgba(255,255,255,.22) 0px,
+            rgba(255,255,255,.22) 3px,
+            transparent 3px,
+            transparent 10px
+          );
+          animation: conveyor-flow-down .55s linear infinite;
+        }
+        .conveyor-right {
+          background-image: repeating-linear-gradient(
+            90deg,
+            rgba(255,255,255,.22) 0px,
+            rgba(255,255,255,.22) 3px,
+            transparent 3px,
+            transparent 10px
+          );
+          animation: conveyor-flow-right .55s linear infinite;
+        }
+        .conveyor-left {
+          background-image: repeating-linear-gradient(
+            90deg,
+            rgba(255,255,255,.22) 0px,
+            rgba(255,255,255,.22) 3px,
+            transparent 3px,
+            transparent 10px
+          );
+          animation: conveyor-flow-left .55s linear infinite;
+        }
+        .conveyor-arrow {
+          position: relative;
+          z-index: 1;
+          color: white;
+          font-size: clamp(10px, 1.6vw, 20px);
+          line-height: 1;
+          font-weight: 900;
+          text-shadow: 0 1px 3px rgba(0,0,0,.8);
+          animation: conveyor-arrow-pulse .55s ease-in-out infinite alternate;
+          pointer-events: none;
+        }
+        @keyframes conveyor-flow-down {
+          from { background-position: 0 0; }
+          to { background-position: 0 20px; }
+        }
+        @keyframes conveyor-flow-right {
+          from { background-position: 0 0; }
+          to { background-position: 20px 0; }
+        }
+        @keyframes conveyor-flow-left {
+          from { background-position: 20px 0; }
+          to { background-position: 0 0; }
+        }
+        @keyframes conveyor-arrow-pulse {
+          from { opacity: .65; }
+          to { opacity: 1; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .conveyor-cell, .conveyor-arrow { animation: none !important; }
+        }
+      `}</style>
     </main>
   );
 }
