@@ -6,7 +6,7 @@ import ProfileMenu from "@/components/profile-menu";
 const COLUMNS = 15;
 const ROWS = 51;
 
-// Each coordinate is the center of a 3x3 yellow area.
+// Yellow 3x3 areas centered on the previously selected coordinates.
 const YELLOW_CENTERS: Array<[number, number]> = [
   [8, 3],
   [8, 8],
@@ -26,11 +26,46 @@ const YELLOW_CENTERS: Array<[number, number]> = [
   [8, 50],
 ];
 
+// Blue cells are exact column/row ranges. Blue takes priority where colors overlap.
+const BLUE_RANGES: Array<[number, number, number]> = [
+  [8, 5, 6],
+  [8, 10, 11],
+  [8, 15, 17],
+  [4, 18, 19],
+  [12, 18, 19],
+  [4, 23, 25],
+  [12, 23, 25],
+  [2, 26, 27],
+  [6, 26, 27],
+  [10, 26, 27],
+  [14, 26, 27],
+  [2, 31, 32],
+  [6, 31, 32],
+  [10, 31, 32],
+  [14, 31, 32],
+  [2, 36, 38],
+  [6, 36, 38],
+  [10, 36, 38],
+  [14, 36, 38],
+  [4, 38, 40],
+  [12, 38, 40],
+  [4, 44, 46],
+  [12, 44, 46],
+  [8, 45, 47],
+];
+
 function isYellowCell(column: number, row: number) {
   return YELLOW_CENTERS.some(
     ([centerColumn, centerRow]) =>
       Math.abs(column - centerColumn) <= 1 &&
       Math.abs(row - centerRow) <= 1
+  );
+}
+
+function isBlueCell(column: number, row: number) {
+  return BLUE_RANGES.some(
+    ([rangeColumn, startRow, endRow]) =>
+      column === rangeColumn && row >= startRow && row <= endRow
   );
 }
 
@@ -65,6 +100,7 @@ export default function GemsTycoonCopyPage() {
         {Array.from({ length: COLUMNS * ROWS }, (_, index) => {
           const column = (index % COLUMNS) + 1;
           const row = Math.floor(index / COLUMNS) + 1;
+          const blue = isBlueCell(column, row);
           const yellow = isYellowCell(column, row);
 
           return (
@@ -77,7 +113,7 @@ export default function GemsTycoonCopyPage() {
                 aspectRatio: "1 / 1",
                 borderRight: "1px solid #52627a",
                 borderBottom: "1px solid #52627a",
-                background: yellow ? "#FFD700" : "#172238",
+                background: blue ? "#2563EB" : yellow ? "#FFD700" : "#172238",
               }}
             />
           );
