@@ -197,8 +197,6 @@ export default function GemsTycoonCopyPage() {
               className={direction ? `conveyor-cell conveyor-${direction}` : undefined}
               style={{
                 minWidth: 0,
-                zIndex: tokenStage === 1 ? 5 : undefined,
-                overflow: tokenStage === 1 ? "visible" : undefined,
                 aspectRatio: "1 / 1",
                 borderRight: "1px solid #52627a",
                 borderBottom: "1px solid #52627a",
@@ -271,11 +269,10 @@ export default function GemsTycoonCopyPage() {
           background: linear-gradient(135deg, #d8fbff 0%, #35d8ff 32%, #0876c9 70%, #06356f 100%);
           box-shadow: inset 0 0 5px rgba(255,255,255,.8);
         }
-        .gem-advance { animation: gem-one-tile 1s linear forwards; }
-        .gem-on-tile { transform: translateY(0); }
-        @keyframes gem-one-tile {
-          from { transform: translateY(0); }
-          to { transform: translateY(calc(300% + 1px)); }
+        .gem-on-tile { transform: translateY(0); animation: gem-arrive 180ms ease-out both; }
+        @keyframes gem-arrive {
+          from { opacity: .55; scale: .82; }
+          to { opacity: 1; scale: 1; }
         }
         .conveyor-cell {
           position: relative;
