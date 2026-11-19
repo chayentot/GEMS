@@ -58,7 +58,7 @@ export default function GemsTycoon3Page() {
           align-items: stretch;
         }
         .tycoon3-map-section {
-          width: 60%;
+          width: 100%;
           min-height: 0;
           flex: 1 1 auto;
           border: 1px solid #334155;
@@ -114,7 +114,7 @@ export default function GemsTycoon3Page() {
             top: 8px;
             width: calc(100% - 20px);
           }
-          .tycoon3-map-section { width: 60%; }
+          .tycoon3-map-section { width: 100%; }
           .tycoon-map-footer {
             bottom: 8px;
             width: calc(100% - 20px);
