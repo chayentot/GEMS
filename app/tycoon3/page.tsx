@@ -7,8 +7,8 @@ const MAP_ROWS = 24;
 const FIRST_SECTION_COLUMNS = 15;
 const SECOND_SECTION_COLUMNS = 15;
 const THIRD_SECTION_COLUMNS = 20;
-const FORTH_SECTION_COLUMNS = 20;
-const TOTAL_COLUMNS = FIRST_SECTION_COLUMNS + SECOND_SECTION_COLUMNS + THIRD_SECTION_COLUMNS + FORTH_SECTION_COLUMNS;
+const FOURTH_SECTION_COLUMNS = 20;
+const TOTAL_COLUMNS = FIRST_SECTION_COLUMNS + SECOND_SECTION_COLUMNS + THIRD_SECTION_COLUMNS + FOURTH_SECTION_COLUMNS;
 
 export default function GemsTycoon3Page() {
   return (
@@ -33,15 +33,21 @@ export default function GemsTycoon3Page() {
             {Array.from({ length: TOTAL_COLUMNS * MAP_ROWS }, (_, index) => {
               const column = Math.floor(index / MAP_ROWS);
               const isYellowDivider = column === FIRST_SECTION_COLUMNS - 1;
-
               const isRedDivider =
-  column === FIRST_SECTION_COLUMNS + SECOND_SECTION_COLUMNS - 1;
+                column === FIRST_SECTION_COLUMNS + SECOND_SECTION_COLUMNS - 1;
+              const isGreenDivider =
+                column === FIRST_SECTION_COLUMNS + SECOND_SECTION_COLUMNS + THIRD_SECTION_COLUMNS - 1;
 
-const isGreenDivider =
-  column === FIRST_SECTION_COLUMNS + SECOND_SECTION_COLUMNS + THIRD_SECTION_COLUMNS - 1;
+              const cellClassName = [
+                "tycoon3-cell",
+                isYellowDivider && "tycoon3-divider-yellow",
+                isRedDivider && "tycoon3-divider-red",
+                isGreenDivider && "tycoon3-divider-green",
+              ].filter(Boolean).join(" ");
+
               return (
                 <div
-                  className={isSectionDivider ? "tycoon3-cell tycoon3-section-divider" : "tycoon3-cell"}
+                  className={cellClassName}
                   key={index}
                   aria-label={`Column ${column + 1}, Row ${(index % MAP_ROWS) + 1}`}
                 />
@@ -115,8 +121,14 @@ const isGreenDivider =
         .tycoon3-cell:nth-child(24n + 1) {
           border-top: 1px solid #64748b88;
         }
-        .tycoon3-section-divider {
+        .tycoon3-divider-yellow {
           border-right: 4px solid #facc15;
+        }
+        .tycoon3-divider-red {
+          border-right: 4px solid #ef4444;
+        }
+        .tycoon3-divider-green {
+          border-right: 4px solid #22c55e;
         }
         .tycoon-map-footer {
           position: fixed;
