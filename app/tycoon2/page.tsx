@@ -82,38 +82,33 @@ export default function GemsTycoonCopyPage() {
   const [production, setProduction] = useState<ProductionState>(INITIAL_STATE);
 
   useEffect(() => {
+    // One crystal at a time per belt. Each tile takes one second to travel.
     const timer = window.setInterval(() => {
       setProduction((previous) => {
-        // Belts advance one tile per second: row 5 -> row 6 -> Factory 2.
-        const factory2Rubellite = previous.factory2Rubellite + previous.rubelliteRow6;
-        const factory2CanProcess = factory2Rubellite >= 2;
-        const factory2Aquarion = previous.factory2Aquarion;
-        const aquarionOnRow10 = factory2CanProcess ? previous.aquarionRow10 + 1 : previous.aquarionRow10;
-
-        // Factory 2 converts 2 Rubellite into 1 Aquarion every second when stocked.
-        const aquarionLeavingFactory2 = factory2CanProcess ? 1 : 0;
-        const factory2RubelliteAfterProcess = factory2CanProcess ? factory2Rubellite - 2 : factory2Rubellite;
-
-        // Belt advances Aquarion from row 10 -> row 11 -> Factory 3.
-        const factory3Aquarion = previous.factory3Aquarion + previous.aquarionRow11;
-        const factory3CanProcess = factory3Aquarion >= 2;
-
-        // Factory 3 uses the same 2-to-1 recipe: 2 Aquarion -> 1 Verdium.
+        const rubelliteArriving = previous.rubelliteRow6;
+        const factory2Stock = previous.factory2Rubellite + rubelliteArriving;
+        const rubelliteBeltBusy = previous.rubelliteRow5 > 0 || previous.rubelliteRow6 > 0;
+        const launchRubellite = !rubelliteBeltBusy && previous.factory1Rubellite > 0;
+        const aquarionArriving = previous.aquarionRow11;
+        const factory3Stock = previous.factory3Aquarion + aquarionArriving;
+        const aquarionBeltBusy = previous.aquarionRow10 > 0 || previous.aquarionRow11 > 0;
+        const launchAquarion = !aquarionBeltBusy && factory2Stock >= 2;
+        const factory2StockAfterLaunch = launchAquarion ? factory2Stock - 2 : factory2Stock;
+        const makeVerdium = factory3Stock >= 2;
         return {
-          factory1Rubellite: Math.max(0, previous.factory1Rubellite - (previous.factory1Rubellite > 0 ? 1 : 0)),
-          factory2Rubellite: factory2RubelliteAfterProcess,
-          factory2Aquarion: factory2Aquarion + (factory2CanProcess ? 1 : 0),
-          factory3Aquarion: factory3CanProcess ? factory3Aquarion - 2 : factory3Aquarion,
-          factory3Verdium: previous.factory3Verdium + (factory3CanProcess ? 1 : 0),
-          rubelliteRow5: previous.factory1Rubellite > 0 ? 1 : 0,
+          factory1Rubellite: previous.factory1Rubellite - (launchRubellite ? 1 : 0),
+          factory2Rubellite: factory2StockAfterLaunch,
+          factory2Aquarion: previous.factory2Aquarion + (launchAquarion ? 1 : 0),
+          factory3Aquarion: makeVerdium ? factory3Stock - 2 : factory3Stock,
+          factory3Verdium: previous.factory3Verdium + (makeVerdium ? 1 : 0),
+          rubelliteRow5: launchRubellite ? 1 : 0,
           rubelliteRow6: previous.rubelliteRow5,
-          aquarionRow10: aquarionLeavingFactory2,
+          aquarionRow10: launchAquarion ? 1 : 0,
           aquarionRow11: previous.aquarionRow10,
           seconds: previous.seconds + 1,
         };
       });
     }, 1000);
-
     return () => window.clearInterval(timer);
   }, []);
 
@@ -188,7 +183,7 @@ export default function GemsTycoonCopyPage() {
           const key = `${column}-${row}`;
           const factoryLabel = factoryLabels[key];
           const token = conveyorTokens[key];
-          const tokenCount =
+          const tokenStage =
             key === "8-5" ? production.rubelliteRow5 :
             key === "8-6" ? production.rubelliteRow6 :
             key === "8-10" ? production.aquarionRow10 :
@@ -202,6 +197,8 @@ export default function GemsTycoonCopyPage() {
               className={direction ? `conveyor-cell conveyor-${direction}` : undefined}
               style={{
                 minWidth: 0,
+                zIndex: tokenStage === 1 ? 5 : undefined,
+                overflow: tokenStage === 1 ? "visible" : undefined,
                 aspectRatio: "1 / 1",
                 borderRight: "1px solid #52627a",
                 borderBottom: "1px solid #52627a",
@@ -214,9 +211,9 @@ export default function GemsTycoonCopyPage() {
               title={factoryLabel ? `Factory ${factoryLabel.slice(1)}` : token?.label}
             >
               {factoryLabel && <span className="factory-marker">{factoryLabel}</span>}
-              {token && tokenCount > 0 && (
+              {token && tokenStage > 0 && (
                 <span
-                  className={`moving-gem ${key === "8-5" || key === "8-6" ? "gem-rubellite" : "gem-aquarion"}`}
+                  className={`moving-gem ${key === "8-5" || key === "8-6" ? "gem-rubellite" : "gem-aquarion"} ${tokenStage === 1 ? "gem-advance" : "gem-on-tile"}`}
                   aria-label={token.label}
                 />
               )}
@@ -264,7 +261,7 @@ export default function GemsTycoonCopyPage() {
           aspect-ratio: 1 / 1;
           clip-path: polygon(50% 0%, 92% 27%, 78% 83%, 50% 100%, 22% 83%, 8% 27%);
           filter: drop-shadow(0 2px 3px rgba(0,0,0,.75));
-          animation: gem-travel-down 1.4s ease-in-out infinite;
+          animation: none;
         }
         .gem-rubellite {
           background: linear-gradient(135deg, #ffd1d1 0%, #ff5252 32%, #a80018 70%, #61000c 100%);
@@ -274,10 +271,11 @@ export default function GemsTycoonCopyPage() {
           background: linear-gradient(135deg, #d8fbff 0%, #35d8ff 32%, #0876c9 70%, #06356f 100%);
           box-shadow: inset 0 0 5px rgba(255,255,255,.8);
         }
-        @keyframes gem-travel-down {
-          0% { transform: translateY(-24%); }
-          50% { transform: translateY(0%); }
-          100% { transform: translateY(24%); }
+        .gem-advance { animation: gem-one-tile 1s linear forwards; }
+        .gem-on-tile { transform: translateY(0); }
+        @keyframes gem-one-tile {
+          from { transform: translateY(0); }
+          to { transform: translateY(calc(100% + 1px)); }
         }
         .conveyor-cell {
           position: relative;
@@ -291,7 +289,7 @@ export default function GemsTycoonCopyPage() {
             linear-gradient(90deg, #aeb8c4 0 8%, #596575 8% 12%, transparent 12% 88%, #596575 88% 92%, #aeb8c4 92% 100%),
             repeating-linear-gradient(180deg, #aeb8c4 0 2px, #566272 2px 4px, #202a36 4px 7px, #657181 7px 9px);
           background-size: 100% 100%, 100% 18px;
-          animation: belt-down 1.4s linear infinite;
+          animation: belt-down 3.2s linear infinite;
         }
         .conveyor-left, .conveyor-right {
           background-image:
@@ -299,8 +297,8 @@ export default function GemsTycoonCopyPage() {
             repeating-linear-gradient(90deg, #aeb8c4 0 2px, #566272 2px 4px, #202a36 4px 7px, #657181 7px 9px);
           background-size: 100% 100%, 18px 100%;
         }
-        .conveyor-right { animation: belt-right 1.4s linear infinite; }
-        .conveyor-left { animation: belt-left 1.4s linear infinite; }
+        .conveyor-right { animation: belt-right 3.2s linear infinite; }
+        .conveyor-left { animation: belt-left 3.2s linear infinite; }
         @keyframes belt-down { from { background-position: 0 0, 0 0; } to { background-position: 0 0, 0 18px; } }
         @keyframes belt-right { from { background-position: 0 0, 0 0; } to { background-position: 0 0, 18px 0; } }
         @keyframes belt-left { from { background-position: 0 0, 0 0; } to { background-position: 0 0, -18px 0; } }
