@@ -61,6 +61,8 @@ export default function GemsTycoon3Page() {
           width: 100%;
           min-height: 0;
           flex: 1 1 auto;
+          display: grid;
+          grid-template-rows: repeat(24, minmax(0, 1fr));
           border: 1px solid #334155;
           border-radius: 14px;
           background: rgba(17, 28, 46, 0.45);
