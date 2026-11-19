@@ -52,19 +52,6 @@ const CONVEYOR_CELLS = new Set([
   "49,13", "50,13",
 ]);
 
-const LEFT_TO_RIGHT_CONVEYOR_CELLS = new Set([
-  "31,13", "32,13",
-  "34,5", "35,5", "36,5",
-  "34,10", "35,10", "36,10",
-  "34,15", "35,15", "36,15",
-  "34,20", "35,20", "36,20",
-  "40,5", "41,5", "42,5",
-  "40,10", "41,10", "42,10",
-  "40,15", "41,15", "42,15",
-  "40,20", "41,20", "42,20",
-  "44,13", "45,13",
-  "49,13", "50,13",
-]);
 
 function getStructureAt(column: number, row: number) {
   return STRUCTURES.find((structure) =>
@@ -153,9 +140,7 @@ export default function GemsTycoon3Page() {
                 column === FIRST_SECTION_COLUMNS + SECOND_SECTION_COLUMNS + THIRD_SECTION_COLUMNS;
               const structure = getStructureAt(column, row);
               const isStructureCenter = structure?.centerColumn === column && structure?.centerRow === row;
-              const conveyorKey = `${column},${row}`;
-              const isConveyor = CONVEYOR_CELLS.has(conveyorKey);
-              const isLeftMovingConveyor = LEFT_TO_RIGHT_CONVEYOR_CELLS.has(conveyorKey);
+              const isConveyor = CONVEYOR_CELLS.has(`${column},${row}`);
 
               const cellClassName = [
                 "tycoon3-cell",
@@ -164,7 +149,6 @@ export default function GemsTycoon3Page() {
                 isGreenDivider && "tycoon3-divider-green",
                 structure?.className,
                 isConveyor && "tycoon3-conveyor",
-                isLeftMovingConveyor && "tycoon3-conveyor-left",
               ].filter(Boolean).join(" ");
 
               return (
@@ -409,13 +393,6 @@ export default function GemsTycoon3Page() {
         @keyframes tycoon3-belt-move {
           from { background-position: 0 0; }
           to { background-position: 30px 0; }
-        }
-        .tycoon3-conveyor-left {
-          animation-name: tycoon3-belt-move-left;
-        }
-        @keyframes tycoon3-belt-move-left {
-          from { background-position: 30px 0; }
-          to { background-position: 0 0; }
         }
         @media (prefers-reduced-motion: reduce) {
           .tycoon3-conveyor { animation: none; }
