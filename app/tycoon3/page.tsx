@@ -32,13 +32,15 @@ export default function GemsTycoon3Page() {
 
       <style jsx>{`
         .tycoon3-shell {
+          height: 100vh;
           min-height: 100vh;
+          box-sizing: border-box;
           display: flex;
           flex-direction: column;
           padding-bottom: 24px;
         }
         .tycoon3-map-space {
-          flex: 1 1 auto;
+          flex: 1 1 0;
           min-height: 0;
           display: flex;
           justify-content: center;
@@ -47,8 +49,9 @@ export default function GemsTycoon3Page() {
         }
         .tycoon3-map-section {
           width: 60%;
+          height: 100%;
           min-height: 0;
-          flex: 1 1 auto;
+          flex: 0 1 auto;
           border: 1px solid #334155;
           border-radius: 14px;
           background: rgba(17, 28, 46, 0.45);
