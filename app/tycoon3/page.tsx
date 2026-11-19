@@ -9,7 +9,17 @@ const FIRST_SECTION_COLUMNS = 15;
 const SECOND_SECTION_COLUMNS = 15;
 const THIRD_SECTION_COLUMNS = 20;
 const FOURTH_SECTION_COLUMNS = 20;
-const TOTAL_COLUMNS = FIRST_SECTION_COLUMNS + SECOND_SECTION_COLUMNS + THIRD_SECTION_COLUMNS + FOURTH_SECTION_COLUMNS;
+const TOTAL_COLUMNS = 210;
+const SECTION_DIVIDERS = new Set([15, 30, 50, 70, 90, 110, 130, 150, 170, 190]);
+const EXTENDED_GEM_SECTIONS = [
+  { start: 71, factoryStart: 10, factoryCount: 4, bankName: "BANK 4", gem: "METEORITE GEM", rows: [5, 10, 15, 20] },
+  { start: 91, factoryStart: 14, factoryCount: 4, bankName: "BANK 5", gem: "ETERNYX", rows: [5, 10, 15, 20] },
+  { start: 111, factoryStart: 18, factoryCount: 4, bankName: "BANK 6", gem: "LUNARIUM", rows: [5, 10, 15, 20] },
+  { start: 131, factoryStart: 22, factoryCount: 4, bankName: "BANK 7", gem: "VOIDSTONE", rows: [5, 10, 15, 20] },
+  { start: 151, factoryStart: 26, factoryCount: 4, bankName: "BANK 8", gem: "PRISMORA", rows: [5, 10, 15, 20] },
+  { start: 171, factoryStart: 30, factoryCount: 4, bankName: "BANK 9", gem: "DIVINESTONE", rows: [5, 10, 15, 20] },
+  { start: 191, factoryStart: 34, factoryCount: 2, bankName: "BANK 10", gem: "GENESIS CORE", rows: [8, 18] },
+];
 
 const STRUCTURES = [
   { name: "FACTORY 1", centerColumn: 19, centerRow: 12, className: "tycoon3-factory" },
@@ -24,6 +34,15 @@ const STRUCTURES = [
   { name: "FACTORY 9", centerColumn: 58, centerRow: 20, className: "tycoon3-factory" },
   { name: "BANK 2", centerColumn: 47, centerRow: 13, className: "tycoon3-bank" },
   { name: "BANK 3", centerColumn: 67, centerRow: 13, className: "tycoon3-bank" },
+  ...EXTENDED_GEM_SECTIONS.flatMap((section) => [
+    ...Array.from({ length: section.factoryCount }, (_, index) => ({
+      name: `FACTORY ${section.factoryStart + index}`,
+      centerColumn: section.start + 7,
+      centerRow: section.rows[index],
+      className: "tycoon3-factory",
+    })),
+    { name: section.bankName, centerColumn: section.start + 16, centerRow: 13, className: "tycoon3-bank" },
+  ]),
 ];
 
 const STAR_CRYSTAL_PATH = [
@@ -35,7 +54,7 @@ const STAR_CRYSTAL_PATH = [
   { column: 25, row: 13 },
 ];
 
-const PROCESSING_FACTORIES = STRUCTURES.filter((item) => item.name.startsWith("FACTORY ") && item.name !== "FACTORY 1");
+const PROCESSING_FACTORIES = STRUCTURES.filter((item) => /^FACTORY ([2-9])$/.test(item.name));
 
 const GEMSTONE_LOGOS = [
   { name: "Star Crystal", symbol: "✦", centerColumn: 3, centerRow: 7, tone: "star", amountKey: "bank1" },
@@ -143,6 +162,32 @@ const CONVEYOR_CELLS = new Set([
   "55,13", "56,13", "57,13", "58,13", "59,13", "60,13",
   "61,13", "62,13", "64,13", "65,13",
 ]);
+
+// Repeated 20-column production sections: shared input trunk, four factory branches,
+// output trunk, and one bank. Genesis Core uses two vertically separated factories.
+for (const section of EXTENDED_GEM_SECTIONS) {
+  const inputTrunk = section.start + 2;
+  const outputTrunk = section.start + 12;
+  const factoryRows = section.rows;
+  for (let column = section.start - 4; column <= inputTrunk; column++) {
+    CONVEYOR_CELLS.add(`${column},13`);
+  }
+  for (let row = 5; row <= 20; row++) {
+    CONVEYOR_CELLS.add(`${inputTrunk},${row}`);
+    CONVEYOR_CELLS.add(`${outputTrunk},${row}`);
+  }
+  for (const row of factoryRows) {
+    for (let column = inputTrunk; column <= section.start + 6; column++) {
+      CONVEYOR_CELLS.add(`${column},${row}`);
+    }
+    for (let column = section.start + 9; column <= outputTrunk; column++) {
+      CONVEYOR_CELLS.add(`${column},${row}`);
+    }
+  }
+  for (let column = section.start + 9; column <= section.start + 15; column++) {
+    CONVEYOR_CELLS.add(`${column},13`);
+  }
+}
 
 
 function getStructureAt(column: number, row: number) {
@@ -322,11 +367,9 @@ export default function GemsTycoon3Page() {
             {Array.from({ length: TOTAL_COLUMNS * MAP_ROWS }, (_, index) => {
               const column = Math.floor(index / MAP_ROWS) + 1;
               const row = (index % MAP_ROWS) + 1;
-              const isYellowDivider = column === FIRST_SECTION_COLUMNS;
-              const isRedDivider =
-                column === FIRST_SECTION_COLUMNS + SECOND_SECTION_COLUMNS;
-              const isGreenDivider =
-                column === FIRST_SECTION_COLUMNS + SECOND_SECTION_COLUMNS + THIRD_SECTION_COLUMNS;
+              const isYellowDivider = column === 15;
+              const isRedDivider = column === 30;
+              const isGreenDivider = SECTION_DIVIDERS.has(column) && !isYellowDivider && !isRedDivider;
               const structure = getStructureAt(column, row);
               const isStructureCenter = structure?.centerColumn === column && structure?.centerRow === row;
               const isConveyor = CONVEYOR_CELLS.has(`${column},${row}`);
