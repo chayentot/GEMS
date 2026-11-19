@@ -37,6 +37,19 @@ const STAR_CRYSTAL_PATH = [
 
 const PROCESSING_FACTORIES = STRUCTURES.filter((item) => item.name.startsWith("FACTORY ") && item.name !== "FACTORY 1");
 
+const GEMSTONE_LOGOS = [
+  { name: "Star Crystal", symbol: "✦", centerColumn: 3, centerRow: 7, tone: "star", amountKey: "bank1" },
+  { name: "Nebulite", symbol: "◆", centerColumn: 11, centerRow: 7, tone: "nebulite", amountKey: "bank2" },
+  { name: "Sol Crystal", symbol: "✧", centerColumn: 3, centerRow: 11, tone: "sol", amountKey: "bank3" },
+  { name: "Meteorite Gem", symbol: "✹", centerColumn: 11, centerRow: 11, tone: "meteorite", amountKey: "none" },
+  { name: "Eternyx", symbol: "❖", centerColumn: 3, centerRow: 15, tone: "eternyx", amountKey: "none" },
+  { name: "Lunarium", symbol: "☾", centerColumn: 11, centerRow: 15, tone: "lunarium", amountKey: "none" },
+  { name: "Voidstone", symbol: "⬟", centerColumn: 3, centerRow: 19, tone: "voidstone", amountKey: "none" },
+  { name: "Prismora", symbol: "✺", centerColumn: 11, centerRow: 19, tone: "prismora", amountKey: "none" },
+  { name: "Divinestone", symbol: "✥", centerColumn: 3, centerRow: 23, tone: "divinestone", amountKey: "none" },
+  { name: "Genesis Core", symbol: "✧", centerColumn: 11, centerRow: 23, tone: "genesis", amountKey: "none" },
+];
+
 type MapPoint = { column: number; row: number };
 type MovingMaterial = { id: number; kind: "star-input" | "nebulite" | "nebulite-input" | "sol"; step: number; path: MapPoint[] };
 type FactoryRun = { remaining: number; active: boolean };
@@ -345,6 +358,29 @@ export default function GemsTycoon3Page() {
                 </div>
               );
             })}
+            <div
+              className="tycoon3-profile-logo"
+              style={{ gridColumn: "2 / span 3", gridRow: "2 / span 3" }}
+              aria-label="Profile logo"
+              title="Profile"
+            >
+              <span className="tycoon3-profile-avatar">👤</span>
+              <small>PROFILE</small>
+            </div>
+            {GEMSTONE_LOGOS.map((gem) => {
+              const amount = gem.amountKey === "bank1" ? game.bank1 : gem.amountKey === "bank2" ? game.bank2 : gem.amountKey === "bank3" ? game.bank3 : 0;
+              const quantityColumn = gem.centerColumn + 2;
+              return (
+                <div key={gem.name} className={`tycoon3-gem-logo tycoon3-gem-${gem.tone}`} style={{ gridColumn: `${gem.centerColumn - 1} / span 3`, gridRow: `${gem.centerRow - 1} / span 3` }} aria-label={gem.name + " logo"}>
+                  <span className="tycoon3-gem-symbol">{gem.symbol}</span>
+                  <small>{gem.name}</small>
+                  <div className="tycoon3-gem-quantity" style={{ gridColumn: quantityColumn, gridRow: `${gem.centerRow - 1} / span 3` }} aria-label={amount + " " + gem.name + " available in bank"}>
+                    <small>IN BANK</small>
+                    <strong>{amount.toLocaleString()}</strong>
+                  </div>
+                </div>
+              );
+            })}
             <button
               type="button"
               className="tycoon3-play-button"
@@ -511,6 +547,61 @@ export default function GemsTycoon3Page() {
           white-space: nowrap;
           text-shadow: 0 0 4px #0284c7, 0 1px 2px #000;
         }
+        .tycoon3-profile-logo,
+        .tycoon3-gem-logo {
+          z-index: 3;
+          min-width: 0;
+          min-height: 0;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          gap: 2px;
+          margin: 3px;
+          border: 2px solid #94a3b8;
+          border-radius: 8px;
+          background: linear-gradient(145deg, #1e293b, #0f172a);
+          box-shadow: inset 0 0 10px #ffffff18, 0 2px 7px #0008;
+          color: #f8fafc;
+          text-align: center;
+          overflow: hidden;
+          pointer-events: none;
+        }
+        .tycoon3-profile-logo {
+          border-color: #60a5fa;
+          background: radial-gradient(circle at 50% 30%, #334155, #0f172a 75%);
+        }
+        .tycoon3-profile-avatar { font-size: clamp(18px, 2vw, 30px); line-height: 1; }
+        .tycoon3-profile-logo small,
+        .tycoon3-gem-logo small { font-size: clamp(6px, .62vw, 9px); font-weight: 900; line-height: 1; }
+        .tycoon3-gem-symbol { font-size: clamp(18px, 2vw, 30px); line-height: 1; text-shadow: 0 0 9px currentColor; }
+        .tycoon3-gem-star { color: #bae6fd; border-color: #38bdf8; background: linear-gradient(145deg, #164e63, #0c1d35); }
+        .tycoon3-gem-nebulite { color: #c4b5fd; border-color: #8b5cf6; background: linear-gradient(145deg, #4c1d95, #17112f); }
+        .tycoon3-gem-sol { color: #fde68a; border-color: #f59e0b; background: linear-gradient(145deg, #92400e, #422006); }
+        .tycoon3-gem-meteorite { color: #fb923c; border-color: #c2410c; background: linear-gradient(145deg, #431407, #1c1917); }
+        .tycoon3-gem-eternyx { color: #f0abfc; border-color: #c026d3; background: linear-gradient(145deg, #701a75, #2e1065); }
+        .tycoon3-gem-lunarium { color: #e0e7ff; border-color: #818cf8; background: linear-gradient(145deg, #312e81, #111827); }
+        .tycoon3-gem-voidstone { color: #a78bfa; border-color: #7c3aed; background: linear-gradient(145deg, #272044, #09090b); }
+        .tycoon3-gem-prismora { color: #67e8f9; border-color: #06b6d4; background: linear-gradient(145deg, #164e63, #172554); }
+        .tycoon3-gem-divinestone { color: #fef3c7; border-color: #facc15; background: linear-gradient(145deg, #713f12, #292015); }
+        .tycoon3-gem-genesis { color: #86efac; border-color: #22c55e; background: linear-gradient(145deg, #14532d, #052e16); }
+        .tycoon3-gem-quantity {
+          z-index: 4;
+          align-self: stretch;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          gap: 3px;
+          margin: 5px 2px;
+          border: 1px solid #64748b;
+          border-radius: 6px;
+          background: #0f172ae8;
+          color: #e2e8f0;
+          pointer-events: none;
+        }
+        .tycoon3-gem-quantity small { font-size: clamp(6px, .55vw, 8px); color: #94a3b8; }
+        .tycoon3-gem-quantity strong { font-size: clamp(9px, 1vw, 15px); font-variant-numeric: tabular-nums; }
         .tycoon3-play-button {
           box-sizing: border-box;
           width: calc(100% - 6px);
