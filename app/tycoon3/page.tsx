@@ -76,7 +76,6 @@ export default function GemsTycoon3Page() {
                   aria-label={`Column ${column}, Row ${row}${structure ? `, ${structure.name}` : isConveyor ? ", conveyor moving right" : ""}`}
                 >
                   {isStructureCenter && <span className="tycoon3-structure-label">{structure.name}</span>}
-                  {isConveyor && <span className="tycoon3-conveyor-arrow">→</span>}
                 </div>
               );
             })}
@@ -205,18 +204,6 @@ export default function GemsTycoon3Page() {
         }
         @media (prefers-reduced-motion: reduce) {
           .tycoon3-conveyor { animation: none; }
-        }
-        .tycoon3-conveyor-arrow {
-          display: flex;
-          width: 100%;
-          height: 100%;
-          align-items: center;
-          justify-content: center;
-          color: #f8fafc;
-          font-size: clamp(10px, 1.1vw, 16px);
-          font-weight: 900;
-          text-shadow: 0 1px 3px #000;
-          pointer-events: none;
         }
         .tycoon-map-footer {
           position: fixed;
