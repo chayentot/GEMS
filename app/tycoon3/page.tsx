@@ -20,7 +20,9 @@ export default function GemsTycoon3Page() {
         </nav>
       </header>
 
-      <div className="tycoon3-map-space" aria-label="Gems Tycoon 3 map area" />
+      <div className="tycoon3-map-space">
+        <section className="tycoon3-map-section" aria-label="3rd Map section" />
+      </div>
 
       <footer className="tycoon-map-footer" aria-label="Tycoon map navigation">
         <Link href="/tycoon/" className="tycoon-map-tab">1st Map</Link>
@@ -38,6 +40,20 @@ export default function GemsTycoon3Page() {
         .tycoon3-map-space {
           flex: 1;
           min-height: 55vh;
+          display: flex;
+          justify-content: center;
+          align-items: stretch;
+          padding: 18px 0;
+        }
+        .tycoon3-map-section {
+          width: 60%;
+          min-height: 55vh;
+          border: 1px solid #334155;
+          border-radius: 14px;
+          background: rgba(17, 28, 46, 0.45);
+        }
+        @media (max-width: 700px) {
+          .tycoon3-map-section { width: 60%; }
         }
         .tycoon-map-footer {
           display: grid;
