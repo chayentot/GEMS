@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import ProfileMenu from "@/components/profile-menu";
+import { useEffect, useRef, useState } from "react";
 
 const MAP_ROWS = 24;
 const FIRST_SECTION_COLUMNS = 15;
@@ -13,6 +14,15 @@ const TOTAL_COLUMNS = FIRST_SECTION_COLUMNS + SECOND_SECTION_COLUMNS + THIRD_SEC
 const STRUCTURES = [
   { name: "FACTORY 1", centerColumn: 19, centerRow: 12, className: "tycoon3-factory" },
   { name: "BANK", centerColumn: 27, centerRow: 13, className: "tycoon3-bank" },
+];
+
+const STAR_CRYSTAL_PATH = [
+  { column: 21, row: 12 },
+  { column: 22, row: 12 },
+  { column: 23, row: 12 },
+  { column: 23, row: 13 },
+  { column: 24, row: 13 },
+  { column: 25, row: 13 },
 ];
 
 const CONVEYOR_CELLS = new Set([
@@ -29,6 +39,56 @@ function getStructureAt(column: number, row: number) {
 }
 
 export default function GemsTycoon3Page() {
+  const [isFactoryRunning, setIsFactoryRunning] = useState(false);
+  const [remainingSeconds, setRemainingSeconds] = useState(60);
+  const [starCrystals, setStarCrystals] = useState<{ id: number; step: number }[]>([]);
+  const [bankedStarCrystals, setBankedStarCrystals] = useState(0);
+  const nextCrystalId = useRef(0);
+
+  useEffect(() => {
+    if (!isFactoryRunning) return;
+    const timer = window.setInterval(() => {
+      setStarCrystals((current) => [
+        ...current,
+        { id: ++nextCrystalId.current, step: 0 },
+      ]);
+      setRemainingSeconds((current) => {
+        if (current <= 1) {
+          setIsFactoryRunning(false);
+          return 0;
+        }
+        return current - 1;
+      });
+    }, 1000);
+    return () => window.clearInterval(timer);
+  }, [isFactoryRunning]);
+
+  useEffect(() => {
+    if (starCrystals.length === 0) return;
+    const conveyor = window.setInterval(() => {
+      setStarCrystals((current) =>
+        current.map((crystal) => ({ ...crystal, step: crystal.step + 1 }))
+      );
+    }, 300);
+    return () => window.clearInterval(conveyor);
+  }, [starCrystals.length > 0]);
+
+  useEffect(() => {
+    const delivered = starCrystals.filter((crystal) => crystal.step >= STAR_CRYSTAL_PATH.length);
+    if (delivered.length === 0) return;
+    setBankedStarCrystals((count) => count + delivered.length);
+    setStarCrystals((current) =>
+      current.filter((crystal) => crystal.step < STAR_CRYSTAL_PATH.length)
+    );
+  }, [starCrystals]);
+
+  const startFactory = () => {
+    if (remainingSeconds === 0) setRemainingSeconds(60);
+    setIsFactoryRunning(true);
+  };
+
+  const formattedTime = `00:${String(Math.floor(remainingSeconds / 60)).padStart(2, "0")}:${String(remainingSeconds % 60).padStart(2, "0")}`;
+
   return (
     <main className="shell tycoon3-shell">
       <header className="topbar tycoon3-topbar">
@@ -73,9 +133,45 @@ export default function GemsTycoon3Page() {
                 <div
                   className={cellClassName}
                   key={index}
+                  style={{ gridColumn: column, gridRow: row }}
                   aria-label={`Column ${column}, Row ${row}${structure ? `, ${structure.name}` : isConveyor ? ", conveyor moving right" : ""}`}
                 >
-                  {isStructureCenter && <span className="tycoon3-structure-label">{structure.name}</span>}
+                  {isStructureCenter && (
+                    <span className="tycoon3-structure-label">
+                      {structure.name}
+                      {structure.name === "BANK" && <small className="tycoon3-bank-count">STAR CRYSTALS: {bankedStarCrystals}</small>}
+                    </span>
+                  )}
+                </div>
+              );
+            })}
+            <button
+              type="button"
+              className="tycoon3-play-button"
+              style={{ gridColumn: 19, gridRow: 10 }}
+              onClick={startFactory}
+              disabled={isFactoryRunning}
+              aria-label="Start Factory 1 for 60 seconds"
+              hidden={isFactoryRunning}
+            >
+              PLAY
+            </button>
+            <div className="tycoon3-level-label" style={{ gridColumn: "16 / span 2", gridRow: 12 }}>
+              LVL 1
+            </div>
+            <div className="tycoon3-time-display" style={{ gridColumn: "18 / span 3", gridRow: 14 }}>
+              {formattedTime}
+            </div>
+            {starCrystals.map((crystal) => {
+              const position = STAR_CRYSTAL_PATH[Math.min(crystal.step, STAR_CRYSTAL_PATH.length - 1)];
+              return (
+                <div
+                  key={crystal.id}
+                  className="tycoon3-star-crystal"
+                  style={{ gridColumn: position.column, gridRow: position.row }}
+                  aria-label="Star Crystal moving to Bank"
+                >
+                  ✦
                 </div>
               );
             })}
@@ -169,6 +265,68 @@ export default function GemsTycoon3Page() {
           box-shadow: inset 0 0 0 1px #fff5, inset 0 0 10px #0008;
           position: relative;
           z-index: 1;
+        }
+        .tycoon3-bank-count {
+          display: block;
+          margin-top: 2px;
+          font-size: clamp(5px, 0.48vw, 8px);
+          line-height: 1.1;
+        }
+        .tycoon3-play-button {
+          min-width: 0;
+          min-height: 0;
+          margin: 3px;
+          border: 2px solid #86efac;
+          border-radius: 6px;
+          color: #052e16;
+          background: linear-gradient(145deg, #bbf7d0, #22c55e);
+          box-shadow: 0 2px 6px #0008, inset 0 1px 2px #fff9;
+          font-size: clamp(7px, 0.75vw, 11px);
+          font-weight: 900;
+          cursor: pointer;
+        }
+        .tycoon3-play-button:hover { filter: brightness(1.12); }
+        .tycoon3-play-button:disabled { opacity: .55; cursor: default; }
+        .tycoon3-level-label,
+        .tycoon3-time-display {
+          z-index: 4;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          border: 2px solid #facc15;
+          border-radius: 5px;
+          color: #fff;
+          background: #172554;
+          box-shadow: 0 2px 6px #0008, inset 0 0 8px #facc1544;
+          font-weight: 900;
+          text-shadow: 0 1px 3px #000;
+          white-space: nowrap;
+        }
+        .tycoon3-level-label {
+          margin: 3px;
+          font-size: clamp(7px, 0.75vw, 11px);
+        }
+        .tycoon3-time-display {
+          margin: 2px;
+          font-size: clamp(9px, 0.95vw, 14px);
+          font-variant-numeric: tabular-nums;
+          letter-spacing: .04em;
+        }
+        .tycoon3-star-crystal {
+          z-index: 5;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: #bae6fd;
+          font-size: clamp(13px, 1.3vw, 20px);
+          font-weight: 900;
+          text-shadow: 0 0 5px #38bdf8, 0 0 10px #e0f2fe;
+          pointer-events: none;
+          animation: tycoon3-crystal-pulse .6s ease-in-out infinite alternate;
+        }
+        @keyframes tycoon3-crystal-pulse {
+          from { transform: scale(.8) rotate(0deg); }
+          to { transform: scale(1.15) rotate(45deg); }
         }
         .tycoon3-structure-label {
           display: flex;
