@@ -10,6 +10,24 @@ const THIRD_SECTION_COLUMNS = 20;
 const FOURTH_SECTION_COLUMNS = 20;
 const TOTAL_COLUMNS = FIRST_SECTION_COLUMNS + SECOND_SECTION_COLUMNS + THIRD_SECTION_COLUMNS + FOURTH_SECTION_COLUMNS;
 
+const STRUCTURES = [
+  { name: "FACTORY 1", centerColumn: 19, centerRow: 12, className: "tycoon3-factory" },
+  { name: "BANK", centerColumn: 27, centerRow: 13, className: "tycoon3-bank" },
+];
+
+const CONVEYOR_CELLS = new Set([
+  "29,13", "30,13",
+  "23,13", "24,13", "25,13",
+  "21,12", "22,12", "23,12",
+]);
+
+function getStructureAt(column: number, row: number) {
+  return STRUCTURES.find((structure) =>
+    Math.abs(column - structure.centerColumn) <= 1 &&
+    Math.abs(row - structure.centerRow) <= 1
+  );
+}
+
 export default function GemsTycoon3Page() {
   return (
     <main className="shell tycoon3-shell">
@@ -31,26 +49,35 @@ export default function GemsTycoon3Page() {
         <section className="tycoon3-map-section" aria-label="3rd Map grid">
           <div className="tycoon3-grid">
             {Array.from({ length: TOTAL_COLUMNS * MAP_ROWS }, (_, index) => {
-              const column = Math.floor(index / MAP_ROWS);
-              const isYellowDivider = column === FIRST_SECTION_COLUMNS - 1;
+              const column = Math.floor(index / MAP_ROWS) + 1;
+              const row = (index % MAP_ROWS) + 1;
+              const isYellowDivider = column === FIRST_SECTION_COLUMNS;
               const isRedDivider =
-                column === FIRST_SECTION_COLUMNS + SECOND_SECTION_COLUMNS - 1;
+                column === FIRST_SECTION_COLUMNS + SECOND_SECTION_COLUMNS;
               const isGreenDivider =
-                column === FIRST_SECTION_COLUMNS + SECOND_SECTION_COLUMNS + THIRD_SECTION_COLUMNS - 1;
+                column === FIRST_SECTION_COLUMNS + SECOND_SECTION_COLUMNS + THIRD_SECTION_COLUMNS;
+              const structure = getStructureAt(column, row);
+              const isStructureCenter = structure?.centerColumn === column && structure?.centerRow === row;
+              const isConveyor = CONVEYOR_CELLS.has(`${column},${row}`);
 
               const cellClassName = [
                 "tycoon3-cell",
                 isYellowDivider && "tycoon3-divider-yellow",
                 isRedDivider && "tycoon3-divider-red",
                 isGreenDivider && "tycoon3-divider-green",
+                structure?.className,
+                isConveyor && "tycoon3-conveyor",
               ].filter(Boolean).join(" ");
 
               return (
                 <div
                   className={cellClassName}
                   key={index}
-                  aria-label={`Column ${column + 1}, Row ${(index % MAP_ROWS) + 1}`}
-                />
+                  aria-label={`Column ${column}, Row ${row}${structure ? `, ${structure.name}` : isConveyor ? ", conveyor moving left" : ""}`}
+                >
+                  {isStructureCenter && <span className="tycoon3-structure-label">{structure.name}</span>}
+                  {isConveyor && <span className="tycoon3-conveyor-arrow">←</span>}
+                </div>
               );
             })}
           </div>
@@ -129,6 +156,56 @@ export default function GemsTycoon3Page() {
         }
         .tycoon3-divider-green {
           border-right: 4px solid #22c55e;
+        }
+        .tycoon3-factory {
+          background: linear-gradient(145deg, #92400e, #f59e0b 52%, #78350f);
+          border: 1px solid #fbbf24;
+          box-shadow: inset 0 0 0 1px #fff3, inset 0 0 10px #0008;
+          position: relative;
+          z-index: 1;
+        }
+        .tycoon3-bank {
+          background: linear-gradient(145deg, #334155, #94a3b8 52%, #1e293b);
+          border: 1px solid #cbd5e1;
+          box-shadow: inset 0 0 0 1px #fff5, inset 0 0 10px #0008;
+          position: relative;
+          z-index: 1;
+        }
+        .tycoon3-structure-label {
+          display: flex;
+          width: 100%;
+          height: 100%;
+          align-items: center;
+          justify-content: center;
+          color: #fff;
+          font-size: clamp(7px, 0.75vw, 11px);
+          font-weight: 900;
+          text-align: center;
+          text-shadow: 0 1px 3px #000;
+          pointer-events: none;
+        }
+        .tycoon3-conveyor {
+          background: repeating-linear-gradient(
+            90deg,
+            #475569 0,
+            #64748b 5px,
+            #334155 10px,
+            #475569 15px
+          );
+          box-shadow: inset 0 1px 2px #fff5, inset 0 -2px 3px #0009;
+          position: relative;
+        }
+        .tycoon3-conveyor-arrow {
+          display: flex;
+          width: 100%;
+          height: 100%;
+          align-items: center;
+          justify-content: center;
+          color: #f8fafc;
+          font-size: clamp(10px, 1.1vw, 16px);
+          font-weight: 900;
+          text-shadow: 0 1px 3px #000;
+          pointer-events: none;
         }
         .tycoon-map-footer {
           position: fixed;
