@@ -26,7 +26,34 @@ const YELLOW_CENTERS: Array<[number, number]> = [
   [8, 50],
 ];
 
-// Blue cells are exact column/row ranges. Blue takes priority where colors overlap.
+
+// Red and green cells are exact column spans on the specified row.
+const RED_RANGES: Array<[number, number, number]> = [
+  [5, 7, 17],
+  [2, 3, 25],
+  [10, 11, 25],
+  [5, 6, 38],
+  [13, 14, 38],
+  [9, 11, 46],
+];
+
+const GREEN_RANGES: Array<[number, number, number]> = [
+  [9, 11, 17],
+  [5, 6, 25],
+  [13, 14, 25],
+  [2, 3, 38],
+  [10, 11, 38],
+  [5, 7, 46],
+];
+
+function isInRanges(column: number, row: number, ranges: Array<[number, number, number]>) {
+  return ranges.some(
+    ([startColumn, endColumn, targetRow]) =>
+      row === targetRow && column >= startColumn && column <= endColumn
+  );
+}
+
+// Blue cells are exact column/row ranges. Blue takes priority over yellow.
 const BLUE_RANGES: Array<[number, number, number]> = [
   [8, 5, 6],
   [8, 10, 11],
@@ -100,6 +127,8 @@ export default function GemsTycoonCopyPage() {
         {Array.from({ length: COLUMNS * ROWS }, (_, index) => {
           const column = (index % COLUMNS) + 1;
           const row = Math.floor(index / COLUMNS) + 1;
+          const red = isInRanges(column, row, RED_RANGES);
+          const green = isInRanges(column, row, GREEN_RANGES);
           const blue = isBlueCell(column, row);
           const yellow = isYellowCell(column, row);
 
@@ -113,7 +142,7 @@ export default function GemsTycoonCopyPage() {
                 aspectRatio: "1 / 1",
                 borderRight: "1px solid #52627a",
                 borderBottom: "1px solid #52627a",
-                background: blue ? "#2563EB" : yellow ? "#FFD700" : "#172238",
+                background: red ? "#EF4444" : green ? "#22C55E" : blue ? "#2563EB" : yellow ? "#FFD700" : "#172238",
               }}
             />
           );
