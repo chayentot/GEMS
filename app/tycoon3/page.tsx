@@ -199,16 +199,20 @@ export default function GemsTycoon3Page() {
     const factory = PROCESSING_FACTORIES.find((item) => item.name === factoryName);
     if (!factory || state.runs[factoryName]?.active) return false;
     const availableResources = factory.centerColumn === 38 ? state.bank1 : state.bank2;
-    return availableResources >= 2;
+    return availableResources >= 120;
   };
 
   const startProcessingFactory = (factoryName: string) => {
-    // Re-check the bank balance inside the state update so a stale button
-    // render or another running factory cannot start production without inputs.
+    // Reserve all 120 required materials at start so concurrent factories
+    // cannot spend the same bank balance.
     setGame((current) => {
       if (!canStartProcessingFactory(factoryName, current)) return current;
+      const factory = PROCESSING_FACTORIES.find((item) => item.name === factoryName);
+      if (!factory) return current;
+      const bankKey = factory.centerColumn === 38 ? "bank1" : "bank2";
       return {
         ...current,
+        [bankKey]: current[bankKey] - 120,
         runs: { ...current.runs, [factoryName]: { remaining: 60, active: true } },
       };
     });
@@ -225,12 +229,6 @@ export default function GemsTycoon3Page() {
           const run = next.runs[factory.name];
           if (!run?.active) continue;
           const isNebuliteFactory = factory.centerColumn === 38;
-          const bankKey = isNebuliteFactory ? "bank1" : "bank2";
-          if (next[bankKey] < 2) {
-            next.runs[factory.name] = { ...run, active: false };
-            continue;
-          }
-          next[bankKey] -= 2;
           const inputPath = inputPathForFactory(factory.name);
           const outputPath = outputPathForFactory(factory.name);
           const inputKind = isNebuliteFactory ? "star-input" : "nebulite-input";
@@ -372,10 +370,10 @@ export default function GemsTycoon3Page() {
                   onClick={() => startProcessingFactory(factory.name)}
                   disabled={!canStart}
                   aria-disabled={!canStart}
-                  aria-label={run?.active ? `${factory.name}, ${run.remaining} seconds remaining` : canStart ? `Start ${factory.name} for 60 seconds` : `${factory.name} locked: requires 2 resources in its input bank`}
-                  title={run?.active ? `${run.remaining}s remaining` : canStart ? `Start ${factory.name}` : `Requires 2 ${factory.centerColumn === 38 ? "Star Crystals in Bank 1" : "Nebulite Stones in Bank 2"}`}
+                  aria-label={run?.active ? `${factory.name}, ${run.remaining} seconds remaining` : canStart ? `Start ${factory.name} for 60 seconds` : `${factory.name} locked: requires 120 resources in its input bank`}
+                  title={run?.active ? `${run.remaining}s remaining` : canStart ? `Start ${factory.name}` : `Requires 120 ${factory.centerColumn === 38 ? "Star Crystals in Bank 1" : "Nebulite Stones in Bank 2"}`}
                 >
-                  {run?.active ? `${run.remaining}s` : canStart ? "PLAY" : "NEED 2"}
+                  {run?.active ? `${run.remaining}s` : canStart ? "PLAY" : "NEED 120"}
                 </button>
               );
             })}
