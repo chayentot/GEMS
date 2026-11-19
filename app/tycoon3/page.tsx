@@ -3,6 +3,9 @@
 import Link from "next/link";
 import ProfileMenu from "@/components/profile-menu";
 
+const MAP_ROWS = 24;
+const START_COLUMNS = 24;
+
 export default function GemsTycoon3Page() {
   return (
     <main className="shell tycoon3-shell">
@@ -21,7 +24,18 @@ export default function GemsTycoon3Page() {
       </header>
 
       <div className="tycoon3-map-space">
-        <section className="tycoon3-map-section" aria-label="3rd Map section" />
+        <section className="tycoon3-map-section" aria-label="3rd Map grid">
+          <div className="tycoon3-grid">
+            {Array.from({ length: START_COLUMNS }, (_, colIndex) =>
+              Array.from({ length: MAP_ROWS }, (_, rowIndex) => (
+                <div className="tycoon3-cell" key={`${colIndex + 1}-${rowIndex + 1}`} title={`Column ${colIndex + 1}, Row ${rowIndex + 1}`}>
+                  <span>C{colIndex + 1}</span>
+                  <span>R{rowIndex + 1}</span>
+                </div>
+              ))
+            )}
+          </div>
+        </section>
       </div>
 
       <footer className="tycoon-map-footer" aria-label="Tycoon map navigation">
@@ -54,18 +68,47 @@ export default function GemsTycoon3Page() {
           flex: 1 1 auto;
           min-height: 0;
           display: flex;
-          justify-content: center;
           align-items: stretch;
         }
         .tycoon3-map-section {
           width: 100%;
+          min-width: 0;
           min-height: 0;
           flex: 1 1 auto;
-          display: grid;
-          grid-template-rows: repeat(24, minmax(0, 1fr));
+          overflow-x: auto;
+          overflow-y: hidden;
           border: 1px solid #334155;
           border-radius: 14px;
           background: rgba(17, 28, 46, 0.45);
+          scrollbar-color: #64748b #111c2e;
+          scrollbar-width: thin;
+        }
+        .tycoon3-grid {
+          display: grid;
+          width: max-content;
+          height: 100%;
+          grid-auto-flow: column;
+          grid-template-rows: repeat(24, minmax(0, 1fr));
+          grid-auto-columns: calc((100dvh - 206px) / 24);
+        }
+        .tycoon3-cell {
+          min-width: 0;
+          min-height: 0;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          gap: 1px;
+          border-right: 1px solid #64748b88;
+          border-bottom: 1px solid #64748b88;
+          background: #15223855;
+          color: #9fb0c8;
+          font-size: clamp(7px, .65vw, 10px);
+          line-height: 1.1;
+          user-select: none;
+        }
+        .tycoon3-cell:nth-child(24n + 1) {
+          border-top: 1px solid #64748b88;
         }
         .tycoon-map-footer {
           position: fixed;
@@ -98,25 +141,17 @@ export default function GemsTycoon3Page() {
           background: #1e293b;
           transition: background .18s ease, color .18s ease;
         }
-        .tycoon-map-tab:hover {
-          background: #334155;
-          color: #fff;
-        }
-        .tycoon-map-tab.active {
-          color: #172238;
-          background: #facc15;
-        }
+        .tycoon-map-tab:hover { background: #334155; color: #fff; }
+        .tycoon-map-tab.active { color: #172238; background: #facc15; }
         @media (max-width: 760px) {
           .tycoon3-shell {
             width: calc(100% - 20px);
             padding-top: 174px;
             padding-bottom: 96px;
           }
-          .tycoon3-topbar {
-            top: 8px;
-            width: calc(100% - 20px);
-          }
-          .tycoon3-map-section { width: 100%; }
+          .tycoon3-topbar { top: 8px; width: calc(100% - 20px); }
+          .tycoon3-grid { grid-auto-columns: calc((100dvh - 272px) / 24); }
+          .tycoon3-cell { font-size: 7px; }
           .tycoon-map-footer {
             bottom: 8px;
             width: calc(100% - 20px);
@@ -126,12 +161,9 @@ export default function GemsTycoon3Page() {
           .tycoon-map-tab { min-height: 42px; font-size: 12px; }
         }
         @media (max-width: 420px) {
-          .tycoon3-shell {
-            width: calc(100% - 16px);
-            padding-top: 170px;
-          }
-          .tycoon3-topbar { width: calc(100% - 16px); }
-          .tycoon-map-footer { width: calc(100% - 16px); }
+          .tycoon3-shell { width: calc(100% - 16px); padding-top: 170px; }
+          .tycoon3-topbar, .tycoon-map-footer { width: calc(100% - 16px); }
+          .tycoon3-grid { grid-auto-columns: calc((100dvh - 268px) / 24); }
         }
       `}</style>
     </main>
