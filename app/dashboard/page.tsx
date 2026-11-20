@@ -8,7 +8,7 @@ import ProfileMenu from "@/components/profile-menu";
 
 type Gemstone={id:string;code:string;name:string};
 type Inventory={id:string;gemstone_id:string;level:number;gemstone_units_balance:number;is_active:boolean;is_unlocked:boolean;gemstones:Gemstone};
-type Wallet={gems_balance:number;diamonds_balance:number};
+type Wallet={gems_balance:number;gold_balance:number;diamonds_balance:number};
 const order=["GARNET","MOONSTONE","BLACK_OPAL","AQUAMARINE","TOPAZ","AMETHYST","EMERALD","SAPPHIRE","RUBY","DIAMOND"];
 const fmt=(n:number)=>Number(n||0).toLocaleString(undefined,{maximumFractionDigits:8});
 
@@ -19,7 +19,7 @@ export default function Dashboard(){
   const sb=createClient();const {data:{user},error:authError}=await sb.auth.getUser();
   if(authError||!user){window.location.href="/GEMS/login/";return;}
   const [w,i]=await Promise.all([
-   sb.from("wallets").select("gems_balance,diamonds_balance").eq("user_id",user.id).maybeSingle(),
+   sb.from("wallets").select("gems_balance,gold_balance,diamonds_balance").eq("user_id",user.id).maybeSingle(),
    sb.from("player_gemstones").select("id,gemstone_id,level,gemstone_units_balance,is_active,is_unlocked,gemstones(id,code,name)").eq("user_id",user.id)
   ]);
   if(w.error||i.error){setStatus(w.error?.message||i.error?.message||"Unable to load account.");return;}
@@ -43,6 +43,7 @@ export default function Dashboard(){
   {status&&<div className="notice">{status}</div>}
   <section className="grid section">
    <div className="panel"><div className="muted">GEMS balance</div><div className="stat">{fmt(wallet?.gems_balance??0)} GEMS</div><div className="small">₱1 accounting value per GEMS</div></div>
+   <div className="panel"><div className="muted">Main Gold balance</div><div className="stat">{fmt(wallet?.gold_balance??0)} Gold</div><div className="small">Separate from Map 3 Gold</div></div>
    <div className="panel"><div className="muted">Diamonds balance</div><div className="stat">{fmt(wallet?.diamonds_balance??0)}</div><div className="small">Separate wallet balance</div></div>
    <div className="panel"><div className="muted">Gemstones collected</div><div className="stat">{inventory.length} / 10</div><div className="small">Your owned gemstones</div></div>
   </section>
