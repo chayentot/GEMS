@@ -630,16 +630,6 @@ export default function GemsTycoon3Page() {
             })}
             <button
               type="button"
-              className="tycoon3-trade-button"
-              style={{ gridColumn: "13 / span 3", gridRow: "2 / span 3" }}
-              onClick={() => { void loadGoldWallets(); setTradeOpen(true); }}
-              aria-label="Open Map 3 Trade and Gold Wallet"
-              title="Trade and Gold Wallet"
-            >
-              TRADE
-            </button>
-            <button
-              type="button"
               className="tycoon3-play-button"
               style={{ gridColumn: 19, gridRow: 10 }}
               onClick={startFactory}
@@ -775,13 +765,22 @@ export default function GemsTycoon3Page() {
       )}
 
       <footer className="tycoon-map-footer" aria-label="Tycoon map navigation">
-        <Link href="/tycoon/" className="tycoon-map-tab">1st Map</Link>
+        <button type="button" className="tycoon-map-tab" onClick={() => { void loadGoldWallets(); setTradeOpen(true); }}>Trade</button>
         <Link href="/tycoon2/" className="tycoon-map-tab">2nd Map</Link>
         <Link href="/tycoon3/" className="tycoon-map-tab active" aria-current="page">3rd Map</Link>
       </footer>
 
       <style jsx>{`
-        .tycoon3-trade-button { grid-column: 13 / span 3; grid-row: 2 / span 3; z-index: 10; color: #172554; border-color: #fde68a; background: linear-gradient(145deg,#fef08a,#eab308); font-size: clamp(9px,1vw,14px); }\n        .tycoon3-trade-backdrop { position: fixed; inset: 0; z-index: 300; display: flex; align-items: center; justify-content: center; padding: 16px; background: #020617cc; }\n        .tycoon3-trade-panel { width: min(560px,100%); max-height: min(88dvh,820px); overflow-y: auto; padding: 20px; border: 1px solid #64748b; border-radius: 16px; background: #111c2e; color: #f8fafc; box-shadow: 0 20px 60px #000a; }\n        .tycoon3-wallet-cards,.tycoon3-rate-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 8px; margin: 12px 0; }\n        .tycoon3-wallet-cards div,.tycoon3-rate-grid div { display:flex; justify-content:space-between; gap:8px; padding:10px; border:1px solid #475569; border-radius:8px; background:#1e293b; }\n        .tycoon3-wallet-cards div { flex-direction:column; }\n        .tycoon3-wallet-cards strong { color:#fde68a; font-size:20px; }\n        .tycoon3-rate-grid { grid-template-columns:1fr; }\n        .tycoon3-rate-grid strong { color:#fde68a; white-space:nowrap; }\n        .tycoon3-trade-panel label { display:block; margin:12px 0 6px; }\n        .tycoon3-trade-panel input { width:100%; padding:10px; border-radius:8px; border:1px solid #64748b; background:#0f172a; color:#fff; }\n        .tycoon3-trade-panel button { padding:9px 12px; border-radius:8px; border:0; background:#facc15; color:#172554; font-weight:800; cursor:pointer; }\n        .tycoon3-trade-panel button.secondary { background:#334155; color:#fff; }\n        .tycoon3-trade-panel button:disabled { opacity:.5; cursor:not-allowed; }\n        .tycoon3-shell {
+        .tycoon3-trade-backdrop { position: fixed; inset: 0; z-index: 300; display: flex; align-items: center; justify-content: center; padding: 16px; background: #020617cc; }\n        .tycoon3-trade-panel { width: min(760px,100%); max-height: min(88dvh,820px); overflow-y: auto; padding: clamp(12px,2.5vw,24px); border: 1px solid #64748b; border-radius: 16px; background: #111c2e; color: #f8fafc; box-shadow: 0 20px 60px #000a; }
+        .tycoon3-trade-panel h2 { font-size: clamp(18px,3vw,24px); }
+        .tycoon3-trade-panel h3 { margin: 18px 0 6px; }
+        .tycoon3-trade-panel .row { flex-wrap: wrap; }
+        .tycoon3-wallet-cards { grid-template-columns: repeat(2,minmax(0,1fr)); }
+        .tycoon3-rate-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+        .tycoon3-rate-grid div { align-items: center; min-width: 0; }
+        .tycoon3-rate-grid span { overflow-wrap: anywhere; }
+        .tycoon3-trade-panel button { min-height: 40px; }
+        .tycoon-map-tab { border: 0; cursor: pointer; font: inherit; }\n        .tycoon3-wallet-cards,.tycoon3-rate-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 8px; margin: 12px 0; }\n        .tycoon3-wallet-cards div,.tycoon3-rate-grid div { display:flex; justify-content:space-between; gap:8px; padding:10px; border:1px solid #475569; border-radius:8px; background:#1e293b; }\n        .tycoon3-wallet-cards div { flex-direction:column; }\n        .tycoon3-wallet-cards strong { color:#fde68a; font-size:20px; }\n        .tycoon3-rate-grid { grid-template-columns:1fr; }\n        .tycoon3-rate-grid strong { color:#fde68a; white-space:nowrap; }\n        .tycoon3-trade-panel label { display:block; margin:12px 0 6px; }\n        .tycoon3-trade-panel input { width:100%; padding:10px; border-radius:8px; border:1px solid #64748b; background:#0f172a; color:#fff; }\n        .tycoon3-trade-panel button { padding:9px 12px; border-radius:8px; border:0; background:#facc15; color:#172554; font-weight:800; cursor:pointer; }\n        .tycoon3-trade-panel button.secondary { background:#334155; color:#fff; }\n        .tycoon3-trade-panel button:disabled { opacity:.5; cursor:not-allowed; }\n        .tycoon3-shell {
           width: min(1180px, calc(100% - 40px));
           height: 100vh;
           height: 100dvh;
@@ -1089,6 +1088,10 @@ export default function GemsTycoon3Page() {
         .tycoon-map-tab:hover { background: #334155; color: #fff; }
         .tycoon-map-tab.active { color: #172238; background: #facc15; }
         @media (max-width: 760px) {
+          .tycoon3-trade-backdrop { padding: 8px; align-items: flex-end; }
+          .tycoon3-trade-panel { width: 100%; max-height: 92dvh; border-radius: 16px 16px 10px 10px; }
+          .tycoon3-wallet-cards,.tycoon3-rate-grid { grid-template-columns: 1fr; }
+          .tycoon3-wallet-cards div { flex-direction: row; align-items: center; }
           .tycoon3-shell {
             width: calc(100% - 20px);
             padding-top: 174px;
