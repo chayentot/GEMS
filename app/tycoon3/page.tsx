@@ -796,9 +796,13 @@ export default function GemsTycoon3Page() {
           left: 50%;
           transform: translateX(-50%);
           z-index: 100;
+          box-sizing: border-box;
           width: min(1180px, calc(100% - 40px));
           margin: 0;
+          padding: 13px 16px 13px 20px;
         }
+        .tycoon3-topbar nav.row { gap: 5px; }
+        .tycoon3-topbar nav.row a { padding: 10px 13px; }
         .tycoon3-map-space {
           flex: 1 1 auto;
           min-height: 0;
