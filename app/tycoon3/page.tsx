@@ -630,6 +630,16 @@ export default function GemsTycoon3Page() {
             })}
             <button
               type="button"
+              className="tycoon3-trade-button"
+              style={{ gridColumn: "13 / span 3", gridRow: "2 / span 3" }}
+              onClick={() => { void loadGoldWallets(); setTradeOpen(true); }}
+              aria-label="Open Map 3 Trade and Gold Wallet"
+              title="Trade and Gold Wallet"
+            >
+              TRADE
+            </button>
+            <button
+              type="button"
               className="tycoon3-play-button"
               style={{ gridColumn: 19, gridRow: 10 }}
               onClick={startFactory}
