@@ -7,7 +7,7 @@ import ProfileMenu from "@/components/profile-menu";
 
 type Gemstone = { id:string; code:string; name:string; units_per_gems:number; is_available:boolean };
 type Inventory = { id:string; gemstone_id:string; level:number; gemstone_units_balance:number; gemstones:Gemstone };
-type Wallet = { gems_balance:number };
+type Wallet = { gems_balance:number; gold_balance:number };
 const order=["GARNET","MOONSTONE","BLACK_OPAL","AQUAMARINE","TOPAZ","AMETHYST","EMERALD","SAPPHIRE","RUBY","DIAMOND"];
 const colors:Record<string,string>={GARNET:"#c83b54",MOONSTONE:"#b8c8dc",BLACK_OPAL:"#6e5bb5",AQUAMARINE:"#39c8c5",TOPAZ:"#e9ad45",AMETHYST:"#a779dc",EMERALD:"#39b879",SAPPHIRE:"#3988dc",RUBY:"#e34451",DIAMOND:"#dce9f4"};
 const fmt=(n:number)=>Number(n||0).toLocaleString(undefined,{maximumFractionDigits:8});
@@ -25,6 +25,8 @@ function GemArt({code}:{code:string}) {
 export default function MarketPage() {
  const [email,setEmail]=useState("");
  const [wallet,setWallet]=useState<Wallet|null>(null);
+ const [goldAmount,setGoldAmount]=useState("1");
+ const [goldBusy,setGoldBusy]=useState(false);
  const [catalog,setCatalog]=useState<Gemstone[]>([]);
  const [inventory,setInventory]=useState<Inventory[]>([]);
  const [buyGem,setBuyGem]=useState("");
@@ -41,7 +43,7 @@ export default function MarketPage() {
   if(authError||!user){window.location.href="/GEMS/login/";return;}
   setEmail(user.email??"");
   const [w,g,i]=await Promise.all([
-   supabase.from("wallets").select("gems_balance").eq("user_id",user.id).maybeSingle(),
+   supabase.from("wallets").select("gems_balance,gold_balance").eq("user_id",user.id).maybeSingle(),
    supabase.from("gemstones").select("id,code,name,units_per_gems,is_available").eq("is_available",true),
    supabase.from("player_gemstones").select("id,gemstone_id,level,gemstone_units_balance,gemstones(id,code,name,units_per_gems,is_available)").eq("user_id",user.id)
   ]);
@@ -59,6 +61,20 @@ export default function MarketPage() {
  const selectedSell=inventory.find(g=>g.id===sellInventory);
  const buyUnits=useMemo(()=>Math.max(0,Number(buyAmount)||0)*(selectedBuy?.units_per_gems||0)*0.95,[buyAmount,selectedBuy]);
  const sellNet=useMemo(()=>Math.max(0,Number(sellUnits)||0)/(selectedSell?.gemstones?.units_per_gems||1)*0.95,[sellUnits,selectedSell]);
+
+ async function goldTrade(fn:"gold_market_buy"|"gold_market_sell") {
+  setGoldBusy(true);setStatus("");
+  try {
+   const {data,error}=await createClient().rpc(fn,{[fn==="gold_market_buy"?"p_gems_amount":"p_gold_amount"]:Number(goldAmount)});
+   if(error)throw error;
+   const result=data as Record<string,unknown>;
+   setStatus(fn==="gold_market_buy"
+    ? `Gold purchase successful. ${fmt(Number(result.gold_received))} Gold added to your main wallet.`
+    : `Gold sold successfully. ${fmt(Number(result.gems_received))} GEMS added to your wallet.`);
+   await load();
+  } catch(e) {setStatus(e instanceof Error?e.message:"Gold transaction failed.");}
+  finally {setGoldBusy(false);}
+ }
 
  async function trade(fn:"market_buy_gemstone"|"market_sell_gemstone",args:Record<string,unknown>) {
   setBusy(true);setStatus("");
@@ -78,7 +94,8 @@ export default function MarketPage() {
  return <main className="shell">
   <header className="topbar"><Link href="/" className="brand">💎 GEMS MINING</Link><nav className="row"><Link href="/dashboard/">Dashboard</Link><Link href="/mining/">Mining</Link><Link href="/tycoon/">Gems Tycoon</Link><Link href="/tycoon2/">Gems Tycoon 2</Link><Link href="/tycoon3/">Gems Tycoon 3</Link><Link href="/referral/">Referral</Link><Link href="/market/" aria-current="page">Market</Link><ProfileMenu /></nav></header>
   <div><h1>GEMS Market</h1><p className="muted">Buy and sell gemstone units, or review the current platform exchange rates.</p></div>
-  <section className="panel section row"><div><div className="muted">Available GEMS</div><div className="stat">{fmt(wallet?.gems_balance??0)} GEMS</div></div><div className="small">A 5% market fee applies to both buying and selling.</div></section>
+  <section className="panel section row"><div><div className="muted">Available GEMS</div><div className="stat">{fmt(wallet?.gems_balance??0)} GEMS</div></div><div className="small">A 5% market fee applies to both buying and selling.</div><div><div className="muted">Main Gold</div><div className="stat">{fmt(wallet?.gold_balance??0)} Gold</div></div></section>
+  <section className="panel section"><h2>Gold Market</h2><p className="small">1 Gold = 1 GEMS before fees. Buy and sell Gold using your main wallet. A 5% fee applies to both directions.</p><label>Amount</label><input type="number" min="0.00000001" step="0.00000001" value={goldAmount} onChange={e=>setGoldAmount(e.target.value)}/><div className="row"><span className="small">Buy: Gold received after 5% fee</span><strong>{fmt(Math.max(0,Number(goldAmount)||0)*0.95)} Gold</strong></div><div className="row"><span className="small">Sell: GEMS received after 5% fee</span><strong>{fmt(Math.max(0,Number(goldAmount)||0)*0.95)} GEMS</strong></div><div className="row"><button disabled={goldBusy||Number(goldAmount)<=0||Number(goldAmount)>(wallet?.gems_balance??0)} onClick={()=>goldTrade("gold_market_buy")}>{goldBusy?"Please wait…":"Buy Gold with GEMS"}</button><button className="secondary" disabled={goldBusy||Number(goldAmount)<=0||Number(goldAmount)>(wallet?.gold_balance??0)} onClick={()=>goldTrade("gold_market_sell")}>Sell Gold for GEMS</button></div></section>
   {status&&<div className="notice section">{status}</div>}
   <div className="profile-tabs" role="tablist" aria-label="Market sections">
    <button type="button" role="tab" aria-selected={activeTab==="buy"} className={activeTab==="buy"?"profile-tab active":"profile-tab"} onClick={()=>setActiveTab("buy")}>Buy Gemstone</button>
