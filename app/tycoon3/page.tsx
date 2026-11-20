@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import ProfileMenu from "@/components/profile-menu";
+import { createClient } from "@/lib/supabase";
 import { useEffect, useRef, useState } from "react";
 
 const MAP_ROWS = 24;
@@ -277,6 +278,13 @@ function getStructureAt(column: number, row: number) {
 
 export default function GemsTycoon3Page() {
   const [isFactoryRunning, setIsFactoryRunning] = useState(false);
+  const [tradeOpen, setTradeOpen] = useState(false);
+  const [transferDirection, setTransferDirection] = useState<"deposit" | "withdraw">("deposit");
+  const [transferAmount, setTransferAmount] = useState("1");
+  const [mainGold, setMainGold] = useState(0);
+  const [map3Gold, setMap3Gold] = useState(0);
+  const [walletStatus, setWalletStatus] = useState("Loading Gold wallets…");
+  const [walletBusy, setWalletBusy] = useState(false);
   const [remainingSeconds, setRemainingSeconds] = useState(60);
   const [starCrystals, setStarCrystals] = useState<{ id: number; step: number }[]>([]);
   const nextCrystalId = useRef(0);
@@ -693,6 +701,36 @@ export default function GemsTycoon3Page() {
         </section>
       </div>
 
+      {tradeOpen && (
+        <div className="tycoon3-trade-backdrop" role="presentation" onClick={() => setTradeOpen(false)}>
+          <section className="tycoon3-trade-panel" role="dialog" aria-modal="true" aria-labelledby="tycoon3-trade-title" onClick={(event) => event.stopPropagation()}>
+            <div className="row" style={{ justifyContent: "space-between" }}>
+              <h2 id="tycoon3-trade-title">Map 3 Trade & Gold Wallet</h2>
+              <button type="button" className="secondary" onClick={() => setTradeOpen(false)}>Close</button>
+            </div>
+            <div className="tycoon3-wallet-cards">
+              <div><small>Main Wallet Gold</small><strong>{mainGold.toLocaleString(undefined,{maximumFractionDigits:4})}</strong></div>
+              <div><small>Map 3 Gold</small><strong>{map3Gold.toLocaleString(undefined,{maximumFractionDigits:4})}</strong></div>
+            </div>
+            <p className="small">Gold is separate between wallets. Transfers have a 3% fee; the amount entered is deducted from the sending wallet and 97% is credited to the receiving wallet.</p>
+            <div className="row">
+              <button type="button" className={transferDirection==="deposit"?"":"secondary"} onClick={() => setTransferDirection("deposit")}>Deposit</button>
+              <button type="button" className={transferDirection==="withdraw"?"":"secondary"} onClick={() => setTransferDirection("withdraw")}>Withdraw</button>
+            </div>
+            <label>{transferDirection==="deposit"?"Main Wallet → Map 3":"Map 3 → Main Wallet"} Gold amount</label>
+            <input type="number" min="0.00000001" step="0.00000001" value={transferAmount} onChange={(event) => setTransferAmount(event.target.value)} />
+            <div className="small">Fee: {(Math.max(0,Number(transferAmount)||0)*0.03).toLocaleString(undefined,{maximumFractionDigits:8})} Gold · You receive: {(Math.max(0,Number(transferAmount)||0)*0.97).toLocaleString(undefined,{maximumFractionDigits:8})} Gold</div>
+            <button type="button" disabled={walletBusy || Number(transferAmount)<=0 || Number(transferAmount)>(transferDirection==="deposit"?mainGold:map3Gold)} onClick={transferGold}>{walletBusy?"Processing…":transferDirection==="deposit"?"Deposit Gold to Map 3":"Withdraw Gold to Main Wallet"}</button>
+            {walletStatus && <p className="small">{walletStatus}</p>}
+            <h3>Gemstone Trade Rates</h3>
+            <p className="small">Suggested base rates per gemstone. Trade inventory conversion is not yet connected to the Map 3 production banks.</p>
+            <div className="tycoon3-rate-grid">
+              {GEMSTONE_LOGOS.map((gem,index)=><div key={gem.name}><span>{gem.name}</span><strong>{[1,2,3,5,10,20,40,80,160,320][index]} Gold</strong></div>)}
+            </div>
+          </section>
+        </div>
+      )}
+
       <footer className="tycoon-map-footer" aria-label="Tycoon map navigation">
         <Link href="/tycoon/" className="tycoon-map-tab">1st Map</Link>
         <Link href="/tycoon2/" className="tycoon-map-tab">2nd Map</Link>
@@ -700,7 +738,7 @@ export default function GemsTycoon3Page() {
       </footer>
 
       <style jsx>{`
-        .tycoon3-shell {
+        .tycoon3-trade-button { grid-column: 13 / span 3; grid-row: 2 / span 3; z-index: 10; color: #172554; border-color: #fde68a; background: linear-gradient(145deg,#fef08a,#eab308); font-size: clamp(9px,1vw,14px); }\n        .tycoon3-trade-backdrop { position: fixed; inset: 0; z-index: 300; display: flex; align-items: center; justify-content: center; padding: 16px; background: #020617cc; }\n        .tycoon3-trade-panel { width: min(560px,100%); max-height: min(88dvh,820px); overflow-y: auto; padding: 20px; border: 1px solid #64748b; border-radius: 16px; background: #111c2e; color: #f8fafc; box-shadow: 0 20px 60px #000a; }\n        .tycoon3-wallet-cards,.tycoon3-rate-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 8px; margin: 12px 0; }\n        .tycoon3-wallet-cards div,.tycoon3-rate-grid div { display:flex; justify-content:space-between; gap:8px; padding:10px; border:1px solid #475569; border-radius:8px; background:#1e293b; }\n        .tycoon3-wallet-cards div { flex-direction:column; }\n        .tycoon3-wallet-cards strong { color:#fde68a; font-size:20px; }\n        .tycoon3-rate-grid { grid-template-columns:1fr; }\n        .tycoon3-rate-grid strong { color:#fde68a; white-space:nowrap; }\n        .tycoon3-trade-panel label { display:block; margin:12px 0 6px; }\n        .tycoon3-trade-panel input { width:100%; padding:10px; border-radius:8px; border:1px solid #64748b; background:#0f172a; color:#fff; }\n        .tycoon3-trade-panel button { padding:9px 12px; border-radius:8px; border:0; background:#facc15; color:#172554; font-weight:800; cursor:pointer; }\n        .tycoon3-trade-panel button.secondary { background:#334155; color:#fff; }\n        .tycoon3-trade-panel button:disabled { opacity:.5; cursor:not-allowed; }\n        .tycoon3-shell {
           width: min(1180px, calc(100% - 40px));
           height: 100vh;
           height: 100dvh;
