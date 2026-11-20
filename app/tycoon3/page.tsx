@@ -819,12 +819,13 @@ export default function GemsTycoon3Page() {
           scrollbar-width: thin;
         }
         .tycoon3-grid {
+          --tycoon3-cell-size: calc((100dvh - 206px) / 24);
           display: grid;
           width: max-content;
-          height: 100%;
+          height: calc(var(--tycoon3-cell-size) * 24);
           grid-auto-flow: column;
-          grid-template-rows: repeat(24, minmax(0, 1fr));
-          grid-auto-columns: calc((100dvh - 206px) / 24);
+          grid-template-rows: repeat(24, var(--tycoon3-cell-size));
+          grid-auto-columns: var(--tycoon3-cell-size);
         }
         .tycoon3-cell {
           min-width: 0;
@@ -1098,7 +1099,7 @@ export default function GemsTycoon3Page() {
             padding-bottom: 96px;
           }
           .tycoon3-topbar { top: 8px; width: calc(100% - 20px); }
-          .tycoon3-grid { grid-auto-columns: calc((100dvh - 272px) / 24); }
+          .tycoon3-grid { --tycoon3-cell-size: calc((100dvh - 272px) / 24); }
           .tycoon-map-footer {
             bottom: 8px;
             width: calc(100% - 20px);
@@ -1110,7 +1111,7 @@ export default function GemsTycoon3Page() {
         @media (max-width: 420px) {
           .tycoon3-shell { width: calc(100% - 16px); padding-top: 170px; }
           .tycoon3-topbar, .tycoon-map-footer { width: calc(100% - 16px); }
-          .tycoon3-grid { grid-auto-columns: calc((100dvh - 268px) / 24); }
+          .tycoon3-grid { --tycoon3-cell-size: calc((100dvh - 268px) / 24); }
         }
       `}</style>
     </main>
