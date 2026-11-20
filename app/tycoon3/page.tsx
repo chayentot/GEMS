@@ -304,6 +304,39 @@ export default function GemsTycoon3Page() {
     nextMaterialId: 0,
   });
 
+  const loadGoldWallets = async () => {
+    try {
+      const supabase = createClient();
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      if (authError || !user) { setWalletStatus("Please sign in to use Map 3 Gold."); return; }
+      const [main, map] = await Promise.all([
+        supabase.from("wallets").select("gold_balance").eq("user_id", user.id).maybeSingle(),
+        supabase.from("tycoon3_wallets").select("gold_balance").eq("user_id", user.id).maybeSingle(),
+      ]);
+      if (main.error || map.error) throw main.error || map.error;
+      setMainGold(Number(main.data?.gold_balance ?? 0));
+      setMap3Gold(Number(map.data?.gold_balance ?? 0));
+      setWalletStatus("");
+    } catch (error) { setWalletStatus(error instanceof Error ? error.message : "Unable to load Gold wallets."); }
+  };
+  useEffect(() => { void loadGoldWallets(); }, []);
+
+  const transferGold = async () => {
+    setWalletBusy(true); setWalletStatus("");
+    try {
+      const amount = Number(transferAmount);
+      if (!Number.isFinite(amount) || amount <= 0) throw new Error("Enter a valid Gold amount.");
+      const { data, error } = await createClient().rpc("tycoon3_gold_transfer", {
+        p_direction: transferDirection, p_gold_amount: amount,
+      });
+      if (error) throw error;
+      const result = data as { fee: number; received: number };
+      setWalletStatus(`Transfer successful. Fee: ${Number(result.fee).toLocaleString()} Gold. Received: ${Number(result.received).toLocaleString()} Gold.`);
+      await loadGoldWallets();
+    } catch (error) { setWalletStatus(error instanceof Error ? error.message : "Gold transfer failed."); }
+    finally { setWalletBusy(false); }
+  };
+
   useEffect(() => {
     if (!isFactoryRunning) return;
     const timer = window.setInterval(() => {
